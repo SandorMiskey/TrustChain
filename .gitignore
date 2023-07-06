@@ -1,6 +1,7 @@
 bin
-storage
 doc/email
+env.sh
+storage
 
 # Created by https://www.toptal.com/developers/gitignore/api/go,vim,web,macos,linux,visualstudiocode,node
 # Edit at https://www.toptal.com/developers/gitignore?templates=go,vim,web,macos,linux,visualstudiocode,node

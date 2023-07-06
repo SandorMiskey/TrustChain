@@ -1,0 +1,95 @@
+{
+  "cSpell.words": [
+    "CCAAS",
+    "configtxgen",
+    "erba",
+    "fasthttprouter",
+    "getopt",
+    "instancelist",
+    "instanceregister",
+    "instanceroot",
+    "Loglevel",
+    "logspout",
+    "mgmt",
+    "multierr",
+    "Rasa",
+    "rasaexec",
+    "rasainit",
+    "rasaversion",
+    "sampleconfig",
+    "syslogd"
+  ],
+  "cSpell.ignoreWords": [
+    "Atoi",
+    "Cleartext",
+    "DOCKEREXEC",
+    "EMERG",
+    "Errorf",
+    "GOMAXPROCS",
+    "HTTPPORT",
+    "INFILE",
+    "Itoa",
+    "Lmsgprefix",
+    "SASC",
+    "Sdump",
+    "buaazp",
+    "davecgh",
+    "dbname",
+    "dgrijalva",
+    "etcdraft",
+    "expvar",
+    "fileflags",
+    "fileperm",
+    "gorm",
+    "libpq",
+    "mattn",
+    "mydb",
+    "namsral",
+    "nurl",
+    "peterbourgon",
+    "quux",
+    "sslcert",
+    "sslkey",
+    "sslmode",
+    "sslrootcert",
+    "stmnt",
+    "strconv",
+    "struct",
+    "swaggerapi",
+    "tecommercedev",
+    "trustone",
+    "valyala",
+    "wmenu"
+  ],
+  "editor.foldingStrategy": "auto",
+  "files.exclude": {
+    "**/*.fasthttp.gz": true,
+    "**/main.wasm": true
+  },
+  "html.format.enable": false
+  // "files.associations": {
+  // 	"*.gocc": "go",
+  // },
+  // "go.toolsEnvVars": {
+  // 	"GOARCH": "wasm",
+  // 	"GOOS": "js",
+  // },
+  // "go.testEnvVars": {
+
+  // 	"GOARCH": "wasm",
+  // 	"GOOS": "js",
+  // },
+  // "markdownlint.config": {
+  // 	"MD033": false,
+  // 	"MD040": false
+  // },
+  // "markdown.extension.print.theme": "dark",
+  // "markdown.extension.print.onFileSave": true,
+  // "[markdown]": {
+  // 	"editor.wordWrap": "wordWrapColumn",
+  // 	"editor.wordWrapColumn": 210
+  // },
+  // "gopls": {
+  // 	"build.directoryFilters": ["-cmd/shared"]
+  // },
+}
