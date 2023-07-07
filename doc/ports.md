@@ -1,34 +1,32 @@
 # Ports
 
-## metrics, management and monitoring: 5000 -> 5999
+## public: metrics, management and monitoring (5000 -> 5999)
 
-### couchdb
+### org1 (5800 -> 5899)
 
-#### org1
+* [TC_ORG1_G1_API=5800 (-> ORG1_G1:5800)](http://35.158.186.93:5800/_utils/#login)
 
-* [TC_ORG1_D1_PUBLIC=5801 (-> TC_ORG1_D1:5984)](http://35.158.186.93:5110/_utils/#login)
-* [TC_ORG1_D2_PUBLIC=5802 (-> TC_ORG1_D2:5984)](http://35.158.186.93:5110/_utils/#login)
-* [TC_ORG1_D3_PUBLIC=5803 (-> TC_ORG1_D3:5984)](http://35.158.186.93:5110/_utils/#login)
+* [TC_ORG1_D1_PUBLIC=5801 (-> TC_ORG1_D1:5984)](http://35.158.186.93:5801/_utils/#login)
+* [TC_ORG1_D2_PUBLIC=5802 (-> TC_ORG1_D2:5984)](http://35.158.186.93:5802/_utils/#login)
+* [TC_ORG1_D3_PUBLIC=5803 (-> TC_ORG1_D3:5984)](http://35.158.186.93:5803/_utils/#login)
 
-### org2
+### org2 (5900 -> 5999)
 
-* [TC_ORG2_D1_PUBLIC=5901 (-> TC_ORG2_D1:5984)](http://35.158.186.93:5110/_utils/#login)
-* [TC_ORG2_D3_PUBLIC=5902 (-> TC_ORG2_D2:5984)](http://35.158.186.93:5110/_utils/#login)
-* [TC_ORG2_D3_PUBLIC=5903 (-> TC_ORG2_D3:5984)](http://35.158.186.93:5110/_utils/#login)
+* [TC_ORG2_D1_PUBLIC=5901 (-> TC_ORG2_D1:5984)](http://35.158.186.93:5901/_utils/#login)
+* [TC_ORG2_D3_PUBLIC=5902 (-> TC_ORG2_D2:5984)](http://35.158.186.93:5902/_utils/#login)
+* [TC_ORG2_D3_PUBLIC=5903 (-> TC_ORG2_D3:5984)](http://35.158.186.93:5903/_utils/#login)
 
-## common infra: 6000 -> 6999
+## common infra (6000 -> 6999)
 
 * TC_TLSCA1_C1_PORT=6001
 
-## orderer1: 7000 -> 7999
+## orderer1 (7000 -> 7999)
 
 * TC_ORDERER1_C1_PORT=7001
 
-## org1: 8000 -> 8999
+## org1 (8000 -> 8999)
 
 * TC_ORG1_C1_PORT=8001
-
-### org1 peers 8100 -> 8999
 
 * TC_ORG1_P1_PORT=8101
 * TC_ORG1_P1_CHPORT=8102
@@ -42,11 +40,11 @@
 * TC_ORG1_P3_CHPORT=8302
 * TC_ORG1_P3_OPPORT=8303
 
-## org2: 9000 -> 9999
+* TC_ORG1_CLI1_*=TC_ORG1_P1_*
+
+## org2 (9000 -> 9999)
 
 * TC_ORG2_C1_PORT=9001
-
-### org2 peers 8100 -> 8999
 
 * TC_ORG2_P1_PORT=9101
 * TC_ORG2_P1_CHPORT=9102
@@ -59,3 +57,5 @@
 * TC_ORG2_P3_PORT=9301
 * TC_ORG2_P3_CHPORT=9302
 * TC_ORG2_P3_OPPORT=9303
+
+* TC_ORG2_CLI1_*=TC_ORG2_P1_*
