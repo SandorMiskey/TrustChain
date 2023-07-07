@@ -166,7 +166,8 @@ export TC_TLSCA1_C1_DEBUG=false
 	export TC_ORG1_ADMIN=${TC_ORG1_STACK}-admin1
 	export TC_ORG1_ADMINPW=$TC_ORG1_ADMINPW
 	export TC_ORG1_ADMINATRS="hf.Registrar.Roles=client,hf.Registrar.Attributes=*,hf.Revoker=true,hf.GenCRL=true,admin=true:ecert,abac.init=true:ecert"
-	export TC_ORG1_ADMINMSP=${TC_ORG1_DATA}/${TC_ORG1_ADMIN}/msp
+	export TC_ORG1_ADMINHOME=${TC_ORG1_DATA}/${TC_ORG1_ADMIN}
+	export TC_ORG1_ADMINMSP=${TC_ORG1_ADMINHOME}/msp
 	export TC_ORG1_USER=${TC_ORG1_STACK}-user1
 	export TC_ORG1_USERPW=$TC_ORG1_USERPW
 	export TC_ORG1_USERMSP=${TC_ORG1_DATA}/${TC_ORG1_USER}/msp
@@ -175,6 +176,7 @@ export TC_TLSCA1_C1_DEBUG=false
 	export TC_ORG1_CLIENTMSP=${TC_ORG1_DATA}/${TC_ORG1_CLIENT}/msp
 
 	# endregion: org1 all stack
+
 	# region: org1 c1
 
 	export TC_ORG1_C1_NAME=ca1
@@ -191,23 +193,7 @@ export TC_TLSCA1_C1_DEBUG=false
 	export TC_ORG1_C1_ADMINPW=$TC_ORG1_C1_ADMINPW
 
 	# endregion: org1 c1
-	# region: org1 g1
 
-	export TC_ORG1_G1_NAME=gw1
-	export TC_ORG1_G1_FQDN=${TC_ORG1_G1_NAME}.${TC_ORG1_DOMAIN}
-
-	export TC_ORG1_G1_TLS_NAME=$TC_ORG1_STACK-$TC_ORG1_G1_NAME
-	export TC_ORG1_G1_TLS_PW=$TC_ORG1_G1_TLS_PW
-	export TC_ORG1_G1_CA_NAME=${TC_ORG1_STACK}-${TC_ORG1_G1_NAME}
-	export TC_ORG1_G1_CA_PW=$TC_ORG1_G1_CA_PW
-
-	export TC_ORG1_G1_DATA=${TC_ORG1_DATA}/${TC_ORG1_G1_NAME}
-	export TC_ORG1_G1_MSP=${TC_ORG1_G1_DATA}/msp
-	export TC_ORG1_G1_TLSMSP=${TC_ORG1_G1_DATA}/tls-msp
-	export TC_ORG1_G1_ASSETS_CACERT=${TC_ORG1_G1_DATA}/assets/${TC_ORG1_C1_FQDN}/ca-cert.pem
-	export TC_ORG1_G1_ASSETS_TLSCERT=${TC_ORG1_G1_DATA}/assets/${TC_TLSCA1_C1_FQDN}/ca-cert.pem
-
-	# endregion: org1 g1
 	# region: org1 p1
 	
 	export TC_ORG1_P1_NAME=peer1
@@ -226,8 +212,12 @@ export TC_TLSCA1_C1_DEBUG=false
 	export TC_ORG1_P1_DATA=${TC_ORG1_DATA}/${TC_ORG1_P1_NAME}
 	export TC_ORG1_P1_MSP=${TC_ORG1_P1_DATA}/msp
 	export TC_ORG1_P1_TLSMSP=${TC_ORG1_P1_DATA}/tls-msp
-	export TC_ORG1_P1_ASSETS_CACERT=${TC_ORG1_P1_DATA}/assets/${TC_ORG1_C1_FQDN}/ca-cert.pem
-	export TC_ORG1_P1_ASSETS_TLSCERT=${TC_ORG1_P1_DATA}/assets/${TC_TLSCA1_C1_FQDN}/ca-cert.pem
+	export TC_ORG1_P1_ASSETS_SUBDIR=assets
+	export TC_ORG1_P1_ASSETS_DIR=${TC_ORG1_P1_DATA}/${TC_ORG1_P1_ASSETS_SUBDIR}
+	export TC_ORG1_P1_ASSETS_CHAINSUBDIR=chaincode
+	export TC_ORG1_P1_ASSETS_CHAINCODE=${TC_ORG1_P1_ASSETS_DIR}/${TC_ORG1_P1_ASSETS_CHAINSUBDIR}
+	export TC_ORG1_P1_ASSETS_CACERT=${TC_ORG1_P1_ASSETS_DIR}/${TC_ORG1_C1_FQDN}/ca-cert.pem
+	export TC_ORG1_P1_ASSETS_TLSCERT=${TC_ORG1_P1_ASSETS_DIR}/${TC_TLSCA1_C1_FQDN}/ca-cert.pem
 
 	# endregion: org1 p1
 	# region: org1 p2
@@ -274,7 +264,42 @@ export TC_TLSCA1_C1_DEBUG=false
 	export TC_ORG1_P3_ASSETS_TLSCERT=${TC_ORG1_P3_DATA}/assets/${TC_TLSCA1_C1_FQDN}/ca-cert.pem
 
 	# endregion: org1 p3
+
+	# region: org1 g1
+
+	export TC_ORG1_G1_NAME=gw1
+	export TC_ORG1_G1_FQDN=${TC_ORG1_G1_NAME}.${TC_ORG1_DOMAIN}
+
+	export TC_ORG1_G1_TLS_NAME=$TC_ORG1_STACK-$TC_ORG1_G1_NAME
+	export TC_ORG1_G1_TLS_PW=$TC_ORG1_G1_TLS_PW
+	export TC_ORG1_G1_CA_NAME=${TC_ORG1_STACK}-${TC_ORG1_G1_NAME}
+	export TC_ORG1_G1_CA_PW=$TC_ORG1_G1_CA_PW
+
+	export TC_ORG1_G1_DATA=${TC_ORG1_DATA}/${TC_ORG1_G1_NAME}
+	export TC_ORG1_G1_MSP=${TC_ORG1_G1_DATA}/msp
+	export TC_ORG1_G1_TLSMSP=${TC_ORG1_G1_DATA}/tls-msp
+	export TC_ORG1_G1_ASSETS_CACERT=${TC_ORG1_G1_DATA}/assets/${TC_ORG1_C1_FQDN}/ca-cert.pem
+	export TC_ORG1_G1_ASSETS_TLSCERT=${TC_ORG1_G1_DATA}/assets/${TC_TLSCA1_C1_FQDN}/ca-cert.pem
+
+	# endregion: org1 g1
+	# region: org1 cli
 	
+	export TC_ORG1_CLI1_NAME=cli1
+	export TC_ORG1_CLI1_FQDN=${TC_ORG1_CLI1_NAME}.${TC_ORG1_DOMAIN}
+	export TC_ORG1_CLI1_PORT=8101
+	export TC_ORG1_CLI1_CHPORT=8102
+	export TC_ORG1_CLI1_OPPORT=8103
+	export TC_ORG1_CLI1_WORKER=$TC_SWARM_MANAGER
+	export TC_ORG1_CLI1_LOGLEVEL=$TC_ORG1_LOGLEVEL
+
+	export TC_ORG1_CLI1_DATA=$TC_ORG1_P1_DATA
+	export TC_ORG1_CLI1_MSP=$TC_ORG1_P1_MSP
+	export TC_ORG1_CLI1_TLSMSP=$TC_ORG1_P1_TLSMSP
+	export TC_ORG1_CLI1_ASSETS_CACERT=$TC_ORG1_P1_ASSETS_CACERT
+	export TC_ORG1_CLI1_ASSETS_TLSCERT=$TC_ORG1_CLI1_ASSETS_TLSCERT
+
+	# endregion: org1 cli
+
 	# endregion: org1
 	# region: org2
 

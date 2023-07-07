@@ -423,7 +423,7 @@ _Org1() {
 		# region: admin
 
 		commonPrintf "enrolling $TC_ORG1_ADMIN"
-		export FABRIC_CA_CLIENT_HOME=$( dirname $TC_ORG1_ADMINMSP )
+		export FABRIC_CA_CLIENT_HOME=$TC_ORG1_ADMINHOME
 		export FABRIC_CA_CLIENT_TLS_CERTFILES=$TC_ORG1_P1_ASSETS_CACERT
 		export FABRIC_CA_CLIENT_MSPDIR=$TC_ORG1_ADMINMSP
 		out=$( fabric-ca-client enroll -u https://${TC_ORG1_ADMIN}:${TC_ORG1_ADMINPW}@0.0.0.0:${TC_ORG1_C1_PORT} 2>&1 )

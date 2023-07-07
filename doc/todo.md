@@ -1,6 +1,6 @@
 # todo
 
-* launch org1 cli and gw
+* launch org1 gw
 * launch org2 peers, cli
 * launch orderers
 * create channel
@@ -10,3 +10,4 @@
 * tls ca checklist [https://hyperledger-fabric-ca.readthedocs.io/en/latest/deployguide/ca-config.html]
 * dev -> test|prod (somewhere in the config.yaml)
 * set mutual authentication
+* P1 -> PEER1, C1 -> CA1, D1 -> DB1, G1 -> GW1

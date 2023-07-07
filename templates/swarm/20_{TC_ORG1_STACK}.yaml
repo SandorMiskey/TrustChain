@@ -45,22 +45,6 @@ services:
         condition: any 
         delay: ${TC_SWARM_DELAY}s
         max_attempts: 5
-    hostname: ${TC_ORG1_P1_FQDN}
-    image: hyperledger/fabric-peer:${TC_DEPS_FABRIC}
-    labels:
-      service: ${TC_ORG1_P1_FQDN}
-    networks:
-      ${TC_SWARM_NETNAME}:
-        aliases:
-          - ${TC_ORG1_P1_NAME}
-          - ${TC_ORG1_P1_FQDN}
-    # ports:
-    #   - ${TC_ORG1_P1_PORT}:${TC_ORG1_P1_PORT}
-    #   - ${TC_ORG1_P1_OPPORT}:${TC_ORG1_P1_OPPORT}
-    volumes:
-      - ${TC_ORG1_P1_DATA}:${TC_ORG1_P1_DATA} 
-      - /var/run/:/host/var/run/
-    working_dir: ${TC_ORG1_P1_DATA}
     environment:
       # - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
       # - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=${TC_ORG1_D1_FQDN}:5984
@@ -100,7 +84,23 @@ services:
       - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
       - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=${TC_NETWORK_NAME}
       - FABRIC_LOGGING_SPEC=${TC_ORG1_P1_LOGLEVEL}
-      # - FABRIC_CFG_PATH=/etc/hyperledger/peercfg
+    hostname: ${TC_ORG1_P1_FQDN}
+    image: hyperledger/fabric-peer:${TC_DEPS_FABRIC}
+    labels:
+      service: ${TC_ORG1_P1_FQDN}
+    networks:
+      ${TC_SWARM_NETNAME}:
+        aliases:
+          - ${TC_ORG1_P1_NAME}
+          - ${TC_ORG1_P1_FQDN}
+    # ports:
+    #   - ${TC_ORG1_P1_PORT}:${TC_ORG1_P1_PORT}
+    #   - ${TC_ORG1_P1_CHPORT}:${TC_ORG1_P1_CHPORT}
+    #   - ${TC_ORG1_P1_OPPORT}:${TC_ORG1_P1_OPPORT}
+    volumes:
+      - ${TC_ORG1_P1_DATA}:${TC_ORG1_P1_DATA} 
+      - /var/run/:/host/var/run/
+    working_dir: ${TC_ORG1_P1_DATA}
   ${TC_ORG1_P2_NAME}:
     # command: peer node start
     # depends_on:
@@ -113,22 +113,6 @@ services:
         condition: any 
         delay: ${TC_SWARM_DELAY}s
         max_attempts: 5
-    hostname: ${TC_ORG1_P2_FQDN}
-    image: hyperledger/fabric-peer:${TC_DEPS_FABRIC}
-    labels:
-      service: ${TC_ORG1_P2_FQDN}
-    networks:
-      ${TC_SWARM_NETNAME}:
-        aliases:
-          - ${TC_ORG1_P2_NAME}
-          - ${TC_ORG1_P2_FQDN}
-    # ports:
-    #   - ${TC_ORG1_P2_PORT}:${TC_ORG1_P2_PORT}
-    #   - ${TC_ORG1_P2_OPPORT}:${TC_ORG1_P2_OPPORT}
-    volumes:
-      - ${TC_ORG1_P2_DATA}:${TC_ORG1_P2_DATA} 
-      - /var/run/:/host/var/run/
-    working_dir: ${TC_ORG1_P2_DATA}
     environment:
       # - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
       # - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=${TC_ORG1_D2_FQDN}:5984
@@ -168,7 +152,23 @@ services:
       - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
       - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=${TC_NETWORK_NAME}
       - FABRIC_LOGGING_SPEC=${TC_ORG1_P2_LOGLEVEL}
-      # - FABRIC_CFG_PATH=/etc/hyperledger/peercfg
+    hostname: ${TC_ORG1_P2_FQDN}
+    image: hyperledger/fabric-peer:${TC_DEPS_FABRIC}
+    labels:
+      service: ${TC_ORG1_P2_FQDN}
+    networks:
+      ${TC_SWARM_NETNAME}:
+        aliases:
+          - ${TC_ORG1_P2_NAME}
+          - ${TC_ORG1_P2_FQDN}
+    # ports:
+    #   - ${TC_ORG1_P2_PORT}:${TC_ORG1_P2_PORT}
+    #   - ${TC_ORG1_P2_CHPORT}:${TC_ORG1_P2_CHPORT}
+    #   - ${TC_ORG1_P2_OPPORT}:${TC_ORG1_P2_OPPORT}
+    volumes:
+      - ${TC_ORG1_P2_DATA}:${TC_ORG1_P2_DATA} 
+      - /var/run/:/host/var/run/
+    working_dir: ${TC_ORG1_P2_DATA}
   ${TC_ORG1_P3_NAME}:
     # command: peer node start
     # depends_on:
@@ -181,22 +181,6 @@ services:
         condition: any 
         delay: ${TC_SWARM_DELAY}s
         max_attempts: 5
-    hostname: ${TC_ORG1_P3_FQDN}
-    image: hyperledger/fabric-peer:${TC_DEPS_FABRIC}
-    labels:
-      service: ${TC_ORG1_P3_FQDN}
-    networks:
-      ${TC_SWARM_NETNAME}:
-        aliases:
-          - ${TC_ORG1_P3_NAME}
-          - ${TC_ORG1_P3_FQDN}
-    # ports:
-    #   - ${TC_ORG1_P3_PORT}:${TC_ORG1_P3_PORT}
-    #   - ${TC_ORG1_P3_OPPORT}:${TC_ORG1_P3_OPPORT}
-    volumes:
-      - ${TC_ORG1_P3_DATA}:${TC_ORG1_P3_DATA} 
-      - /var/run/:/host/var/run/
-    working_dir: ${TC_ORG1_P3_DATA}
     environment:
       # - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
       # - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=${TC_ORG1_D3_FQDN}:5984
@@ -236,4 +220,70 @@ services:
       - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
       - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=${TC_NETWORK_NAME}
       - FABRIC_LOGGING_SPEC=${TC_ORG1_P3_LOGLEVEL}
-      # - FABRIC_CFG_PATH=/etc/hyperledger/peercfg
+    hostname: ${TC_ORG1_P3_FQDN}
+    image: hyperledger/fabric-peer:${TC_DEPS_FABRIC}
+    labels:
+      service: ${TC_ORG1_P3_FQDN}
+    networks:
+      ${TC_SWARM_NETNAME}:
+        aliases:
+          - ${TC_ORG1_P3_NAME}
+          - ${TC_ORG1_P3_FQDN}
+    # ports:
+    #   - ${TC_ORG1_P3_PORT}:${TC_ORG1_P3_PORT}
+    #   - ${TC_ORG1_P3_CHPORT}:${TC_ORG1_P3_CHPORT}
+    #   - ${TC_ORG1_P3_OPPORT}:${TC_ORG1_P3_OPPORT}
+    volumes:
+      - ${TC_ORG1_P3_DATA}:${TC_ORG1_P3_DATA} 
+      - /var/run/:/host/var/run/
+    working_dir: ${TC_ORG1_P3_DATA}
+
+
+  ${TC_ORG1_CLI1_NAME}:
+    command: bash
+    deploy:
+      placement:
+        constraints: [ node.hostname == ${TC_ORG1_CLI1_WORKER} ]
+      replicas: 1
+      restart_policy:
+        condition: any 
+        delay: ${TC_SWARM_DELAY}s
+        max_attempts: 5
+    environment:
+      - CORE_PEER_ADDRESS=CORE_PEER_ADDRESS=${TC_ORG1_P1_FQDN}:${TC_ORG1_P1_PORT}
+      - CORE_PEER_ID=${TC_ORG1_CLI1_NAME}
+      - CORE_PEER_LOCALMSPID=${TC_ORG1_STACK}MSP
+      - CORE_PEER_MSPCONFIGPATH=${TC_ORG1_P1_MSP}
+      - CORE_PEER_NETWORKID=${TC_SWARM_NETNAME}
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG1_P1_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_TLSCA1_C1_PORT}.pem
+      # - CORE_PEER_TLS_CERT_FILE=${TC_ORG1_P1_TLSMSP}/signcerts/cert.pem
+      # - CORE_PEER_TLS_KEY_FILE=${TC_ORG1_P1_TLSMSP}/keystore/key.pem
+      # - CORE_PEER_TLS_CLIENTAUTHREQUIRED=true
+      # - CORE_PEER_TLS_CLIENTROOTCAS_FILES:
+      #     - ${TC_ORG1_P1_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_TLSCA1_C1_PORT}.pem
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - FABRIC_LOGGING_SPEC=${TC_ORG1_CLI1_LOGLEVEL}
+      # - GOPATH=/opt/gopath
+      - GOPATH=${TC_ORG1_P1_ASSETS_CHAINCODE}
+    hostname: ${TC_ORG1_CLI1_FQDN}
+    image: hyperledger/fabric-tools:${TC_DEPS_FABRIC}
+    labels:
+      service: ${TC_ORG1_CLI1_FQDN}
+    networks:
+      ${TC_SWARM_NETNAME}:
+        aliases:
+          - ${TC_ORG1_CLI1_NAME}
+          - ${TC_ORG1_CLI1_FQDN}
+    # ports:
+    #   - ${TC_ORG1_CLI1_PORT}:${TC_ORG1_CLI1_PORT}
+    #   - ${TC_ORG1_CLI1_CHPORT}:${TC_ORG1_CLI1_CHPORT}
+    #   - ${TC_ORG1_CLI1_OPPORT}:${TC_ORG1_CLI1_OPPORT}
+    stdin_open: true
+    tty: true
+    volumes:
+      - ${TC_ORG1_CLI1_DATA}:${TC_ORG1_CLI1_DATA}
+      - ${TC_ORG1_ADMINHOME}:${TC_ORG1_ADMINHOME} 
+      - ${TC_ORG1_P1_ASSETS_CHAINCODE}:${TC_ORG1_P1_ASSETS_CHAINCODE}
+      # - ${TC_ORG1_P1_ASSETS_CHAINCODE}:/opt/gopath/src/github.com/hyperledger/fabric-samples/chaincode
+    working_dir: ${TC_ORG1_P1_DATA}
