@@ -18,6 +18,7 @@ services:
       - FABRIC_CA_SERVER_CSR_CN=${TC_ORG2_STACK}_${TC_ORG2_C1_NAME}
       - FABRIC_CA_SERVER_CSR_HOSTS=0.0.0.0
       - FABRIC_CA_SERVER_DEBUG=${TC_ORG2_C1_DEBUG}
+      - FABRIC_CA_SERVER_LOGLEVEL=${TC_ORG2_C1_LOGLEVEL}
     hostname: ${TC_ORG2_C1_FQDN} 
     image: hyperledger/fabric-ca:${TC_DEPS_CA}
     labels:
@@ -31,3 +32,257 @@ services:
       - ${TC_ORG2_C1_PORT}:${TC_ORG2_C1_PORT}
     volumes:
       - ${TC_ORG2_C1_DATA}:${TC_ORG2_C1_DATA}
+
+  ${TC_ORG2_P1_NAME}:
+    # command: peer node start
+    # depends_on:
+    #   - ${TC_ORG2_D1_FQDN}
+    deploy:
+      placement:
+        constraints: [ node.hostname == ${TC_ORG2_P1_WORKER} ]
+      replicas: 0
+      restart_policy:
+        condition: any 
+        delay: ${TC_SWARM_DELAY}s
+        max_attempts: 5
+    environment:
+      # - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+      # - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=${TC_ORG2_D1_FQDN}:5984
+      # - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=${TC_ORG2_D1_USER}
+      # - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=${SC_ORG2_D1_USERPW}
+      - CORE_LEDGER_SNAPSHOTS_ROOTDIR=${TC_ORG2_P1_DATA}/snapshots
+      - CORE_METRICS_PROVIDER=prometheus
+      # - CORE_OPERATIONS_LISTENADDRESS=0.0.0.0:${TC_ORG2_P1_OPPORT}
+      # - CORE_OPERATIONS_TLS_CERT_FILE=${TC_ORG2_P1_TLSMSP}/signcerts/cert.pem
+      # - CORE_OPERATIONS_TLS_KEY_FILE=${TC_ORG2_P1_TLSMSP}/keystore/key.pem
+      # - CORE_OPERATIONS_TLS_CLIENTAUTHREQUIRED=true
+      # - CORE_OPERATIONS_TLS_CLIENTROOTCAS_FILES:
+      #   - ${TC_ORG2_P1_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_TLSCA1_C1_PORT}.pem
+      - CORE_PEER_ADDRESS=${TC_ORG2_P1_FQDN}:${TC_ORG2_P1_PORT}
+      - CORE_PEER_CHAINCODEADDRESS=${TC_ORG2_P1_FQDN}:${TC_ORG2_P1_CHPORT}
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:${TC_ORG2_P1_CHPORT}
+      - CORE_PEER_ID=${TC_ORG2_P1_NAME}
+      - CORE_PEER_FILESYSTEMPATH=${TC_ORG2_P1_DATA}
+      - CORE_PEER_GOSSIP_BOOTSTRAP=127.0.0.1:${TC_ORG2_P1_PORT}
+      - CORE_PEER_GOSSIP_ENDPOINT=${TC_ORG2_P1_FQDN}:${TC_ORG2_P1_PORT}
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=${TC_ORG2_P1_FQDN}:${TC_ORG2_P1_PORT}
+      - CORE_PEER_GOSSIP_ORGLEADER=true
+      # - CORE_PEER_GOSSIP_SKIPHANDSHAKE=true
+      - CORE_PEER_GOSSIP_STATE_ENABLED=false
+      - CORE_PEER_GOSSIP_USELEADERELECTION=false
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:${TC_ORG2_P1_PORT}
+      - CORE_PEER_LOCALMSPID=${TC_ORG2_STACK}MSP
+      - CORE_PEER_NETWORKID=${TC_SWARM_NETNAME}
+      - CORE_PEER_MSPCONFIGPATH=${TC_ORG2_P1_MSP}
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_TLS_CERT_FILE=${TC_ORG2_P1_TLSMSP}/signcerts/cert.pem
+      - CORE_PEER_TLS_KEY_FILE=${TC_ORG2_P1_TLSMSP}/keystore/key.pem
+      - CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG2_P1_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_TLSCA1_C1_PORT}.pem
+      # - CORE_PEER_TLS_CLIENTAUTHREQUIRED=true
+      # - CORE_PEER_TLS_CLIENTROOTCAS_FILES:
+      #     - ${TC_ORG2_P1_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_TLSCA1_C1_PORT}.pem
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=${TC_NETWORK_NAME}
+      - FABRIC_LOGGING_SPEC=${TC_ORG2_P1_LOGLEVEL}
+    hostname: ${TC_ORG2_P1_FQDN}
+    image: hyperledger/fabric-peer:${TC_DEPS_FABRIC}
+    labels:
+      service: ${TC_ORG2_P1_FQDN}
+    networks:
+      ${TC_SWARM_NETNAME}:
+        aliases:
+          - ${TC_ORG2_P1_NAME}
+          - ${TC_ORG2_P1_FQDN}
+    # ports:
+    #   - ${TC_ORG2_P1_PORT}:${TC_ORG2_P1_PORT}
+    #   - ${TC_ORG2_P1_CHPORT}:${TC_ORG2_P1_CHPORT}
+    #   - ${TC_ORG2_P1_OPPORT}:${TC_ORG2_P1_OPPORT}
+    volumes:
+      - ${TC_ORG2_P1_DATA}:${TC_ORG2_P1_DATA} 
+      - /var/run/:/host/var/run/
+    working_dir: ${TC_ORG2_P1_DATA}
+  ${TC_ORG2_P2_NAME}:
+    # command: peer node start
+    # depends_on:
+    #   - ${TC_ORG2_D2_FQDN}
+    deploy:
+      placement:
+        constraints: [ node.hostname == ${TC_ORG2_P2_WORKER} ]
+      replicas: 0
+      restart_policy:
+        condition: any 
+        delay: ${TC_SWARM_DELAY}s
+        max_attempts: 5
+    environment:
+      # - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+      # - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=${TC_ORG2_D2_FQDN}:5984
+      # - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=${TC_ORG2_D2_USER}
+      # - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=${SC_ORG2_D2_USERPW}
+      - CORE_LEDGER_SNAPSHOTS_ROOTDIR=${TC_ORG2_P2_DATA}/snapshots
+      - CORE_METRICS_PROVIDER=prometheus
+      # - CORE_OPERATIONS_LISTENADDRESS=0.0.0.0:${TC_ORG2_P2_OPPORT}
+      # - CORE_OPERATIONS_TLS_CERT_FILE=${TC_ORG2_P2_TLSMSP}/signcerts/cert.pem
+      # - CORE_OPERATIONS_TLS_KEY_FILE=${TC_ORG2_P2_TLSMSP}/keystore/key.pem
+      # - CORE_OPERATIONS_TLS_CLIENTAUTHREQUIRED=true
+      # - CORE_OPERATIONS_TLS_CLIENTROOTCAS_FILES:
+      #   - ${TC_ORG2_P2_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_TLSCA1_C1_PORT}.pem
+      - CORE_PEER_ADDRESS=${TC_ORG2_P2_FQDN}:${TC_ORG2_P2_PORT}
+      - CORE_PEER_CHAINCODEADDRESS=${TC_ORG2_P2_FQDN}:${TC_ORG2_P2_CHPORT}
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:${TC_ORG2_P2_CHPORT}
+      - CORE_PEER_ID=${TC_ORG2_P2_NAME}
+      - CORE_PEER_FILESYSTEMPATH=${TC_ORG2_P2_DATA}
+      - CORE_PEER_GOSSIP_BOOTSTRAP=127.0.0.1:${TC_ORG2_P2_PORT}
+      - CORE_PEER_GOSSIP_ENDPOINT=${TC_ORG2_P2_FQDN}:${TC_ORG2_P2_PORT}
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=${TC_ORG2_P2_FQDN}:${TC_ORG2_P2_PORT}
+      - CORE_PEER_GOSSIP_ORGLEADER=true
+      # - CORE_PEER_GOSSIP_SKIPHANDSHAKE=true
+      - CORE_PEER_GOSSIP_STATE_ENABLED=false
+      - CORE_PEER_GOSSIP_USELEADERELECTION=false
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:${TC_ORG2_P2_PORT}
+      - CORE_PEER_LOCALMSPID=${TC_ORG2_STACK}MSP
+      - CORE_PEER_NETWORKID=${TC_SWARM_NETNAME}
+      - CORE_PEER_MSPCONFIGPATH=${TC_ORG2_P2_MSP}
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_TLS_CERT_FILE=${TC_ORG2_P2_TLSMSP}/signcerts/cert.pem
+      - CORE_PEER_TLS_KEY_FILE=${TC_ORG2_P2_TLSMSP}/keystore/key.pem
+      - CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG2_P2_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_TLSCA1_C1_PORT}.pem
+      # - CORE_PEER_TLS_CLIENTAUTHREQUIRED=true
+      # - CORE_PEER_TLS_CLIENTROOTCAS_FILES:
+      #     - ${TC_ORG2_P2_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_TLSCA1_C1_PORT}.pem
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=${TC_NETWORK_NAME}
+      - FABRIC_LOGGING_SPEC=${TC_ORG2_P2_LOGLEVEL}
+    hostname: ${TC_ORG2_P2_FQDN}
+    image: hyperledger/fabric-peer:${TC_DEPS_FABRIC}
+    labels:
+      service: ${TC_ORG2_P2_FQDN}
+    networks:
+      ${TC_SWARM_NETNAME}:
+        aliases:
+          - ${TC_ORG2_P2_NAME}
+          - ${TC_ORG2_P2_FQDN}
+    # ports:
+    #   - ${TC_ORG2_P2_PORT}:${TC_ORG2_P2_PORT}
+    #   - ${TC_ORG2_P2_CHPORT}:${TC_ORG2_P2_CHPORT}
+    #   - ${TC_ORG2_P2_OPPORT}:${TC_ORG2_P2_OPPORT}
+    volumes:
+      - ${TC_ORG2_P2_DATA}:${TC_ORG2_P2_DATA} 
+      - /var/run/:/host/var/run/
+    working_dir: ${TC_ORG2_P2_DATA}
+  ${TC_ORG2_P3_NAME}:
+    # command: peer node start
+    # depends_on:
+    #   - ${TC_ORG2_D3_FQDN}
+    deploy:
+      placement:
+        constraints: [ node.hostname == ${TC_ORG2_P3_WORKER} ]
+      replicas: 0
+      restart_policy:
+        condition: any 
+        delay: ${TC_SWARM_DELAY}s
+        max_attempts: 5
+    environment:
+      # - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+      # - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=${TC_ORG2_D3_FQDN}:5984
+      # - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=${TC_ORG2_D3_USER}
+      # - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=${SC_ORG2_D3_USERPW}
+      - CORE_LEDGER_SNAPSHOTS_ROOTDIR=${TC_ORG2_P3_DATA}/snapshots
+      - CORE_METRICS_PROVIDER=prometheus
+      # - CORE_OPERATIONS_LISTENADDRESS=0.0.0.0:${TC_ORG2_P3_OPPORT}
+      # - CORE_OPERATIONS_TLS_CERT_FILE=${TC_ORG2_P3_TLSMSP}/signcerts/cert.pem
+      # - CORE_OPERATIONS_TLS_KEY_FILE=${TC_ORG2_P3_TLSMSP}/keystore/key.pem
+      # - CORE_OPERATIONS_TLS_CLIENTAUTHREQUIRED=true
+      # - CORE_OPERATIONS_TLS_CLIENTROOTCAS_FILES:
+      #   - ${TC_ORG2_P3_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_TLSCA1_C1_PORT}.pem
+      - CORE_PEER_ADDRESS=${TC_ORG2_P3_FQDN}:${TC_ORG2_P3_PORT}
+      - CORE_PEER_CHAINCODEADDRESS=${TC_ORG2_P3_FQDN}:${TC_ORG2_P3_CHPORT}
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:${TC_ORG2_P3_CHPORT}
+      - CORE_PEER_ID=${TC_ORG2_P3_NAME}
+      - CORE_PEER_FILESYSTEMPATH=${TC_ORG2_P3_DATA}
+      - CORE_PEER_GOSSIP_BOOTSTRAP=127.0.0.1:${TC_ORG2_P3_PORT}
+      - CORE_PEER_GOSSIP_ENDPOINT=${TC_ORG2_P3_FQDN}:${TC_ORG2_P3_PORT}
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=${TC_ORG2_P3_FQDN}:${TC_ORG2_P3_PORT}
+      - CORE_PEER_GOSSIP_ORGLEADER=true
+      # - CORE_PEER_GOSSIP_SKIPHANDSHAKE=true
+      - CORE_PEER_GOSSIP_STATE_ENABLED=false
+      - CORE_PEER_GOSSIP_USELEADERELECTION=false
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:${TC_ORG2_P3_PORT}
+      - CORE_PEER_LOCALMSPID=${TC_ORG2_STACK}MSP
+      - CORE_PEER_NETWORKID=${TC_SWARM_NETNAME}
+      - CORE_PEER_MSPCONFIGPATH=${TC_ORG2_P3_MSP}
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_TLS_CERT_FILE=${TC_ORG2_P3_TLSMSP}/signcerts/cert.pem
+      - CORE_PEER_TLS_KEY_FILE=${TC_ORG2_P3_TLSMSP}/keystore/key.pem
+      - CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG2_P3_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_TLSCA1_C1_PORT}.pem
+      # - CORE_PEER_TLS_CLIENTAUTHREQUIRED=true
+      # - CORE_PEER_TLS_CLIENTROOTCAS_FILES:
+      #     - ${TC_ORG2_P3_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_TLSCA1_C1_PORT}.pem
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=${TC_NETWORK_NAME}
+      - FABRIC_LOGGING_SPEC=${TC_ORG2_P3_LOGLEVEL}
+    hostname: ${TC_ORG2_P3_FQDN}
+    image: hyperledger/fabric-peer:${TC_DEPS_FABRIC}
+    labels:
+      service: ${TC_ORG2_P3_FQDN}
+    networks:
+      ${TC_SWARM_NETNAME}:
+        aliases:
+          - ${TC_ORG2_P3_NAME}
+          - ${TC_ORG2_P3_FQDN}
+    # ports:
+    #   - ${TC_ORG2_P3_PORT}:${TC_ORG2_P3_PORT}
+    #   - ${TC_ORG2_P3_CHPORT}:${TC_ORG2_P3_CHPORT}
+    #   - ${TC_ORG2_P3_OPPORT}:${TC_ORG2_P3_OPPORT}
+    volumes:
+      - ${TC_ORG2_P3_DATA}:${TC_ORG2_P3_DATA} 
+      - /var/run/:/host/var/run/
+    working_dir: ${TC_ORG2_P3_DATA}
+
+  ${TC_ORG2_CLI1_NAME}:
+    command: /bin/bash
+    # depends_on:
+    #   - ${TC_ORG1_D1_FQDN}
+    deploy:
+      placement:
+        constraints: [ node.hostname == ${TC_ORG2_CLI1_WORKER} ]
+      replicas: 1
+      restart_policy:
+        condition: any 
+        delay: ${TC_SWARM_DELAY}s
+        max_attempts: 5
+    environment:
+      - CORE_PEER_ADDRESS=CORE_PEER_ADDRESS=${TC_ORG2_CLI1_FQDN}:${TC_ORG2_CLI1_PORT}
+      - CORE_PEER_ID=${TC_ORG2_CLI1_NAME}
+      - CORE_PEER_LOCALMSPID=${TC_ORG2_STACK}MSP
+      - CORE_PEER_MSPCONFIGPATH=${TC_ORG2_P1_MSP}
+      - CORE_PEER_NETWORKID=${TC_SWARM_NETNAME}
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG2_CLI1_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_TLSCA1_C1_PORT}.pem
+      # - CORE_PEER_TLS_CERT_FILE=${TC_ORG2_P1_TLSMSP}/signcerts/cert.pem
+      # - CORE_PEER_TLS_KEY_FILE=${TC_ORG2_P1_TLSMSP}/keystore/key.pem
+      # - CORE_PEER_TLS_CLIENTAUTHREQUIRED=true
+      # - CORE_PEER_TLS_CLIENTROOTCAS_FILES:
+      #     - ${TC_ORG2_CLI1_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_TLSCA1_C1_PORT}.pem
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - FABRIC_LOGGING_SPEC=${TC_ORG2_CLI1_LOGLEVEL}
+      # - GOPATH=/opt/gopath
+      - GOPATH=${TC_ORG2_CLI1_ASSETS_CHAINCODE}
+    hostname: ${TC_ORG2_CLI1_FQDN}
+    image: hyperledger/fabric-tools:${TC_DEPS_FABRIC}
+    labels:
+      service: ${TC_ORG2_CLI1_FQDN}
+    networks:
+      ${TC_SWARM_NETNAME}:
+        aliases:
+          - ${TC_ORG2_CLI1_NAME}
+          - ${TC_ORG2_CLI1_FQDN}
+    # ports:
+    #   - ${TC_ORG2_CLI1_PORT}:${TC_ORG2_CLI1_PORT}
+    #   - ${TC_ORG2_CLI1_CHPORT}:${TC_ORG2_CLI1_CHPORT}
+    #   - ${TC_ORG2_CLI1_OPPORT}:${TC_ORG2_CLI1_OPPORT}
+    stdin_open: true
+    tty: true
+    volumes:
+      - ${TC_ORG2_CLI1_DATA}:${TC_ORG2_CLI1_DATA}
+      - ${TC_ORG2_ADMINHOME}:${TC_ORG2_ADMINHOME}
+    working_dir: ${TC_ORG2_CLI1_DATA}

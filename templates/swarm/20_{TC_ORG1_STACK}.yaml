@@ -238,9 +238,10 @@ services:
       - /var/run/:/host/var/run/
     working_dir: ${TC_ORG1_P3_DATA}
 
-
   ${TC_ORG1_CLI1_NAME}:
-    command: bash
+    command: /bin/bash
+    # depends_on:
+    #   - ${TC_ORG1_D1_FQDN}
     deploy:
       placement:
         constraints: [ node.hostname == ${TC_ORG1_CLI1_WORKER} ]
@@ -250,22 +251,22 @@ services:
         delay: ${TC_SWARM_DELAY}s
         max_attempts: 5
     environment:
-      - CORE_PEER_ADDRESS=CORE_PEER_ADDRESS=${TC_ORG1_P1_FQDN}:${TC_ORG1_P1_PORT}
+      - CORE_PEER_ADDRESS=CORE_PEER_ADDRESS=${TC_ORG1_CLI1_FQDN}:${TC_ORG1_CLI1_PORT}
       - CORE_PEER_ID=${TC_ORG1_CLI1_NAME}
       - CORE_PEER_LOCALMSPID=${TC_ORG1_STACK}MSP
       - CORE_PEER_MSPCONFIGPATH=${TC_ORG1_P1_MSP}
       - CORE_PEER_NETWORKID=${TC_SWARM_NETNAME}
       - CORE_PEER_TLS_ENABLED=true
-      - CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG1_P1_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_TLSCA1_C1_PORT}.pem
+      - CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG1_CLI1_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_TLSCA1_C1_PORT}.pem
       # - CORE_PEER_TLS_CERT_FILE=${TC_ORG1_P1_TLSMSP}/signcerts/cert.pem
       # - CORE_PEER_TLS_KEY_FILE=${TC_ORG1_P1_TLSMSP}/keystore/key.pem
       # - CORE_PEER_TLS_CLIENTAUTHREQUIRED=true
       # - CORE_PEER_TLS_CLIENTROOTCAS_FILES:
-      #     - ${TC_ORG1_P1_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_TLSCA1_C1_PORT}.pem
+      #     - ${TC_ORG1_CLI1_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_TLSCA1_C1_PORT}.pem
       - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
       - FABRIC_LOGGING_SPEC=${TC_ORG1_CLI1_LOGLEVEL}
       # - GOPATH=/opt/gopath
-      - GOPATH=${TC_ORG1_P1_ASSETS_CHAINCODE}
+      - GOPATH=${TC_ORG1_CLI1_ASSETS_CHAINCODE}
     hostname: ${TC_ORG1_CLI1_FQDN}
     image: hyperledger/fabric-tools:${TC_DEPS_FABRIC}
     labels:
@@ -284,6 +285,4 @@ services:
     volumes:
       - ${TC_ORG1_CLI1_DATA}:${TC_ORG1_CLI1_DATA}
       - ${TC_ORG1_ADMINHOME}:${TC_ORG1_ADMINHOME} 
-      - ${TC_ORG1_P1_ASSETS_CHAINCODE}:${TC_ORG1_P1_ASSETS_CHAINCODE}
-      # - ${TC_ORG1_P1_ASSETS_CHAINCODE}:/opt/gopath/src/github.com/hyperledger/fabric-samples/chaincode
-    working_dir: ${TC_ORG1_P1_DATA}
+    working_dir: ${TC_ORG1_CLI1_DATA}
