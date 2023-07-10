@@ -75,9 +75,9 @@ services:
       - CORE_PEER_NETWORKID=${TC_SWARM_NETNAME}
       - CORE_PEER_MSPCONFIGPATH=${TC_ORG1_P1_MSP}
       - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG1_P1_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_TLSCA1_C1_PORT}.pem
       - CORE_PEER_TLS_CERT_FILE=${TC_ORG1_P1_TLSMSP}/signcerts/cert.pem
       - CORE_PEER_TLS_KEY_FILE=${TC_ORG1_P1_TLSMSP}/keystore/key.pem
-      - CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG1_P1_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_TLSCA1_C1_PORT}.pem
       # - CORE_PEER_TLS_CLIENTAUTHREQUIRED=true
       # - CORE_PEER_TLS_CLIENTROOTCAS_FILES:
       #     - ${TC_ORG1_P1_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_TLSCA1_C1_PORT}.pem
@@ -93,10 +93,10 @@ services:
         aliases:
           - ${TC_ORG1_P1_NAME}
           - ${TC_ORG1_P1_FQDN}
-    # ports:
-    #   - ${TC_ORG1_P1_PORT}:${TC_ORG1_P1_PORT}
-    #   - ${TC_ORG1_P1_CHPORT}:${TC_ORG1_P1_CHPORT}
-    #   - ${TC_ORG1_P1_OPPORT}:${TC_ORG1_P1_OPPORT}
+    ports:
+      - ${TC_ORG1_P1_PORT}:${TC_ORG1_P1_PORT}
+      - ${TC_ORG1_P1_CHPORT}:${TC_ORG1_P1_CHPORT}
+      - ${TC_ORG1_P1_OPPORT}:${TC_ORG1_P1_OPPORT}
     volumes:
       - ${TC_ORG1_P1_DATA}:${TC_ORG1_P1_DATA} 
       - /var/run/:/host/var/run/
