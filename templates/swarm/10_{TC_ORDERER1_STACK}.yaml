@@ -34,7 +34,7 @@ services:
 
   ${TC_ORDERER1_O1_NAME}:
     deploy:
-      replicas: 1
+      replicas: 0
       placement:
         constraints: [ node.hostname == ${TC_ORDERER1_O1_WORKER} ]
     environment:
@@ -85,7 +85,7 @@ services:
       - ${TC_ORDERER1_O1_DATA}:${TC_ORDERER1_O1_DATA}
   ${TC_ORDERER1_O2_NAME}:
     deploy:
-      replicas: 1
+      replicas: 0
       placement:
         constraints: [ node.hostname == ${TC_ORDERER1_O2_WORKER} ]
     environment:
@@ -128,15 +128,15 @@ services:
         aliases:
           - ${TC_ORDERER1_O2_NAME}
           - ${TC_ORDERER1_O2_FQDN}
-    ports:
-      - ${TC_ORDERER1_O2_PORT}:${TC_ORDERER1_O2_PORT}
-      - ${TC_ORDERER1_O2_ADMINPORT}:${TC_ORDERER1_O2_ADMINPORT}
-      - ${TC_ORDERER1_O2_OPPORT}:${TC_ORDERER1_O2_OPPORT}
+    # ports:
+    #   - ${TC_ORDERER1_O2_PORT}:${TC_ORDERER1_O2_PORT}
+    #   - ${TC_ORDERER1_O2_ADMINPORT}:${TC_ORDERER1_O2_ADMINPORT}
+    #   - ${TC_ORDERER1_O2_OPPORT}:${TC_ORDERER1_O2_OPPORT}
     volumes:
       - ${TC_ORDERER1_O2_DATA}:${TC_ORDERER1_O2_DATA}
   ${TC_ORDERER1_O3_NAME}:
     deploy:
-      replicas: 1
+      replicas: 0
       placement:
         constraints: [ node.hostname == ${TC_ORDERER1_O3_WORKER} ]
     environment:
@@ -179,9 +179,9 @@ services:
         aliases:
           - ${TC_ORDERER1_O3_NAME}
           - ${TC_ORDERER1_O3_FQDN}
-    ports:
-      - ${TC_ORDERER1_O3_PORT}:${TC_ORDERER1_O3_PORT}
-      - ${TC_ORDERER1_O3_ADMINPORT}:${TC_ORDERER1_O3_ADMINPORT}
-      - ${TC_ORDERER1_O3_OPPORT}:${TC_ORDERER1_O3_OPPORT}
+    # ports:
+    #   - ${TC_ORDERER1_O3_PORT}:${TC_ORDERER1_O3_PORT}
+    #   - ${TC_ORDERER1_O3_ADMINPORT}:${TC_ORDERER1_O3_ADMINPORT}
+    #   - ${TC_ORDERER1_O3_OPPORT}:${TC_ORDERER1_O3_OPPORT}
     volumes:
       - ${TC_ORDERER1_O3_DATA}:${TC_ORDERER1_O3_DATA}

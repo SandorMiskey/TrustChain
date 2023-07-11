@@ -1,14 +1,16 @@
 # todo
 
-* launch orderers
+* te-food-orderers/users/te-food-orderers-admin1/msp/keystore key 2x és caceert/0-0-0-0-8001.pem???
+* rename org1 org2 users signcert
 * create channel
 * add couchdb
-* tls ca "Operation Server Listening on 127.0.0.1:9443" + metrics
-* CSR in fabric-ca-server config (and in -client config?)
+* chaincode + api
 * tls ca checklist [https://hyperledger-fabric-ca.readthedocs.io/en/latest/deployguide/ca-config.html]
-* set mutual authentication
+
+* operations:
+  * (tls)ca "Operation Server Listening on 127.0.0.1:9443"
+  * set mutual tls authentication
+  * operations org ca?
+  * operationscerts in localMSP dirs
 * SASC leftover -> TrustChain
-
-## optional
-
-* P1 -> PEER1, C1 -> CA1, D1 -> DB1, G1 -> GW1
+* CSR in fabric-ca-server config (and in -client config?)

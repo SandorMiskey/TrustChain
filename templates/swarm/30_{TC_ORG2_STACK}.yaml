@@ -93,10 +93,10 @@ services:
         aliases:
           - ${TC_ORG2_P1_NAME}
           - ${TC_ORG2_P1_FQDN}
-    # ports:
-    #   - ${TC_ORG2_P1_PORT}:${TC_ORG2_P1_PORT}
-    #   - ${TC_ORG2_P1_CHPORT}:${TC_ORG2_P1_CHPORT}
-    #   - ${TC_ORG2_P1_OPPORT}:${TC_ORG2_P1_OPPORT}
+    ports:
+      - ${TC_ORG2_P1_PORT}:${TC_ORG2_P1_PORT}
+      - ${TC_ORG2_P1_CHPORT}:${TC_ORG2_P1_CHPORT}
+      - ${TC_ORG2_P1_OPPORT}:${TC_ORG2_P1_OPPORT}
     volumes:
       - ${TC_ORG2_P1_DATA}:${TC_ORG2_P1_DATA} 
       - /var/run/:/host/var/run/

@@ -13,8 +13,11 @@ if [ ! -f  $TC_PATH_RC ]; then
 fi
 source $TC_PATH_RC
 
-commonPrintfBold "Note that certain environment variables must be set to work correctly."
-commonYN "Did you reload the .env file?"
+_sourceEnv() {
+	source "${TC_PATH_SCRIPTS}/.env"
+}
+commonPrintfBold "note that certain environment variables must be set to work correctly."
+commonYN "load ${TC_PATH_SCRIPTS}/.env?" _sourceEnv
 
 if [[ ${TC_PATH_SCRIPTS:-"unset"} == "unset" ]]; then
 	commonVerify 1 "TC_PATH_SCRIPTS is unset"
@@ -76,15 +79,18 @@ _Config() {
 	for template in $( find $TC_PATH_TEMPLATES/* ! -name '.*' -print ); do
 		target=$( commonSetvar $template )
 		target=$( echo $target | sed s+$TC_PATH_TEMPLATES+$TC_PATH_STORAGE+ )
-		commonPrintf "$template -> $target"
+
+		local templateRel=$( echo "$template" | sed s+${TC_PATH_BASE}/++g )
+		local targetRel=$( echo "$target" | sed s+${TC_PATH_BASE}/++g )
+		commonPrintf "$templateRel -> $targetRel"
 		if [[ -d $template ]]; then
 			err=$( mkdir -p "$target" )
 			commonVerify $? $err
 		elif [[ -f $template ]]; then
 			( echo "cat <<EOF" ; cat $template ; echo EOF ) | sh > $target
-			commonVerify $? "unable to process $template"
+			commonVerify $? "unable to process $templateRel"
 		else
-			commonVerify 1 "$template is not valid"
+			commonVerify 1 "$templateRel is not valid"
 		fi
 	done
 	unset templates
@@ -208,7 +214,237 @@ _EnrollTLSAdmin() (
 
 [[ "$TC_EXEC_DRY" == false ]] && commonYN "bootstrap ${TC_TLSCA1_STACK}, enroll tls ca admin, then register peers and orderers?" _EnrollTLSAdmin
 
-# endregion: tls ca
+# endregion: tls
+# region: func for disseminating certs
+
+_disseminate() {
+		local cert=$1
+		local dest=$2
+		local dir=$( dirname $2 )
+		local certRel=$( echo "$cert" | sed s+${TC_PATH_BASE}/++g )
+		local destRel=$( echo "$dest" | sed s+${TC_PATH_BASE}/++g )
+		local dirRel=$( echo "$dir" | sed s+${TC_PATH_BASE}/++g )
+
+		local out
+		commonPrintf "disseminating $certRel as $destRel"
+		[ -d "$dir" ] && commonPrintf "$dirRel already exists." || out=$( mkdir -p $dir 2>&1 )
+		commonVerify $? "failed to create $dir: $out"
+		out=$( cp $cert $dest 2>&1 )
+		commonVerify $? "failed to disseminate $certRel to $destRel: $out"
+}
+
+# endregion: func for disseminating certs
+# region: orderer1
+
+_Orderer1() {
+
+	local out
+
+	# region: bootstrap
+
+	_bootstrap() {
+		commonPrintf "bootstrapping ${TC_ORDERER1_STACK}"
+		${TC_PATH_SCRIPTS}/tcBootstrap.sh -m up -s ${TC_ORDERER1_STACK}
+		commonVerify $? "failed!"
+	}
+	commonYN "bootstrap ${TC_ORDERER1_STACK}?" _bootstrap
+
+	# endregion: bootstrap
+	# region: enroll ca admin
+
+	_enrollAdmin() {
+		commonPrintf "enrolling ${TC_ORDERER1_C1_ADMIN} with $TC_ORDERER1_C1_FQDN"
+		export FABRIC_CA_CLIENT_TLS_CERTFILES=${TC_ORDERER1_C1_HOME}/ca-cert.pem
+		export FABRIC_CA_CLIENT_HOME=${TC_ORDERER1_C1_DATA}/${TC_ORDERER1_C1_ADMIN}
+		out=$( fabric-ca-client enroll -u https://${TC_ORDERER1_C1_ADMIN}:${TC_ORDERER1_C1_ADMINPW}@0.0.0.0:${TC_ORDERER1_C1_PORT}  2>&1 )
+		commonVerify $? "failed to enroll $TC_ORDERER1_C1_ADMIN: $out" "$out"
+	}
+	commonYN "enroll ${TC_ORDERER1_C1_ADMIN} with $TC_ORDERER1_C1_FQDN?" _enrollAdmin
+
+	# endregion: enroll ca admin
+	# region: register orderer1 admin
+	
+	_registerUsers() {
+		commonPrintf "registering ${TC_ORDERER1_STACK} admin with $TC_ORDERER1_C1_FQDN" 
+		out=$( fabric-ca-client register --id.name $TC_ORDERER1_ADMIN --id.secret $TC_ORDERER1_ADMINPW --id.type admin --id.attrs "$TC_ORDERER1_ADMINATRS" -u https://0.0.0.0:${TC_ORDERER1_C1_PORT} 2>&1 )
+		commonVerify $? "failed to register ${TC_ORDERER1_ADMIN}: $out" "$out"
+	}
+	commonYN "register ${TC_ORDERER1_STACK} admin with ${TC_ORDERER1_C1_FQDN}?" _registerUsers
+
+	# endregion: register orderer1 admin
+	# region: register orderer nodes 
+
+	_registerNodes() {
+		commonPrintf "registering ${TC_ORDERER1_STACK}'s orderers with $TC_ORDERER1_C1_FQDN"
+		out=$( fabric-ca-client register --id.name $TC_ORDERER1_O1_CA_NAME --id.secret $TC_ORDERER1_O1_CA_PW --id.type orderer -u https://0.0.0.0:${TC_ORDERER1_C1_PORT} 2>&1 )
+		commonVerify $? "failed to register ${TC_ORDERER1_O1_CA_NAME}: $out" "$out"
+		out=$( fabric-ca-client register --id.name $TC_ORDERER1_O2_CA_NAME --id.secret $TC_ORDERER1_O2_CA_PW --id.type orderer -u https://0.0.0.0:${TC_ORDERER1_C1_PORT} 2>&1 )
+		commonVerify $? "failed to register ${TC_ORDERER1_O2_CA_NAME}: $out" "$out"
+		out=$( fabric-ca-client register --id.name $TC_ORDERER1_O3_CA_NAME --id.secret $TC_ORDERER1_O3_CA_PW --id.type orderer -u https://0.0.0.0:${TC_ORDERER1_C1_PORT} 2>&1 )
+		commonVerify $? "failed to register ${TC_ORDERER1_O3_CA_NAME}: $out" "$out"
+	}
+	commonYN "register ${TC_ORDERER1_STACK}'s orderers with $TC_ORG1_C1_FQDN?" _registerNodes
+
+	# endregion: register orderer nodes
+	# region: copy root certs
+
+	_rootCerts() {
+		commonPrintf "acquiring root certs"
+		local certCA=${TC_ORDERER1_C1_HOME}/ca-cert.pem
+		local tlsCA=${TC_TLSCA1_C1_HOME}/ca-cert.pem
+
+		# org msp
+		# mkdir -p "${TC_ORDERER1_DATA}/msp/cacerts" && cp $certCA "$_"
+		# mkdir -p "${TC_ORDERER1_DATA}/msp/tlscacerts" && cp $tlsCA "$_"
+		_disseminate $certCA "${TC_ORDERER1_DATA}/msp/cacerts/ca-cert.pem"	
+		_disseminate $tlsCA "${TC_ORDERER1_DATA}/msp/tlscacerts/ca-cert.pem"	
+
+		# local msps
+		_disseminate $certCA $TC_ORDERER1_O1_ASSETS_CACERT
+		_disseminate $tlsCA $TC_ORDERER1_O1_ASSETS_TLSCERT
+		_disseminate $certCA $TC_ORDERER1_O2_ASSETS_CACERT
+		_disseminate $tlsCA $TC_ORDERER1_O2_ASSETS_TLSCERT
+		_disseminate $certCA $TC_ORDERER1_O3_ASSETS_CACERT
+		_disseminate $tlsCA $TC_ORDERER1_O3_ASSETS_TLSCERT
+	}
+	commonYN "acquire root certs for org msp and orderers?" _rootCerts
+
+
+	# endregion: root certs
+	# region: enroll orderers
+
+	_enrollOrderers() {
+
+		# region: o1
+
+		commonPrintf "enrolling o1 with $TC_ORDERER1_C1_FQDN" 
+		export FABRIC_CA_CLIENT_HOME=${TC_ORDERER1_O1_DATA}
+		export FABRIC_CA_CLIENT_TLS_CERTFILES=$TC_ORDERER1_O1_ASSETS_CACERT
+		export FABRIC_CA_CLIENT_MSPDIR=$TC_ORDERER1_O1_MSP
+		out=$( fabric-ca-client enroll -u https://${TC_ORDERER1_O1_CA_NAME}:${TC_ORDERER1_O1_CA_PW}@0.0.0.0:${TC_ORDERER1_C1_PORT} 2>&1 )
+		commonVerify $? "failed to enroll with ${TC_ORDERER1_C1_FQDN}: $out" "$out"
+
+		commonPrintf "enrolling with $TC_TLSCA1_C1_FQDN"
+		export FABRIC_CA_CLIENT_TLS_CERTFILES=$TC_ORDERER1_O1_ASSETS_TLSCERT
+		export FABRIC_CA_CLIENT_MSPDIR=$TC_ORDERER1_O1_TLSMSP
+		out=$( fabric-ca-client enroll -u https://${TC_ORDERER1_O1_TLS_NAME}:${TC_ORDERER1_O1_TLS_PW}@0.0.0.0:${TC_TLSCA1_C1_PORT} --enrollment.profile tls --csr.hosts ${TC_ORDERER1_O1_FQDN} 2>&1 )
+		commonVerify $? "failed to enroll with ${TC_TLSCA1_C1_FQDN}: $out" "$out"
+		mv ${TC_ORDERER1_O1_TLSMSP}/keystore/* ${TC_ORDERER1_O1_TLSMSP}/keystore/key.pem 
+		commonVerify $? "failed to rename key.pem: $out" "$out"
+
+		# endregion: o1
+		# region: o2
+
+		commonPrintf "enrolling o2 with $TC_ORDERER1_C1_FQDN" 
+		export FABRIC_CA_CLIENT_HOME=${TC_ORDERER1_O2_DATA}
+		export FABRIC_CA_CLIENT_TLS_CERTFILES=$TC_ORDERER1_O2_ASSETS_CACERT
+		export FABRIC_CA_CLIENT_MSPDIR=$TC_ORDERER1_O2_MSP
+		out=$( fabric-ca-client enroll -u https://${TC_ORDERER1_O2_CA_NAME}:${TC_ORDERER1_O2_CA_PW}@0.0.0.0:${TC_ORDERER1_C1_PORT} 2>&1 )
+		commonVerify $? "failed: $out" "$out"
+
+		commonPrintf "enrolling with $TC_TLSCA1_C1_FQDN"
+		export FABRIC_CA_CLIENT_TLS_CERTFILES=$TC_ORDERER1_O2_ASSETS_TLSCERT
+		export FABRIC_CA_CLIENT_MSPDIR=$TC_ORDERER1_O2_TLSMSP
+		out=$( fabric-ca-client enroll -u https://${TC_ORDERER1_O2_TLS_NAME}:${TC_ORDERER1_O2_TLS_PW}@0.0.0.0:${TC_TLSCA1_C1_PORT} --enrollment.profile tls --csr.hosts ${TC_ORDERER1_O2_FQDN} 2>&1 )
+		commonVerify $? "failed: $out" "$out"
+		mv ${TC_ORDERER1_O2_TLSMSP}/keystore/* ${TC_ORDERER1_O2_TLSMSP}/keystore/key.pem 
+		commonVerify $? "failed to rename key.pem: $out" "$out"
+
+		# endregion: o2
+		# region: o3
+
+		commonPrintf "enrolling o3 with $TC_ORDERER1_C1_FQDN" 
+		export FABRIC_CA_CLIENT_HOME=${TC_ORDERER1_O3_DATA}
+		export FABRIC_CA_CLIENT_TLS_CERTFILES=$TC_ORDERER1_O3_ASSETS_CACERT
+		export FABRIC_CA_CLIENT_MSPDIR=$TC_ORDERER1_O3_MSP
+		out=$( fabric-ca-client enroll -u https://${TC_ORDERER1_O3_CA_NAME}:${TC_ORDERER1_O3_CA_PW}@0.0.0.0:${TC_ORDERER1_C1_PORT} 2>&1 )
+		commonVerify $? "failed: $out" "$out"
+
+		commonPrintf "enrolling with $TC_TLSCA1_C1_FQDN"
+		export FABRIC_CA_CLIENT_TLS_CERTFILES=$TC_ORDERER1_O3_ASSETS_TLSCERT
+		export FABRIC_CA_CLIENT_MSPDIR=$TC_ORDERER1_O3_TLSMSP
+		out=$( fabric-ca-client enroll -u https://${TC_ORDERER1_O3_TLS_NAME}:${TC_ORDERER1_O3_TLS_PW}@0.0.0.0:${TC_TLSCA1_C1_PORT} --enrollment.profile tls --csr.hosts ${TC_ORDERER1_O3_FQDN} 2>&1 )
+		commonVerify $? "failed: $out" "$out"
+		mv ${TC_ORDERER1_O3_TLSMSP}/keystore/* ${TC_ORDERER1_O3_TLSMSP}/keystore/key.pem 
+		commonVerify $? "failed to rename key.pem: $out" "$out"
+		
+		# endregion: o3
+	
+	}
+	commonYN "enroll peers?" _enrollOrderers
+
+	# endregion: enroll orderers
+	# region: enroll users
+
+	_enrollAdmin() {
+
+		local out
+
+		commonPrintf "enrolling $TC_ORDERER1_ADMIN"
+		export FABRIC_CA_CLIENT_HOME=$TC_ORDERER1_ADMINHOME
+		export FABRIC_CA_CLIENT_TLS_CERTFILES=$TC_ORDERER1_O1_ASSETS_CACERT
+		export FABRIC_CA_CLIENT_MSPDIR=$TC_ORDERER1_ADMINMSP
+		out=$( fabric-ca-client enroll -u https://${TC_ORDERER1_ADMIN}:${TC_ORDERER1_ADMINPW}@0.0.0.0:${TC_ORDERER1_C1_PORT} 2>&1 )
+		commonVerify $? "failed: $out" "$out"
+		mv ${TC_ORDERER1_ADMINMSP}/keystore/* ${TC_ORDERER1_ADMINMSP}/keystore/key.pem 
+		commonVerify $? "failed to rename key.pem: $out" "$out"
+
+		local admincert="${TC_ORDERER1_ADMINMSP}/signcerts/cert.pem"
+		for destNode in "${TC_ORDERER1_O1_MSP}" "${TC_ORDERER1_O2_MSP}" "${TC_ORDERER1_O3_MSP}"
+		do
+			for destLocal in admincerts users
+			do 
+				_disseminate "$admincert" "${destNode}/${destLocal}/${TC_ORDERER1_ADMIN}.pem"
+			done
+		done
+
+		unset destNode destLocal
+		unset out
+
+	}
+	commonYN "eroll ${TC_ORDERER1_STACK} users?" _enrollAdmin
+
+	# endregion: enroll users
+	# region: launch peers
+
+	_launch() {
+
+		local out
+
+		commonPrintf "launching peers"
+		# out=$( docker service update --replicas 1 ${TC_NETWORK_NAME}_${TC_ORG1_STACK}_${TC_ORG1_P1_NAME} 2>&1 )
+		# commonVerify $? "failed $out" "$out"
+		docker service update --replicas 1 ${TC_NETWORK_NAME}_${TC_ORDERER1_STACK}_${TC_ORDERER1_O1_NAME}
+		commonVerify $? "failed"
+		docker service update --replicas 1 ${TC_NETWORK_NAME}_${TC_ORDERER1_STACK}_${TC_ORDERER1_O2_NAME}
+		commonVerify $? "failed"
+		docker service update --replicas 1 ${TC_NETWORK_NAME}_${TC_ORDERER1_STACK}_${TC_ORDERER1_O3_NAME}
+		commonVerify $? "failed"
+
+		unset out
+	}
+	commonYN "launch ${TC_RDERER1_STACK} orderers?" _launch
+
+	# endregion: launch peers
+	# region: update replicas
+
+	_replicas() {
+		commonPrintf "updating orderer replicas"
+		yq -i ".services.${TC_ORDERER1_O1_NAME}.deploy.replicas=1" ${TC_PATH_SWARM}/*_${TC_ORDERER1_STACK}.yaml
+		yq -i ".services.${TC_ORDERER1_O2_NAME}.deploy.replicas=1" ${TC_PATH_SWARM}/*_${TC_ORDERER1_STACK}.yaml
+		yq -i ".services.${TC_ORDERER1_O3_NAME}.deploy.replicas=1" ${TC_PATH_SWARM}/*_${TC_ORDERER1_STACK}.yaml
+	}
+	commonYN "update replicas in swarm config?" _replicas
+
+	# endregion: update replicas
+
+	unset out
+
+}
+
+[[ "$TC_EXEC_DRY" == false ]] && commonYN "bootstrap ${TC_ORDERER1_STACK}, enroll ca admin, and register identities?" _Orderer1
+
+# endregion: orderer1
 # region: org1
 
 _Org1() {
@@ -273,22 +509,20 @@ _Org1() {
 		commonPrintf "acquiring root certs"
 		local certCA=${TC_ORG1_C1_HOME}/ca-cert.pem
 		local tlsCA=${TC_TLSCA1_C1_HOME}/ca-cert.pem
-		mkdir -p $( dirname $TC_ORG1_G1_ASSETS_CACERT )
-		mkdir -p $( dirname $TC_ORG1_G1_ASSETS_TLSCERT )
-		mkdir -p $( dirname $TC_ORG1_P1_ASSETS_CACERT )
-		mkdir -p $( dirname $TC_ORG1_P1_ASSETS_TLSCERT )
-		mkdir -p $( dirname $TC_ORG1_P2_ASSETS_CACERT )
-		mkdir -p $( dirname $TC_ORG1_P2_ASSETS_TLSCERT )
-		mkdir -p $( dirname $TC_ORG1_P3_ASSETS_CACERT )
-		mkdir -p $( dirname $TC_ORG1_P3_ASSETS_TLSCERT )
-		cp $certCA $TC_ORG1_G1_ASSETS_CACERT
-		cp $tlsCA $TC_ORG1_G1_ASSETS_TLSCERT
-		cp $certCA $TC_ORG1_P1_ASSETS_CACERT
-		cp $tlsCA $TC_ORG1_P1_ASSETS_TLSCERT
-		cp $certCA $TC_ORG1_P2_ASSETS_CACERT
-		cp $tlsCA $TC_ORG1_P2_ASSETS_TLSCERT
-		cp $certCA $TC_ORG1_P3_ASSETS_CACERT
-		cp $tlsCA $TC_ORG1_P3_ASSETS_TLSCERT
+
+		# org msp
+		_disseminate $certCA "${TC_ORG1_DATA}/msp/cacerts/ca-cert.pem"	
+		_disseminate $tlsCA "${TC_ORG1_DATA}/msp/tlscacerts/ca-cert.pem"	
+
+		# local msps
+		_disseminate $certCA $TC_ORG1_G1_ASSETS_CACERT
+		_disseminate $tlsCA $TC_ORG1_G1_ASSETS_TLSCERT
+		_disseminate $certCA $TC_ORG1_P1_ASSETS_CACERT
+		_disseminate $tlsCA $TC_ORG1_P1_ASSETS_TLSCERT
+		_disseminate $certCA $TC_ORG1_P2_ASSETS_CACERT
+		_disseminate $tlsCA $TC_ORG1_P2_ASSETS_TLSCERT
+		_disseminate $certCA $TC_ORG1_P3_ASSETS_CACERT
+		_disseminate $tlsCA $TC_ORG1_P3_ASSETS_TLSCERT
 	}
 	commonYN "acquire root certs for peers?" _rootCerts
 
@@ -389,26 +623,16 @@ _Org1() {
 		out=$( fabric-ca-client enroll -u https://${TC_ORG1_ADMIN}:${TC_ORG1_ADMINPW}@0.0.0.0:${TC_ORG1_C1_PORT} 2>&1 )
 		commonVerify $? "failed: $out" "$out"
 
-		commonPrintf "disseminating admin signcerts"
-		out=$( mkdir ${TC_ORG1_G1_MSP}/admincerts 2>&1 )
-		commonVerify $? "failed: $out" "mk admincerts dir suceeded"
-		out=$( cp ${TC_ORG1_ADMINMSP}/signcerts/cert.pem ${TC_ORG1_G1_MSP}/admincerts/${TC_ORG1_ADMIN}.pem 2>&1 )
-		commonVerify $? "failed: $out" "${TC_ORG1_ADMIN} signcert copied to $TC_ORG1_G1_MSP"
+		local admincert="${TC_ORG1_ADMINMSP}/signcerts/cert.pem"
+		for destNode in "${TC_ORG1_P1_MSP}" "${TC_ORG1_P2_MSP}" "${TC_ORG1_P3_MSP}"
+		do
+			for destLocal in admincerts users
+			do 
+				_disseminate "$admincert" "${destNode}/${destLocal}/${TC_ORG1_ADMIN}.pem"
+			done
+		done
 
-		out=$( mkdir ${TC_ORG1_P1_MSP}/admincerts 2>&1 )
-		commonVerify $? "failed: $out" "mk admincerts dir suceeded"
-		out=$( cp ${TC_ORG1_ADMINMSP}/signcerts/cert.pem ${TC_ORG1_P1_MSP}/admincerts/${TC_ORG1_ADMIN}.pem 2>&1 )
-		commonVerify $? "failed: $out" "${TC_ORG1_ADMIN} signcert copied to $TC_ORG1_P1_MSP"
-
-		out=$( mkdir ${TC_ORG1_P2_MSP}/admincerts 2>&1 )
-		commonVerify $? "failed: $out" "mk admincerts dir suceeded"
-		out=$( cp ${TC_ORG1_ADMINMSP}/signcerts/cert.pem ${TC_ORG1_P2_MSP}/admincerts/${TC_ORG1_ADMIN}.pem 2>&1 )
-		commonVerify $? "failed: $out" "${TC_ORG1_ADMIN} signcert copied to $TC_ORG1_P2_MSP"
-
-		out=$( mkdir ${TC_ORG1_P3_MSP}/admincerts 2>&1 )
-		commonVerify $? "failed: $out" "mk admincerts dir suceeded"
-		out=$( cp ${TC_ORG1_ADMINMSP}/signcerts/cert.pem ${TC_ORG1_P3_MSP}/admincerts/${TC_ORG1_ADMIN}.pem 2>&1 )
-		commonVerify $? "failed: $out" "${TC_ORG1_ADMIN} signcert copied to $TC_ORG1_P3_MSP"
+		unset destNode destLocal
 
 		# endregion: admin
 		# region: user
@@ -420,6 +644,12 @@ _Org1() {
 		out=$( fabric-ca-client enroll -u https://${TC_ORG1_USER}:${TC_ORG1_USERPW}@0.0.0.0:${TC_ORG1_C1_PORT} 2>&1 )
 		commonVerify $? "failed: $out" "$out"
 
+		local usercert="${TC_ORG1_USERMSP}/signcerts/cert.pem"
+		for destNode in "${TC_ORG1_P1_MSP}" "${TC_ORG1_P2_MSP}" "${TC_ORG1_P3_MSP}"
+		do
+			_disseminate "$usercert" "${destNode}/users/${TC_ORG1_USER}.pem"
+		done
+
 		# endregion: user
 		# region: client
 
@@ -429,6 +659,12 @@ _Org1() {
 		export FABRIC_CA_CLIENT_MSPDIR=$TC_ORG1_CLIENTMSP
 		out=$( fabric-ca-client enroll -u https://${TC_ORG1_CLIENT}:${TC_ORG1_CLIENTPW}@0.0.0.0:${TC_ORG1_C1_PORT} 2>&1 )
 		commonVerify $? "failed: $out" "$out"
+
+		local clientcert="${TC_ORG1_USERMSP}/signcerts/cert.pem"
+		for destNode in "${TC_ORG1_P1_MSP}" "${TC_ORG1_P2_MSP}" "${TC_ORG1_P3_MSP}"
+		do
+			_disseminate "$clientcert" "${destNode}/users/${TC_ORG1_CLIENT}.pem"
+		done
 
 		# endregion: client
 
@@ -454,13 +690,22 @@ _Org1() {
 		docker service update --replicas 1 ${TC_NETWORK_NAME}_${TC_ORG1_STACK}_${TC_ORG1_P3_NAME}
 		commonVerify $? "failed"
 
-		commonYN "don't forget to change the number of replicas in the generated docker stack configurations!" commonPrintfBold "I have spoken..."
-
 		unset out
 	}
 	commonYN "launch ${TC_ORG1_STACK} peers?" _launch
 
 	# endregion: launch peers
+	# region: update replicas
+
+	_replicas() {
+		commonPrintf "updating peer replicas"
+		yq -i ".services.${TC_ORG1_P1_NAME}.deploy.replicas=1" ${TC_PATH_SWARM}/*_${TC_ORG1_STACK}.yaml
+		yq -i ".services.${TC_ORG1_P2_NAME}.deploy.replicas=1" ${TC_PATH_SWARM}/*_${TC_ORG1_STACK}.yaml
+		yq -i ".services.${TC_ORG1_P3_NAME}.deploy.replicas=1" ${TC_PATH_SWARM}/*_${TC_ORG1_STACK}.yaml
+	}
+	commonYN "update replicas in swarm config?" _replicas
+
+	# endregion: update replicas
 
 	unset out
 }
@@ -532,22 +777,24 @@ _Org2() {
 		commonPrintf "acquiring root certs"
 		local certCA=${TC_ORG2_C1_HOME}/ca-cert.pem
 		local tlsCA=${TC_TLSCA1_C1_HOME}/ca-cert.pem
-		# mkdir -p $( dirname $TC_ORG2_G1_ASSETS_CACERT )
-		# mkdir -p $( dirname $TC_ORG2_G1_ASSETS_TLSCERT )
-		mkdir -p $( dirname $TC_ORG2_P1_ASSETS_CACERT )
-		mkdir -p $( dirname $TC_ORG2_P1_ASSETS_TLSCERT )
-		mkdir -p $( dirname $TC_ORG2_P2_ASSETS_CACERT )
-		mkdir -p $( dirname $TC_ORG2_P2_ASSETS_TLSCERT )
-		mkdir -p $( dirname $TC_ORG2_P3_ASSETS_CACERT )
-		mkdir -p $( dirname $TC_ORG2_P3_ASSETS_TLSCERT )
-		# cp $certCA $TC_ORG2_G1_ASSETS_CACERT
-		# cp $tlsCA $TC_ORG2_G1_ASSETS_TLSCERT
-		cp $certCA $TC_ORG2_P1_ASSETS_CACERT
-		cp $tlsCA $TC_ORG2_P1_ASSETS_TLSCERT
-		cp $certCA $TC_ORG2_P2_ASSETS_CACERT
-		cp $tlsCA $TC_ORG2_P2_ASSETS_TLSCERT
-		cp $certCA $TC_ORG2_P3_ASSETS_CACERT
-		cp $tlsCA $TC_ORG2_P3_ASSETS_TLSCERT
+
+		# org msp
+		mkdir -p "${TC_ORG2_DATA}/msp/cacerts" && cp $certCA "$_"
+		mkdir -p "${TC_ORG2_DATA}/msp/tlscacerts" && cp $tlsCA "$_"
+
+		# org msp
+		_disseminate $certCA "${TC_ORG2_DATA}/msp/cacerts/ca-cert.pem"	
+		_disseminate $tlsCA "${TC_ORG2_DATA}/msp/tlscacerts/ca-cert.pem"	
+
+		# local msps
+		# _disseminate $certCA $TC_ORG2_G1_ASSETS_CACERT
+		# _disseminate $tlsCA $TC_ORG2_G1_ASSETS_TLSCERT
+		_disseminate $certCA $TC_ORG2_P1_ASSETS_CACERT
+		_disseminate $tlsCA $TC_ORG2_P1_ASSETS_TLSCERT
+		_disseminate $certCA $TC_ORG2_P2_ASSETS_CACERT
+		_disseminate $tlsCA $TC_ORG2_P2_ASSETS_TLSCERT
+		_disseminate $certCA $TC_ORG2_P3_ASSETS_CACERT
+		_disseminate $tlsCA $TC_ORG2_P3_ASSETS_TLSCERT
 	}
 	commonYN "acquire root certs for peers?" _rootCerts
 
@@ -639,8 +886,6 @@ _Org2() {
 
 		local out
 
-		# region: admin
-
 		commonPrintf "enrolling $TC_ORG2_ADMIN"
 		export FABRIC_CA_CLIENT_HOME=$TC_ORG2_ADMINHOME
 		export FABRIC_CA_CLIENT_TLS_CERTFILES=$TC_ORG2_P1_ASSETS_CACERT
@@ -648,49 +893,16 @@ _Org2() {
 		out=$( fabric-ca-client enroll -u https://${TC_ORG2_ADMIN}:${TC_ORG2_ADMINPW}@0.0.0.0:${TC_ORG2_C1_PORT} 2>&1 )
 		commonVerify $? "failed: $out" "$out"
 
-		# commonPrintf "disseminating admin signcerts"
-		# out=$( mkdir ${TC_ORG2_G1_MSP}/admincerts 2>&1 )
-		# commonVerify $? "failed: $out" "mk admincerts dir suceeded"
-		# out=$( cp ${TC_ORG2_ADMINMSP}/signcerts/cert.pem ${TC_ORG2_G1_MSP}/admincerts/${TC_ORG2_ADMIN}.pem 2>&1 )
-		# commonVerify $? "failed: $out" "${TC_ORG2_ADMIN} signcert copied to $TC_ORG2_G1_MSP"
+		local admincert="${TC_ORG2_ADMINMSP}/signcerts/cert.pem"
+		for destNode in "${TC_ORG2_P1_MSP}" "${TC_ORG2_P2_MSP}" "${TC_ORG2_P3_MSP}"
+		do
+			for destLocal in admincerts users
+			do 
+				_disseminate "$admincert" "${destNode}/${destLocal}/${TC_ORG2_ADMIN}.pem"
+			done
+		done
 
-		out=$( mkdir ${TC_ORG2_P1_MSP}/admincerts 2>&1 )
-		commonVerify $? "failed: $out" "mk admincerts dir suceeded"
-		out=$( cp ${TC_ORG2_ADMINMSP}/signcerts/cert.pem ${TC_ORG2_P1_MSP}/admincerts/${TC_ORG2_ADMIN}.pem 2>&1 )
-		commonVerify $? "failed: $out" "${TC_ORG2_ADMIN} signcert copied to $TC_ORG2_P1_MSP"
-
-		out=$( mkdir ${TC_ORG2_P2_MSP}/admincerts 2>&1 )
-		commonVerify $? "failed: $out" "mk admincerts dir suceeded"
-		out=$( cp ${TC_ORG2_ADMINMSP}/signcerts/cert.pem ${TC_ORG2_P2_MSP}/admincerts/${TC_ORG2_ADMIN}.pem 2>&1 )
-		commonVerify $? "failed: $out" "${TC_ORG2_ADMIN} signcert copied to $TC_ORG2_P2_MSP"
-
-		out=$( mkdir ${TC_ORG2_P3_MSP}/admincerts 2>&1 )
-		commonVerify $? "failed: $out" "mk admincerts dir suceeded"
-		out=$( cp ${TC_ORG2_ADMINMSP}/signcerts/cert.pem ${TC_ORG2_P3_MSP}/admincerts/${TC_ORG2_ADMIN}.pem 2>&1 )
-		commonVerify $? "failed: $out" "${TC_ORG2_ADMIN} signcert copied to $TC_ORG2_P3_MSP"
-
-		# endregion: admin
-		# region: user
-
-		# commonPrintf "enrolling $TC_ORG2_USER"
-		# export FABRIC_CA_CLIENT_HOME=$( dirname $TC_ORG2_USERMSP )
-		# export FABRIC_CA_CLIENT_TLS_CERTFILES=$TC_ORG2_P1_ASSETS_CACERT
-		# export FABRIC_CA_CLIENT_MSPDIR=$TC_ORG2_USERMSP
-		# out=$( fabric-ca-client enroll -u https://${TC_ORG2_USER}:${TC_ORG2_USERPW}@0.0.0.0:${TC_ORG2_C1_PORT} 2>&1 )
-		# commonVerify $? "failed: $out" "$out"
-
-		# endregion: user
-		# region: client
-
-		# commonPrintf "enrolling $TC_ORG2_CLIENT"
-		# export FABRIC_CA_CLIENT_HOME=$( dirname $TC_ORG2_CLIENTMSP )
-		# export FABRIC_CA_CLIENT_TLS_CERTFILES=$TC_ORG2_P1_ASSETS_CACERT
-		# export FABRIC_CA_CLIENT_MSPDIR=$TC_ORG2_CLIENTMSP
-		# out=$( fabric-ca-client enroll -u https://${TC_ORG2_CLIENT}:${TC_ORG2_CLIENTPW}@0.0.0.0:${TC_ORG2_C1_PORT} 2>&1 )
-		# commonVerify $? "failed: $out" "$out"
-
-		# endregion: client
-
+		unset destNode destLocal
 		unset out
 
 	}
@@ -713,13 +925,22 @@ _Org2() {
 		docker service update --replicas 1 ${TC_NETWORK_NAME}_${TC_ORG2_STACK}_${TC_ORG2_P3_NAME}
 		commonVerify $? "failed"
 
-		commonYN "don't forget to change the number of replicas in the generated docker stack configurations!" commonPrintfBold "I have spoken..."
-
 		unset out
 	}
 	commonYN "launch ${TC_ORG2_STACK} peers?" _launch
 
 	# endregion: launch peers
+	# region: update replicas
+
+	_replicas() {
+		commonPrintf "updating peer replicas"
+		yq -i ".services.${TC_ORG2_P1_NAME}.deploy.replicas=1" ${TC_PATH_SWARM}/*_${TC_ORG2_STACK}.yaml
+		yq -i ".services.${TC_ORG2_P2_NAME}.deploy.replicas=1" ${TC_PATH_SWARM}/*_${TC_ORG2_STACK}.yaml
+		yq -i ".services.${TC_ORG2_P3_NAME}.deploy.replicas=1" ${TC_PATH_SWARM}/*_${TC_ORG2_STACK}.yaml
+	}
+	commonYN "update replicas in swarm config?" _replicas
+
+	# endregion: update replicas
 
 	unset out
 }
@@ -727,207 +948,42 @@ _Org2() {
 [[ "$TC_EXEC_DRY" == false ]] && commonYN "bootstrap ${TC_ORG2_STACK}, register and enroll identities?" _Org2
 
 # endregion: org2
-# region: orderer1
+# region: channels
 
-_Orderer1() {
+_channels() {
 
 	local out
 
-	# region: bootstrap
+	# for ch in "$TC_CHANNEL1_NAME" "$TC_CHANNEL2_NAME"
+	for ch in "$TC_CHANNEL1_NAME"
+	do
 
-	_bootstrap() {
-		commonPrintf "bootstrapping ${TC_ORDERER1_STACK}"
-		${TC_PATH_SCRIPTS}/tcBootstrap.sh -m up -s ${TC_ORDERER1_STACK}
-		commonVerify $? "failed!"
-	}
-	commonYN "bootstrap ${TC_ORDERER1_STACK}?" _bootstrap
+		# region: genesis block
 
-	# endregion: bootstrap
-	# region: enroll ca admin
-
-	_enrollAdmin() {
-		commonPrintf "enrolling ${TC_ORDERER1_C1_ADMIN} with $TC_ORDERER1_C1_FQDN"
-		export FABRIC_CA_CLIENT_TLS_CERTFILES=${TC_ORDERER1_C1_HOME}/ca-cert.pem
-		export FABRIC_CA_CLIENT_HOME=${TC_ORDERER1_C1_DATA}/${TC_ORDERER1_C1_ADMIN}
-		out=$( fabric-ca-client enroll -u https://${TC_ORDERER1_C1_ADMIN}:${TC_ORDERER1_C1_ADMINPW}@0.0.0.0:${TC_ORDERER1_C1_PORT}  2>&1 )
-		commonVerify $? "failed to enroll $TC_ORDERER1_C1_ADMIN: $out" "$out"
-	}
-	commonYN "enroll ${TC_ORDERER1_C1_ADMIN} with $TC_ORDERER1_C1_FQDN?" _enrollAdmin
-
-	# endregion: enroll ca admin
-	# region: register orderer1 admin
-	
-	_registerUsers() {
-		commonPrintf "registering ${TC_ORDERER1_STACK} admin with $TC_ORDERER1_C1_FQDN" 
-		out=$( fabric-ca-client register --id.name $TC_ORDERER1_ADMIN --id.secret $TC_ORDERER1_ADMINPW --id.type admin --id.attrs "$TC_ORDERER1_ADMINATRS" -u https://0.0.0.0:${TC_ORDERER1_C1_PORT} 2>&1 )
-		commonVerify $? "failed to register ${TC_ORDERER1_ADMIN}: $out" "$out"
-	}
-	commonYN "register ${TC_ORDERER1_STACK} admin with ${TC_ORDERER1_C1_FQDN}?" _registerUsers
-
-	# endregion: register orderer1 admin
-	# region: register orderer nodes 
-
-	_registerNodes() {
-		commonPrintf "registering ${TC_ORDERER1_STACK}'s orderers with $TC_ORDERER1_C1_FQDN"
-		out=$( fabric-ca-client register --id.name $TC_ORDERER1_O1_CA_NAME --id.secret $TC_ORDERER1_O1_CA_PW --id.type orderer -u https://0.0.0.0:${TC_ORDERER1_C1_PORT} 2>&1 )
-		commonVerify $? "failed to register ${TC_ORDERER1_O1_CA_NAME}: $out" "$out"
-		out=$( fabric-ca-client register --id.name $TC_ORDERER1_O2_CA_NAME --id.secret $TC_ORDERER1_O2_CA_PW --id.type orderer -u https://0.0.0.0:${TC_ORDERER1_C1_PORT} 2>&1 )
-		commonVerify $? "failed to register ${TC_ORDERER1_O2_CA_NAME}: $out" "$out"
-		out=$( fabric-ca-client register --id.name $TC_ORDERER1_O3_CA_NAME --id.secret $TC_ORDERER1_O3_CA_PW --id.type orderer -u https://0.0.0.0:${TC_ORDERER1_C1_PORT} 2>&1 )
-		commonVerify $? "failed to register ${TC_ORDERER1_O3_CA_NAME}: $out" "$out"
-	}
-	commonYN "register ${TC_ORDERER1_STACK}'s orderers with $TC_ORG1_C1_FQDN?" _registerNodes
-
-	# endregion: register orderer nodes
-	# region: copy root certs
-
-	_rootCerts() {
-		commonPrintf "acquiring root certs"
-		local certCA=${TC_ORDERER1_C1_HOME}/ca-cert.pem
-		local tlsCA=${TC_TLSCA1_C1_HOME}/ca-cert.pem
-		mkdir -p $( dirname $TC_ORDERER1_O1_ASSETS_CACERT )
-		mkdir -p $( dirname $TC_ORDERER1_O1_ASSETS_TLSCERT )
-		mkdir -p $( dirname $TC_ORDERER1_O2_ASSETS_CACERT )
-		mkdir -p $( dirname $TC_ORDERER1_O2_ASSETS_TLSCERT )
-		mkdir -p $( dirname $TC_ORDERER1_O3_ASSETS_CACERT )
-		mkdir -p $( dirname $TC_ORDERER1_O3_ASSETS_TLSCERT )
-		cp $certCA $TC_ORDERER1_O1_ASSETS_CACERT
-		cp $tlsCA $TC_ORDERER1_O1_ASSETS_TLSCERT
-		cp $certCA $TC_ORDERER1_O2_ASSETS_CACERT
-		cp $tlsCA $TC_ORDERER1_O2_ASSETS_TLSCERT
-		cp $certCA $TC_ORDERER1_O3_ASSETS_CACERT
-		cp $tlsCA $TC_ORDERER1_O3_ASSETS_TLSCERT
-	}
-	commonYN "acquire root certs for orderers?" _rootCerts
-
-	# endregion: root certs
-	# region: enroll orderers
-
-	_enrollOrderers() {
-
-		# region: o1
-
-		commonPrintf "enrolling o1 with $TC_ORDERER1_C1_FQDN" 
-		export FABRIC_CA_CLIENT_HOME=${TC_ORDERER1_O1_DATA}
-		export FABRIC_CA_CLIENT_TLS_CERTFILES=$TC_ORDERER1_O1_ASSETS_CACERT
-		export FABRIC_CA_CLIENT_MSPDIR=$TC_ORDERER1_O1_MSP
-		out=$( fabric-ca-client enroll -u https://${TC_ORDERER1_O1_CA_NAME}:${TC_ORDERER1_O1_CA_PW}@0.0.0.0:${TC_ORDERER1_C1_PORT} 2>&1 )
-		commonVerify $? "failed: $out" "$out"
-
-		commonPrintf "enrolling with $TC_TLSCA1_C1_FQDN"
-		export FABRIC_CA_CLIENT_TLS_CERTFILES=$TC_ORDERER1_O1_ASSETS_TLSCERT
-		export FABRIC_CA_CLIENT_MSPDIR=$TC_ORDERER1_O1_TLSMSP
-		out=$( fabric-ca-client enroll -u https://${TC_ORDERER1_O1_TLS_NAME}:${TC_ORDERER1_O1_TLS_PW}@0.0.0.0:${TC_TLSCA1_C1_PORT} --enrollment.profile tls --csr.hosts ${TC_ORDERER1_O1_FQDN} 2>&1 )
-		commonVerify $? "failed: $out" "$out"
-		mv ${TC_ORDERER1_O1_TLSMSP}/keystore/* ${TC_ORDERER1_O1_TLSMSP}/keystore/key.pem 
-		commonVerify $? "failed to rename key.pem: $out" "$out"
-
-		# endregion: o1
-		# region: o2
-
-		commonPrintf "enrolling o2 with $TC_ORDERER1_C1_FQDN" 
-		export FABRIC_CA_CLIENT_HOME=${TC_ORDERER1_O2_DATA}
-		export FABRIC_CA_CLIENT_TLS_CERTFILES=$TC_ORDERER1_O2_ASSETS_CACERT
-		export FABRIC_CA_CLIENT_MSPDIR=$TC_ORDERER1_O2_MSP
-		out=$( fabric-ca-client enroll -u https://${TC_ORDERER1_O2_CA_NAME}:${TC_ORDERER1_O2_CA_PW}@0.0.0.0:${TC_ORDERER1_C1_PORT} 2>&1 )
-		commonVerify $? "failed: $out" "$out"
-
-		commonPrintf "enrolling with $TC_TLSCA1_C1_FQDN"
-		export FABRIC_CA_CLIENT_TLS_CERTFILES=$TC_ORDERER1_O2_ASSETS_TLSCERT
-		export FABRIC_CA_CLIENT_MSPDIR=$TC_ORDERER1_O2_TLSMSP
-		out=$( fabric-ca-client enroll -u https://${TC_ORDERER1_O2_TLS_NAME}:${TC_ORDERER1_O2_TLS_PW}@0.0.0.0:${TC_TLSCA1_C1_PORT} --enrollment.profile tls --csr.hosts ${TC_ORDERER1_O2_FQDN} 2>&1 )
-		commonVerify $? "failed: $out" "$out"
-		mv ${TC_ORDERER1_O2_TLSMSP}/keystore/* ${TC_ORDERER1_O2_TLSMSP}/keystore/key.pem 
-		commonVerify $? "failed to rename key.pem: $out" "$out"
-
-		# endregion: o2
-		# region: p3
-
-		commonPrintf "enrolling o3 with $TC_ORDERER1_C1_FQDN" 
-		export FABRIC_CA_CLIENT_HOME=${TC_ORDERER1_O3_DATA}
-		export FABRIC_CA_CLIENT_TLS_CERTFILES=$TC_ORDERER1_O3_ASSETS_CACERT
-		export FABRIC_CA_CLIENT_MSPDIR=$TC_ORDERER1_O3_MSP
-		out=$( fabric-ca-client enroll -u https://${TC_ORDERER1_O3_CA_NAME}:${TC_ORDERER1_O3_CA_PW}@0.0.0.0:${TC_ORDERER1_C1_PORT} 2>&1 )
-		commonVerify $? "failed: $out" "$out"
-
-		commonPrintf "enrolling with $TC_TLSCA1_C1_FQDN"
-		export FABRIC_CA_CLIENT_TLS_CERTFILES=$TC_ORDERER1_O3_ASSETS_TLSCERT
-		export FABRIC_CA_CLIENT_MSPDIR=$TC_ORDERER1_O3_TLSMSP
-		out=$( fabric-ca-client enroll -u https://${TC_ORDERER1_O3_TLS_NAME}:${TC_ORDERER1_O3_TLS_PW}@0.0.0.0:${TC_TLSCA1_C1_PORT} --enrollment.profile tls --csr.hosts ${TC_ORDERER1_O3_FQDN} 2>&1 )
-		commonVerify $? "failed: $out" "$out"
-		mv ${TC_ORDERER1_O3_TLSMSP}/keystore/* ${TC_ORDERER1_O3_TLSMSP}/keystore/key.pem 
-		commonVerify $? "failed to rename key.pem: $out" "$out"
+		local dir="${TC_PATH_STORAGE}/${ch}"
+		export FABRIC_CFG_PATH="$dir"
 		
-		# endregion: o3
-	
-	}
-	commonYN "enroll peers?" _enrollOrderers
-
-	# endregion: enroll orderers
-	# region: enroll users
-
-	_enrollAdmin() {
-
-		local out
-
-		commonPrintf "enrolling $TC_ORDERER1_ADMIN"
-		export FABRIC_CA_CLIENT_HOME=$TC_ORDERER1_ADMINHOME
-		export FABRIC_CA_CLIENT_TLS_CERTFILES=$TC_ORDERER1_O1_ASSETS_CACERT
-		export FABRIC_CA_CLIENT_MSPDIR=$TC_ORDERER1_ADMINMSP
-		out=$( fabric-ca-client enroll -u https://${TC_ORDERER1_ADMIN}:${TC_ORDERER1_ADMINPW}@0.0.0.0:${TC_ORDERER1_C1_PORT} 2>&1 )
+		commonPrintf "configtxgen genesis block for $ch ($FABRIC_CFG_PATH)"
+		out=$( configtxgen -profile $TC_CHANNEL_PROFILE -outputBlock ${dir}/${ch}_genesis_block.pb -channelID $ch  2>&1 )
 		commonVerify $? "failed: $out" "$out"
 
-		commonPrintf "disseminating admin signcerts"
+		# endregion: genesis block
+		# region: join orderers
 
-		out=$( mkdir ${TC_ORDERER1_O1_MSP}/admincerts 2>&1 )
-		commonVerify $? "failed: $out" "mk admincerts dir suceeded"
-		out=$( cp ${TC_ORDERER1_ADMINMSP}/signcerts/cert.pem ${TC_ORDERER1_O1_MSP}/admincerts/${TC_ORDERER1_ADMIN}.pem 2>&1 )
-		commonVerify $? "failed: $out" "${TC_ORDERER1_ADMIN} signcert copied to $TC_ORDERER1_O1_MSP"
+		# export OSN_TLS_CA_ROOT_CERT=$TC_ORDERER1_O1_ASSETS_TLSCERT
+		# export ADMIN_TLS_SIGN_CERT=${TC_ORDERER1_ADMINMSP}/signcert/cert.pem
+		# export ADMIN_TLS_PRIVATE_KEY=${TC_ORDERER1_ADMINMSP}/keystore/key.pem
 
-		out=$( mkdir ${TC_ORDERER1_O2_MSP}/admincerts 2>&1 )
-		commonVerify $? "failed: $out" "mk admincerts dir suceeded"
-		out=$( cp ${TC_ORDERER1_ADMINMSP}/signcerts/cert.pem ${TC_ORDERER1_O2_MSP}/admincerts/${TC_ORDERER1_ADMIN}.pem 2>&1 )
-		commonVerify $? "failed: $out" "${TC_ORDERER1_ADMIN} signcert copied to $TC_ORDERER1_O2_MSP"
+		# osnadmin channel join --channelID [CHANNEL_NAME]  --config-block [CHANNEL_CONFIG_BLOCK] -o [ORDERER_ADMIN_LISTENADDRESS] --ca-file $OSN_TLS_CA_ROOT_CERT --client-cert $ADMIN_TLS_SIGN_CERT --client-key $ADMIN_TLS_PRIVATE_KEY
 
-		out=$( mkdir ${TC_ORDERER1_O3_MSP}/admincerts 2>&1 )
-		commonVerify $? "failed: $out" "mk admincerts dir suceeded"
-		out=$( cp ${TC_ORDERER1_ADMINMSP}/signcerts/cert.pem ${TC_ORDERER1_O3_MSP}/admincerts/${TC_ORDERER1_ADMIN}.pem 2>&1 )
-		commonVerify $? "failed: $out" "${TC_ORDERER1_ADMIN} signcert copied to $TC_ORDERER1_O3_MSP"
-
-		unset out
-
-	}
-	commonYN "eroll ${TC_ORDERER1_STACK} users?" _enrollAdmin
-
-	# endregion: enroll users
-	# region: launch peers
-
-	_launch() {
-
-		local out
-
-		commonPrintf "launching peers"
-		# out=$( docker service update --replicas 1 ${TC_NETWORK_NAME}_${TC_ORG1_STACK}_${TC_ORG1_P1_NAME} 2>&1 )
-		# commonVerify $? "failed $out" "$out"
-		docker service update --replicas 1 ${TC_NETWORK_NAME}_${TC_ORG1_STACK}_${TC_ORG1_P1_NAME}
-		commonVerify $? "failed"
-		docker service update --replicas 1 ${TC_NETWORK_NAME}_${TC_ORG1_STACK}_${TC_ORG1_P2_NAME}
-		commonVerify $? "failed"
-		docker service update --replicas 1 ${TC_NETWORK_NAME}_${TC_ORG1_STACK}_${TC_ORG1_P3_NAME}
-		commonVerify $? "failed"
-
-		commonYN "don't forget to change the number of replicas in the generated docker stack configurations!" commonPrintfBold "I have spoken..."
-
-		unset out
-	}
-	# commonYN "launch ${TC_ORG1_STACK} peers?" _launch
-
-	# endregion: launch peers
-
-	unset out
+		# endregion: join orderers
+	done
 
 }
 
-[[ "$TC_EXEC_DRY" == false ]] && commonYN "bootstrap ${TC_ORDERER1_STACK}, enroll ca admin, and register identities?" _Orderer1
+# [[ "$TC_EXEC_DRY" == false ]] && commonYN "chreate channels?" _channels
+commonYN "chreate channels?" _channels
 
-# endregion: orderer1
+# endregion: channels
+
+commonPrintfBold "DONE! GG"

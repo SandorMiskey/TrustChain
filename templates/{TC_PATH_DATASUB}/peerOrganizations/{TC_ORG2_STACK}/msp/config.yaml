@@ -1,14 +1,14 @@
 NodeOUs:
   Enable: true
   ClientOUIdentifier:
-    Certificate: cacerts/0-0-0-0-${TC_ORDERER1_C1_PORT}.pem
+    Certificate: cacerts/ca-cert.pem
     OrganizationalUnitIdentifier: client
   PeerOUIdentifier:
-    Certificate: cacerts/0-0-0-0-${TC_ORDERER1_C1_PORT}.pem
+    Certificate: cacerts/ca-cert.pem
     OrganizationalUnitIdentifier: peer
   AdminOUIdentifier:
-    Certificate: cacerts/0-0-0-0-${TC_ORDERER1_C1_PORT}.pem
+    Certificate: cacerts/ca-cert.pem
     OrganizationalUnitIdentifier: admin
   OrdererOUIdentifier:
-    Certificate: cacerts/0-0-0-0-${TC_ORDERER1_C1_PORT}.pem
+    Certificate: cacerts/ca-cert.pem
     OrganizationalUnitIdentifier: orderer
