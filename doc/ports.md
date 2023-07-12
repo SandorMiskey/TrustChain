@@ -4,7 +4,7 @@
 
 ### org1 (5800 -> 5899)
 
-* [TC_ORG1_G1_API=5800 (-> ORG1_G1:5800)](http://35.158.186.93:5800/_utils/#login)
+* [TC_ORG1_G1_API=5800 (-> ORG1_G1:5800)](http://35.158.186.93:5800/)
 
 * [TC_ORG1_D1_PORT=5801 (-> TC_ORG1_D1_FQDN:5984)](http://35.158.186.93:5801/_utils/#login)
 * [TC_ORG1_D2_PORT=5802 (-> TC_ORG1_D2_FQDN:5984)](http://35.158.186.93:5802/_utils/#login)
