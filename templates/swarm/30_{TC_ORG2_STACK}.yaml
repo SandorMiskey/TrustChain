@@ -33,10 +33,85 @@ services:
     volumes:
       - ${TC_ORG2_C1_DATA}:${TC_ORG2_C1_DATA}
 
+  ${TC_ORG2_D1_NAME}:
+    deploy: 
+      replicas: 1
+      placement:
+        constraints: [node.hostname == ${TC_ORG2_D1_WORKER}]
+      restart_policy:
+        condition: any 
+        delay: ${TC_SWARM_DELAY}s
+        max_attempts: 5
+    environment:
+      - COUCHDB_USER=${TC_ORG2_D1_USER}
+      - COUCHDB_PASSWORD=${TC_ORG2_D1_USERPW}
+    hostname: ${TC_ORG2_D1_FQDN}
+    image: couchdb:${TC_DEPS_COUCHDB}
+    labels:
+      service: ${TC_ORG2_D1_FQDN}
+    networks:
+      ${TC_SWARM_NETNAME}:
+        aliases:
+          - ${TC_ORG2_D1_NAME}
+          - ${TC_ORG2_D1_FQDN}
+    ports:
+      - "${TC_ORG2_D1_PORT}:5984"
+    volumes:
+      - ${TC_ORG2_D1_DATA}:/opt/couchdb/data
+  ${TC_ORG2_D2_NAME}:
+    deploy: 
+      replicas: 1
+      placement:
+        constraints: [node.hostname == ${TC_ORG2_D2_WORKER}]
+      restart_policy:
+        condition: any 
+        delay: ${TC_SWARM_DELAY}s
+        max_attempts: 5
+    environment:
+      - COUCHDB_USER=${TC_ORG2_D2_USER}
+      - COUCHDB_PASSWORD=${TC_ORG2_D2_USERPW}
+    hostname: ${TC_ORG2_D2_FQDN}
+    image: couchdb:${TC_DEPS_COUCHDB}
+    labels:
+      service: ${TC_ORG2_D2_FQDN}
+    networks:
+      ${TC_SWARM_NETNAME}:
+        aliases:
+          - ${TC_ORG2_D2_NAME}
+          - ${TC_ORG2_D2_FQDN}
+    ports:
+      - "${TC_ORG2_D2_PORT}:5984"
+    volumes:
+      - ${TC_ORG2_D2_DATA}:/opt/couchdb/data
+  ${TC_ORG2_D3_NAME}:
+    deploy: 
+      replicas: 1
+      placement:
+        constraints: [node.hostname == ${TC_ORG2_D3_WORKER}]
+      restart_policy:
+        condition: any 
+        delay: ${TC_SWARM_DELAY}s
+        max_attempts: 5
+    environment:
+      - COUCHDB_USER=${TC_ORG2_D3_USER}
+      - COUCHDB_PASSWORD=${TC_ORG2_D3_USERPW}
+    hostname: ${TC_ORG2_D3_FQDN}
+    image: couchdb:${TC_DEPS_COUCHDB}
+    labels:
+      service: ${TC_ORG2_D3_FQDN}
+    networks:
+      ${TC_SWARM_NETNAME}:
+        aliases:
+          - ${TC_ORG2_D3_NAME}
+          - ${TC_ORG2_D3_FQDN}
+    ports:
+      - "${TC_ORG2_D3_PORT}:5984"
+    volumes:
+      - ${TC_ORG2_D3_DATA}:/opt/couchdb/data
+
   ${TC_ORG2_P1_NAME}:
-    # command: peer node start
-    # depends_on:
-    #   - ${TC_ORG2_D1_FQDN}
+    depends_on:
+      - ${TC_ORG2_D1_FQDN}
     deploy:
       placement:
         constraints: [ node.hostname == ${TC_ORG2_P1_WORKER} ]
@@ -46,10 +121,10 @@ services:
         delay: ${TC_SWARM_DELAY}s
         max_attempts: 5
     environment:
-      # - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
-      # - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=${TC_ORG2_D1_FQDN}:5984
-      # - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=${TC_ORG2_D1_USER}
-      # - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=${SC_ORG2_D1_USERPW}
+      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=${TC_ORG2_D1_FQDN}:5984
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=${TC_ORG2_D1_USER}
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=${TC_ORG2_D1_USERPW}
       - CORE_LEDGER_SNAPSHOTS_ROOTDIR=${TC_ORG2_P1_DATA}/snapshots
       - CORE_METRICS_PROVIDER=prometheus
       # - CORE_OPERATIONS_LISTENADDRESS=0.0.0.0:${TC_ORG2_P1_OPPORT}
@@ -102,9 +177,8 @@ services:
       - /var/run/:/host/var/run/
     working_dir: ${TC_ORG2_P1_DATA}
   ${TC_ORG2_P2_NAME}:
-    # command: peer node start
-    # depends_on:
-    #   - ${TC_ORG2_D2_FQDN}
+    depends_on:
+      - ${TC_ORG2_D2_FQDN}
     deploy:
       placement:
         constraints: [ node.hostname == ${TC_ORG2_P2_WORKER} ]
@@ -114,10 +188,10 @@ services:
         delay: ${TC_SWARM_DELAY}s
         max_attempts: 5
     environment:
-      # - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
-      # - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=${TC_ORG2_D2_FQDN}:5984
-      # - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=${TC_ORG2_D2_USER}
-      # - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=${SC_ORG2_D2_USERPW}
+      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=${TC_ORG2_D2_FQDN}:5984
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=${TC_ORG2_D2_USER}
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=${TC_ORG2_D2_USERPW}
       - CORE_LEDGER_SNAPSHOTS_ROOTDIR=${TC_ORG2_P2_DATA}/snapshots
       - CORE_METRICS_PROVIDER=prometheus
       # - CORE_OPERATIONS_LISTENADDRESS=0.0.0.0:${TC_ORG2_P2_OPPORT}
@@ -170,9 +244,8 @@ services:
       - /var/run/:/host/var/run/
     working_dir: ${TC_ORG2_P2_DATA}
   ${TC_ORG2_P3_NAME}:
-    # command: peer node start
-    # depends_on:
-    #   - ${TC_ORG2_D3_FQDN}
+    depends_on:
+      - ${TC_ORG2_D3_FQDN}
     deploy:
       placement:
         constraints: [ node.hostname == ${TC_ORG2_P3_WORKER} ]
@@ -182,10 +255,10 @@ services:
         delay: ${TC_SWARM_DELAY}s
         max_attempts: 5
     environment:
-      # - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
-      # - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=${TC_ORG2_D3_FQDN}:5984
-      # - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=${TC_ORG2_D3_USER}
-      # - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=${SC_ORG2_D3_USERPW}
+      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=${TC_ORG2_D3_FQDN}:5984
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=${TC_ORG2_D3_USER}
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=${TC_ORG2_D3_USERPW}
       - CORE_LEDGER_SNAPSHOTS_ROOTDIR=${TC_ORG2_P3_DATA}/snapshots
       - CORE_METRICS_PROVIDER=prometheus
       # - CORE_OPERATIONS_LISTENADDRESS=0.0.0.0:${TC_ORG2_P3_OPPORT}

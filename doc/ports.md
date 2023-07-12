@@ -6,21 +6,23 @@
 
 * [TC_ORG1_G1_API=5800 (-> ORG1_G1:5800)](http://35.158.186.93:5800/_utils/#login)
 
-* [TC_ORG1_D1_PUBLIC=5801 (-> TC_ORG1_D1:5984)](http://35.158.186.93:5801/_utils/#login)
-* [TC_ORG1_D2_PUBLIC=5802 (-> TC_ORG1_D2:5984)](http://35.158.186.93:5802/_utils/#login)
-* [TC_ORG1_D3_PUBLIC=5803 (-> TC_ORG1_D3:5984)](http://35.158.186.93:5803/_utils/#login)
+* [TC_ORG1_D1_PORT=5801 (-> TC_ORG1_D1_FQDN:5984)](http://35.158.186.93:5801/_utils/#login)
+* [TC_ORG1_D2_PORT=5802 (-> TC_ORG1_D2_FQDN:5984)](http://35.158.186.93:5802/_utils/#login)
+* [TC_ORG1_D3_PORT=5803 (-> TC_ORG1_D3_FQDN:5984)](http://35.158.186.93:5803/_utils/#login)
 
 ### org2 (5900 -> 5999)
 
-* [TC_ORG2_D1_PUBLIC=5901 (-> TC_ORG2_D1:5984)](http://35.158.186.93:5901/_utils/#login)
-* [TC_ORG2_D3_PUBLIC=5902 (-> TC_ORG2_D2:5984)](http://35.158.186.93:5902/_utils/#login)
-* [TC_ORG2_D3_PUBLIC=5903 (-> TC_ORG2_D3:5984)](http://35.158.186.93:5903/_utils/#login)
+* [TC_ORG2_D1_PORT=5901 (-> TC_ORG2_D1_FQDN:5984)](http://35.158.186.93:5901/_utils/#login)
+* [TC_ORG2_D3_PORT=5902 (-> TC_ORG2_D2_FQDN:5984)](http://35.158.186.93:5902/_utils/#login)
+* [TC_ORG2_D3_PORT=5903 (-> TC_ORG2_D3_FQDN:5984)](http://35.158.186.93:5903/_utils/#login)
 
-## common infra (6000 -> 6999)
+## private: ca, orderer and peer (6000 -> 9999)
+
+### common infra (6000 -> 6999)
 
 * TC_TLSCA1_C1_PORT=6001
 
-## orderer1 (7000 -> 7999)
+### orderer1 (7000 -> 7999)
 
 * TC_ORDERER1_C1_PORT=7001
 
@@ -36,7 +38,7 @@
 * TC_ORDERER1_O3_ADMINPORT=7302
 * TC_ORDERER1_O3_OPPORT=7303
 
-## org1 (8000 -> 8999)
+### org1 (8000 -> 8999)
 
 * TC_ORG1_C1_PORT=8001
 
@@ -54,7 +56,7 @@
 
 * TC_ORG1_CLI1_*=TC_ORG1_P1_*
 
-## org2 (9000 -> 9999)
+### org2 (9000 -> 9999)
 
 * TC_ORG2_C1_PORT=9001
 

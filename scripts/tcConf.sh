@@ -36,7 +36,7 @@ export PATH=${TC_PATH_BIN}:${TC_PATH_SCRIPTS}:$PATH
 # region: exec control
 
 export TC_EXEC_DRY=false
-export TC_EXEC_FORCE=false
+export TC_EXEC_FORCE=true
 export TC_EXEC_PANIC=true
 export TC_EXEC_SURE=true
 export TC_EXEC_SILENT=false
@@ -240,6 +240,35 @@ export TC_TLSCA1_C1_DEBUG=false
 		export TC_ORG1_C1_ADMINPW=$TC_ORG1_C1_ADMINPW
 
 		# endregion: org1 c1
+		# region: org1 state dbs
+
+		export TC_ORG1_D1_NAME=db1
+		export TC_ORG1_D1_USER=${TC_ORG1_D1_NAME}-${TC_ORG1_STACK}
+		export TC_ORG1_D1_USERPW=$TC_ORG1_D1_USERPW
+		export TC_ORG1_D1_WORKER=$TC_SWARM_MANAGER
+		export TC_ORG1_D1_FQDN=${TC_ORG1_D1_NAME}.${TC_ORG1_DOMAIN}
+		export TC_ORG1_D1_PORT=5801
+		export TC_ORG1_D1_DATA=${TC_ORG1_DATA}/dbs/${TC_ORG1_D1_NAME}
+
+		export TC_ORG1_D2_NAME=db2
+		export TC_ORG1_D2_USER=${TC_ORG1_D2_NAME}-${TC_ORG1_STACK}
+		export TC_ORG1_D2_USERPW=$TC_ORG1_D2_USERPW
+		export TC_ORG1_D2_WORKER=$TC_SWARM_MANAGER
+		export TC_ORG1_D2_FQDN=${TC_ORG1_D2_NAME}.${TC_ORG1_DOMAIN}
+		export TC_ORG1_D2_PORT=5802
+		export TC_ORG1_D2_DATA=${TC_ORG1_DATA}/dbs/${TC_ORG1_D2_NAME}
+
+		export TC_ORG1_D3_NAME=db3
+		export TC_ORG1_D3_USER=${TC_ORG1_D3_NAME}-${TC_ORG1_STACK}
+		export TC_ORG1_D3_USERPW=$TC_ORG1_D3_USERPW
+		export TC_ORG1_D3_WORKER=$TC_SWARM_MANAGER
+		export TC_ORG1_D3_FQDN=${TC_ORG1_D3_NAME}.${TC_ORG1_DOMAIN}
+		export TC_ORG1_D3_PORT=5803
+		export TC_ORG1_D3_DATA=${TC_ORG1_DATA}/dbs/${TC_ORG1_D3_NAME}
+
+		# endregion: org1 state dbs
+		# region: org1 peers
+
 		# region: org1 p1
 		
 		export TC_ORG1_P1_NAME=peer1
@@ -310,6 +339,8 @@ export TC_TLSCA1_C1_DEBUG=false
 		export TC_ORG1_P3_ASSETS_TLSCERT=${TC_ORG1_P3_DATA}/assets/${TC_TLSCA1_C1_FQDN}/ca-cert.pem
 
 		# endregion: org1 p3
+		
+		# endregion: org1 peers
 		# region: org1 g1
 
 		export TC_ORG1_G1_NAME=gw1
@@ -395,6 +426,35 @@ export TC_TLSCA1_C1_DEBUG=false
 		export TC_ORG2_C1_ADMINPW=$TC_ORG2_C1_ADMINPW
 
 		# endregion: org2 c1
+		# region: org2 state dbs
+
+		export TC_ORG2_D1_NAME=db1
+		export TC_ORG2_D1_USER=${TC_ORG2_D1_NAME}-${TC_ORG2_STACK}
+		export TC_ORG2_D1_USERPW=$TC_ORG2_D1_USERPW
+		export TC_ORG2_D1_WORKER=$TC_SWARM_MANAGER
+		export TC_ORG2_D1_FQDN=${TC_ORG2_D1_NAME}.${TC_ORG2_DOMAIN}
+		export TC_ORG2_D1_PORT=5901
+		export TC_ORG2_D1_DATA=${TC_ORG2_DATA}/dbs/${TC_ORG2_D1_NAME}
+
+		export TC_ORG2_D2_NAME=db2
+		export TC_ORG2_D2_USER=${TC_ORG2_D2_NAME}-${TC_ORG2_STACK}
+		export TC_ORG2_D2_USERPW=$TC_ORG2_D2_USERPW
+		export TC_ORG2_D2_WORKER=$TC_SWARM_MANAGER
+		export TC_ORG2_D2_FQDN=${TC_ORG2_D2_NAME}.${TC_ORG2_DOMAIN}
+		export TC_ORG2_D2_PORT=5902
+		export TC_ORG2_D2_DATA=${TC_ORG2_DATA}/dbs/${TC_ORG2_D2_NAME}
+
+		export TC_ORG2_D3_NAME=db3
+		export TC_ORG2_D3_USER=${TC_ORG2_D3_NAME}-${TC_ORG2_STACK}
+		export TC_ORG2_D3_USERPW=$TC_ORG2_D3_USERPW
+		export TC_ORG2_D3_WORKER=$TC_SWARM_MANAGER
+		export TC_ORG2_D3_FQDN=${TC_ORG2_D3_NAME}.${TC_ORG2_DOMAIN}
+		export TC_ORG2_D3_PORT=5903
+		export TC_ORG2_D3_DATA=${TC_ORG2_DATA}/dbs/${TC_ORG2_D3_NAME}
+
+		# endregion: org2 state dbs
+		# region: org2 peers
+
 		# region: org2 p1
 		
 		export TC_ORG2_P1_NAME=peer1
@@ -465,6 +525,8 @@ export TC_TLSCA1_C1_DEBUG=false
 		export TC_ORG2_P3_ASSETS_TLSCERT=${TC_ORG2_P3_DATA}/assets/${TC_TLSCA1_C1_FQDN}/ca-cert.pem
 
 		# endregion: org2 p3
+
+		# endregion: org2 peers
 		# region: org2 cli
 
 		export TC_ORG2_CLI1_NAME=cli1

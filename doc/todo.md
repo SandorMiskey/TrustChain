@@ -1,6 +1,6 @@
 # todo
 
-* add couchdb
+* common: metrics and management
 * chaincode + api
 
 * tls ca checklist [https://hyperledger-fabric-ca.readthedocs.io/en/latest/deployguide/ca-config.html]

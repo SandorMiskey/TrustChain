@@ -1136,6 +1136,8 @@ _channels() {
 
 	local out
 
+	# region: create channels and join orgs
+
 	for chname in "$TC_CHANNEL1_NAME" "$TC_CHANNEL2_NAME"
 	do
 
@@ -1200,7 +1202,7 @@ _channels() {
 			# endregion: o3
 			# region: status
 
-			commonPrintf "joining $TC_ORDERER1_O1_NAME:${TC_ORDERER1_O1_PORT} to $chname"
+			commonPrintf "getting status of $chname"
 			out=$(
 				export FABRIC_CFG_PATH="$cfpath"
 				export OSN_TLS_CA_ROOT_CERT=$TC_ORDERER1_O1_ASSETS_TLSCERT
@@ -1229,7 +1231,7 @@ _channels() {
 					out=$(
 						export FABRIC_CFG_PATH="$cfpath"
 						export CORE_PEER_TLS_ENABLED=true
-						export CORE_PEER_LOCALMSPID="te-food-endorsersMSP"
+						export CORE_PEER_LOCALMSPID="${TC_ORG1_STACK}MSP"
 						export CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG1_DATA}/msp/tlscacerts/ca-cert.pem
 						export CORE_PEER_MSPCONFIGPATH=$TC_ORG1_ADMINMSP
 						export CORE_PEER_ADDRESS=localhost:${port}
@@ -1250,7 +1252,7 @@ _channels() {
 					out=$(
 						export FABRIC_CFG_PATH="$cfpath"
 						export CORE_PEER_TLS_ENABLED=true
-						export CORE_PEER_LOCALMSPID="masternodesMSP"
+						export CORE_PEER_LOCALMSPID="${TC_ORG2_STACK}MSP"
 						export CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG2_DATA}/msp/tlscacerts/ca-cert.pem
 						export CORE_PEER_MSPCONFIGPATH=$TC_ORG2_ADMINMSP
 						export CORE_PEER_ADDRESS=localhost:${port}
@@ -1269,6 +1271,49 @@ _channels() {
 		# endregion: join peers
 
 	done
+
+	# endregion: create channels
+	# region: status
+
+	commonPrintf "listing all the channels on orderer1_o1"
+	out=$(
+		export OSN_TLS_CA_ROOT_CERT=$TC_ORDERER1_O1_ASSETS_TLSCERT
+		export ADMIN_TLS_SIGN_CERT=${TC_ORDERER1_ADMINTLSMSP}/signcerts/cert.pem
+		export ADMIN_TLS_PRIVATE_KEY=${TC_ORDERER1_ADMINTLSMSP}/keystore/key.pem
+		osnadmin channel list -o localhost:${TC_ORDERER1_O1_ADMINPORT} --ca-file $OSN_TLS_CA_ROOT_CERT --client-cert $ADMIN_TLS_SIGN_CERT --client-key $ADMIN_TLS_PRIVATE_KEY  2>&1
+	)
+	commonVerify $? "failed: $out" "$out"
+
+	commonPrintf "listing all the channels on org1_p1"
+	out=$(
+		export FABRIC_CFG_PATH="${TC_PATH_STORAGE}/channels/${TC_CHANNEL1_NAME}"
+		export CORE_PEER_TLS_ENABLED=true
+		export CORE_PEER_LOCALMSPID="${TC_ORG1_STACK}MSP"
+		export CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG1_DATA}/msp/tlscacerts/ca-cert.pem
+		export CORE_PEER_MSPCONFIGPATH=$TC_ORG1_ADMINMSP
+		export CORE_PEER_ADDRESS=localhost:${TC_ORG1_P1_PORT}
+		peer channel list  2>&1
+	)
+	commonVerify $? "failed: $out" "$out"
+
+	for chname in "$TC_CHANNEL1_NAME" "$TC_CHANNEL2_NAME"
+	do
+		local cfpath="${TC_PATH_STORAGE}/channels/${chname}"
+
+		commonPrintf "get info for $chname on org1_p1"
+		out=$(
+			export FABRIC_CFG_PATH="${TC_PATH_STORAGE}/channels/${TC_CHANNEL1_NAME}"
+			export CORE_PEER_TLS_ENABLED=true
+			export CORE_PEER_LOCALMSPID="te-food-endorsersMSP"
+			export CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG1_DATA}/msp/tlscacerts/ca-cert.pem
+			export CORE_PEER_MSPCONFIGPATH=$TC_ORG1_ADMINMSP
+			export CORE_PEER_ADDRESS=localhost:${TC_ORG1_P1_PORT}
+			peer channel getinfo -c $chname  2>&1
+		)
+		commonVerify $? "failed: $out" "$out"
+	done
+
+	# endregion: status
 
 }
 
