@@ -221,3 +221,13 @@ function commonSetvar() {
 	done
 	printf "%s" $target
 }
+
+function commonJoinArray() {
+	local -n arr=$1
+	[[ ${2:-"unset"} == "unset" ]] && local form="%s\n" || local form="$2"
+	[[ ${3:-"unset"} == "unset" ]] && local cut="" || local cut="$3"
+	local out
+	printf -v out "$form" "${arr[@]}"
+	# printf "${out%$cut}"
+	echo "${out%$cut}"
+}

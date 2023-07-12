@@ -15,7 +15,7 @@ services:
     environment:
       - FABRIC_CA_SERVER_HOME=${TC_ORG2_C1_HOME}
       - FABRIC_CA_SERVER_TLS_ENABLED=true
-      - FABRIC_CA_SERVER_CSR_CN=${TC_ORG2_STACK}_${TC_ORG2_C1_NAME}
+      - FABRIC_CA_SERVER_CSR_CN=${TC_ORG2_C1_NAME}-${TC_ORG2_STACK}
       - FABRIC_CA_SERVER_CSR_HOSTS=0.0.0.0
       - FABRIC_CA_SERVER_DEBUG=${TC_ORG2_C1_DEBUG}
       - FABRIC_CA_SERVER_LOGLEVEL=${TC_ORG2_C1_LOGLEVEL}
@@ -61,7 +61,7 @@ services:
       - CORE_PEER_ADDRESS=${TC_ORG2_P1_FQDN}:${TC_ORG2_P1_PORT}
       - CORE_PEER_CHAINCODEADDRESS=${TC_ORG2_P1_FQDN}:${TC_ORG2_P1_CHPORT}
       - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:${TC_ORG2_P1_CHPORT}
-      - CORE_PEER_ID=${TC_ORG2_P1_NAME}
+      - CORE_PEER_ID=${TC_ORG2_P1_CA_NAME}
       - CORE_PEER_FILESYSTEMPATH=${TC_ORG2_P1_DATA}
       - CORE_PEER_GOSSIP_BOOTSTRAP=127.0.0.1:${TC_ORG2_P1_PORT}
       - CORE_PEER_GOSSIP_ENDPOINT=${TC_ORG2_P1_FQDN}:${TC_ORG2_P1_PORT}
@@ -129,7 +129,7 @@ services:
       - CORE_PEER_ADDRESS=${TC_ORG2_P2_FQDN}:${TC_ORG2_P2_PORT}
       - CORE_PEER_CHAINCODEADDRESS=${TC_ORG2_P2_FQDN}:${TC_ORG2_P2_CHPORT}
       - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:${TC_ORG2_P2_CHPORT}
-      - CORE_PEER_ID=${TC_ORG2_P2_NAME}
+      - CORE_PEER_ID=${TC_ORG2_P2_CA_NAME}
       - CORE_PEER_FILESYSTEMPATH=${TC_ORG2_P2_DATA}
       - CORE_PEER_GOSSIP_BOOTSTRAP=127.0.0.1:${TC_ORG2_P2_PORT}
       - CORE_PEER_GOSSIP_ENDPOINT=${TC_ORG2_P2_FQDN}:${TC_ORG2_P2_PORT}
@@ -161,10 +161,10 @@ services:
         aliases:
           - ${TC_ORG2_P2_NAME}
           - ${TC_ORG2_P2_FQDN}
-    # ports:
-    #   - ${TC_ORG2_P2_PORT}:${TC_ORG2_P2_PORT}
-    #   - ${TC_ORG2_P2_CHPORT}:${TC_ORG2_P2_CHPORT}
-    #   - ${TC_ORG2_P2_OPPORT}:${TC_ORG2_P2_OPPORT}
+    ports:
+      - ${TC_ORG2_P2_PORT}:${TC_ORG2_P2_PORT}
+      - ${TC_ORG2_P2_CHPORT}:${TC_ORG2_P2_CHPORT}
+      - ${TC_ORG2_P2_OPPORT}:${TC_ORG2_P2_OPPORT}
     volumes:
       - ${TC_ORG2_P2_DATA}:${TC_ORG2_P2_DATA} 
       - /var/run/:/host/var/run/
@@ -197,7 +197,7 @@ services:
       - CORE_PEER_ADDRESS=${TC_ORG2_P3_FQDN}:${TC_ORG2_P3_PORT}
       - CORE_PEER_CHAINCODEADDRESS=${TC_ORG2_P3_FQDN}:${TC_ORG2_P3_CHPORT}
       - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:${TC_ORG2_P3_CHPORT}
-      - CORE_PEER_ID=${TC_ORG2_P3_NAME}
+      - CORE_PEER_ID=${TC_ORG2_P3_CA_NAME}
       - CORE_PEER_FILESYSTEMPATH=${TC_ORG2_P3_DATA}
       - CORE_PEER_GOSSIP_BOOTSTRAP=127.0.0.1:${TC_ORG2_P3_PORT}
       - CORE_PEER_GOSSIP_ENDPOINT=${TC_ORG2_P3_FQDN}:${TC_ORG2_P3_PORT}
@@ -229,10 +229,10 @@ services:
         aliases:
           - ${TC_ORG2_P3_NAME}
           - ${TC_ORG2_P3_FQDN}
-    # ports:
-    #   - ${TC_ORG2_P3_PORT}:${TC_ORG2_P3_PORT}
-    #   - ${TC_ORG2_P3_CHPORT}:${TC_ORG2_P3_CHPORT}
-    #   - ${TC_ORG2_P3_OPPORT}:${TC_ORG2_P3_OPPORT}
+    ports:
+      - ${TC_ORG2_P3_PORT}:${TC_ORG2_P3_PORT}
+      - ${TC_ORG2_P3_CHPORT}:${TC_ORG2_P3_CHPORT}
+      - ${TC_ORG2_P3_OPPORT}:${TC_ORG2_P3_OPPORT}
     volumes:
       - ${TC_ORG2_P3_DATA}:${TC_ORG2_P3_DATA} 
       - /var/run/:/host/var/run/
@@ -267,6 +267,7 @@ services:
       - FABRIC_LOGGING_SPEC=${TC_ORG2_CLI1_LOGLEVEL}
       # - GOPATH=/opt/gopath
       - GOPATH=${TC_ORG2_CLI1_ASSETS_CHAINCODE}
+      - TC_PATH_RC=$TC_PATH_RC
     hostname: ${TC_ORG2_CLI1_FQDN}
     image: hyperledger/fabric-tools:${TC_DEPS_FABRIC}
     labels:
@@ -283,56 +284,6 @@ services:
     stdin_open: true
     tty: true
     volumes:
-      - ${TC_ORG2_CLI1_DATA}:${TC_ORG2_CLI1_DATA}
-      - ${TC_ORG2_ADMINHOME}:${TC_ORG2_ADMINHOME}
-    working_dir: ${TC_ORG2_CLI1_DATA}
-  
-  # ${TC_ORG2_G1_NAME}:
-  #   command: /bin/bash
-  #   # depends_on:
-  #   #   - ${TC_ORG2_D1_FQDN}
-  #   deploy:
-  #     placement:
-  #       constraints: [ node.hostname == ${TC_ORG2_G1_WORKER} ]
-  #     replicas: 1
-  #     restart_policy:
-  #       condition: any 
-  #       delay: ${TC_SWARM_DELAY}s
-  #       max_attempts: 5
-  #   environment:
-  #     - CORE_PEER_ADDRESS=CORE_PEER_ADDRESS=${TC_ORG2_G1_PEER_FQDN}:${TC_ORG2_G1_PORT}
-  #     - CORE_PEER_ID=${TC_ORG2_G1_PEER_NAME}
-  #     - CORE_PEER_LOCALMSPID=${TC_ORG2_STACK}MSP
-  #     - CORE_PEER_MSPCONFIGPATH=${TC_ORG2_G1_MSP}
-  #     - CORE_PEER_NETWORKID=${TC_SWARM_NETNAME}
-  #     - CORE_PEER_TLS_ENABLED=true
-  #     - CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG2_G1_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_TLSCA1_C1_PORT}.pem
-  #     # - CORE_PEER_TLS_CERT_FILE=${TC_ORG2_G1_TLSMSP}/signcerts/cert.pem
-  #     # - CORE_PEER_TLS_KEY_FILE=${TC_ORG2_G1_TLSMSP}/keystore/key.pem
-  #     # - CORE_PEER_TLS_CLIENTAUTHREQUIRED=true
-  #     # - CORE_PEER_TLS_CLIENTROOTCAS_FILES:
-  #     #     - ${TC_ORG2_G1_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_TLSCA1_C1_PORT}.pem
-  #     - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
-  #     - FABRIC_LOGGING_SPEC=${TC_ORG2_G1_LOGLEVEL}
-  #     # - GOPATH=/opt/gopath
-  #     - GOPATH=${TC_ORG2_G1_ASSETS_CHAINCODE}
-  #   hostname: ${TC_ORG2_G1_FQDN}
-  #   image: hyperledger/fabric-tools:${TC_DEPS_FABRIC}
-  #   labels:
-  #     service: ${TC_ORG2_G1_FQDN}
-  #   networks:
-  #     ${TC_SWARM_NETNAME}:
-  #       aliases:
-  #         - ${TC_ORG2_G1_NAME}
-  #         - ${TC_ORG2_G1_FQDN}
-  #   ports:
-  #     - ${TC_ORG2_G1_API}:${TC_ORG1_G2_API}
-  #   #   - ${TC_ORG2_G1_PORT}:${TC_ORG2_G1_PORT}
-  #   #   - ${TC_ORG2_G1_CHPORT}:${TC_ORG2_G1_CHPORT}
-  #   #   - ${TC_ORG2_G1_OPPORT}:${TC_ORG2_G1_OPPORT}
-  #   stdin_open: true
-  #   tty: true
-  #   volumes:
-  #     - ${TC_ORG2_G1_DATA}:${TC_ORG2_G1_DATA}
-  #     - ${TC_ORG2_ADMINHOME}:${TC_ORG2_ADMINHOME} 
-  #   working_dir: ${TC_ORG2_G1_DATA}
+      - ${TC_ORG2_DATA}:${TC_ORG2_DATA}
+      - ${TC_PATH_SCRIPTS}:${TC_PATH_SCRIPTS}
+    working_dir: ${TC_PATH_BASE}

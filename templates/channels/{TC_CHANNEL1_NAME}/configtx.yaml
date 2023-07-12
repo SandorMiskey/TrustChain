@@ -38,6 +38,9 @@ Organizations:
             Endorsement:
                 Type: Signature
                 Rule: "OR('${TC_ORG1_STACK}MSP.peer')"
+        AnchorPeers:
+            - Host: $TC_ORG1_P1_FQDN
+              Port: $TC_ORG1_P1_PORT
     - &${TC_ORG2_STACK}
         Name: ${TC_ORG2_STACK}MSP
         ID: ${TC_ORG2_STACK}MSP
@@ -55,6 +58,9 @@ Organizations:
             Endorsement:
                 Type: Signature
                 Rule: "OR('${TC_ORG2_STACK}MSP.peer')"
+        AnchorPeers:
+            - Host: $TC_ORG2_P1_FQDN
+              Port: $TC_ORG2_P1_PORT
 Capabilities:
     Channel: &ChannelCapabilities
         V2_0: true
