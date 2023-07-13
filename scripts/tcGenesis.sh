@@ -1323,6 +1323,16 @@ commonYN "create channels?" _channels
 # endregion: channels
 # region: common services
 
+	# region: bootstrap common1
+
+	_bootstrapCommon2() {
+		commonPrintf "bootstrapping >>>${TC_COMMON1_STACK}<<<"
+		${TC_PATH_SCRIPTS}/tcBootstrap.sh -m up -s ${TC_COMMON1_STACK}
+		commonVerify $? "failed!"
+	}
+	commonYN "bootstrap ${TC_COMMON1_STACK}?" _bootstrapCommon2
+
+	# endregion: bootstrap common1
 	# region: bootstrap common2
 
 	_bootstrapCommon2() {
@@ -1332,7 +1342,7 @@ commonYN "create channels?" _channels
 	}
 	commonYN "bootstrap ${TC_COMMON2_STACK}?" _bootstrapCommon2
 
-	# endregion: bootstrap
+	# endregion: bootstrap common1
 
 # endregion: common services
 commonPrintfBold "ALL DONE!"

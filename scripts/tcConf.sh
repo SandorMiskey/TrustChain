@@ -556,23 +556,30 @@ export TC_TLSCA_C1_DEBUG=false
 
 	# region: common1
 
-	export TC_COMMON1_STACK=mgmt
+	export TC_COMMON1_STACK=metrics
 	export TC_COMMON1_DATASUB=${TC_COMMON1_STACK}
 	export TC_COMMOM1_DATA=${TC_PATH_STORAGE}/${TC_COMMON1_STACK}
+	export TC_COMMON1_UID=$( id -u )
+	export TC_COMMON1_GID=$( id -g )
 	
 	export TC_COMMON1_S1_NAME=visualizer
 	export TC_COMMON1_S1_PORT=5101
 	export TC_COMMON1_S2_NAME=logspout
 	export TC_COMMON1_S2_PORT=5102
 	export TC_COMMON1_S3_NAME=prometheus
-	export TC_COMMON1_S3_UID=$( id -u )
-	export TC_COMMON1_S3_GID=$( id -g )
 	export TC_COMMON1_S3_DATA=${TC_COMMOM1_DATA}/${TC_COMMON1_S3_NAME}
 	export TC_COMMON1_S3_PORT=5103
 	export TC_COMMON1_S3_WORKER=$TC_SWARM_MANAGER
 	export TC_COMMON1_S4_NAME=cadvisor
 	export TC_COMMON1_S4_PORT=5104
 	export TC_COMMON1_S4_WORKER=$TC_SWARM_MANAGER
+	export TC_COMMON1_S5_NAME=node-exporter
+	export TC_COMMON1_S5_PORT=5105
+	export TC_COMMON1_S5_WORKER=$TC_SWARM_MANAGER
+	export TC_COMMON1_S6_NAME=grafana
+	export TC_COMMON1_S6_PORT=5106
+	export TC_COMMON1_S6_WORKER=$TC_SWARM_MANAGER
+	export TC_COMMON1_S6_DATA=${TC_COMMOM1_DATA}/${TC_COMMON1_S6_NAME}
 
 	# endregion: common1
 	# region: common2

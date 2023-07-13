@@ -55,13 +55,20 @@ services:
           - ${TC_COMMON1_S3_NAME}
     ports:
       - ${TC_COMMON1_S3_PORT}:9090
-    user: "${TC_COMMON1_S3_UID}:${TC_COMMON1_S3_UID}"
+    user: "${TC_COMMON1_UID}:${TC_COMMON1_UID}"
     volumes:
       - ${TC_COMMON1_S3_DATA}/prometheus.yml:/etc/prometheus/prometheus.yml
       - ${TC_COMMON1_S3_DATA}:/prometheus:rw
   ${TC_COMMON1_S4_NAME}:
     cap_add:
       - ALL
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [ node.hostname == ${TC_COMMON1_S4_WORKER} ]
+      restart_policy:
+        condition: any 
+        delay: ${TC_SWARM_DELAY}s
     image: gcr.io/cadvisor/cadvisor:latest
     networks:
       ${SC_NETWORK_NAME}:
@@ -79,55 +86,46 @@ services:
       - /sys:/sys:ro
       - /var/lib/docker/:/var/lib/docker:ro
       - /dev/disk/:/dev/disk:ro
-
-    deploy:
-      replicas: 1
-      placement:
-        constraints: [ node.hostname == ${SC_METRICS_HOST} ]
-      restart_policy:
-        condition: any 
-        delay: ${SC_SWARM_DELAY}s
-  node-exporter:
-    image: prom/node-exporter:v1.3.1
-    networks:
-      ${SC_NETWORK_NAME}:
-        aliases:
-          - node-exporter
-    volumes:
-      - /proc:/host/proc:ro
-      - /sys:/host/sys:ro
+  ${TC_COMMON1_S5_NAME}:
     command:
       - '--path.procfs=/host/proc'
       - '--path.sysfs=/host/sys'
       - --collector.filesystem.ignored-mount-points
       - "^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)"
-    ports:
-      - ${SC_METRICS_NEXPORTER_PORT}:9100
     deploy:
       replicas: 1
       placement:
-        constraints: [ node.hostname == ${SC_METRICS_HOST} ]
+        constraints: [ node.hostname == ${TC_COMMON1_S5_WORKER} ]
       restart_policy:
         condition: any 
-        delay: ${SC_SWARM_DELAY}s
-  grafana:
-    # image: grafana/grafana:8.3.4
-    image: grafana/grafana:latest
-    user: "${SC_UID}:${SC_GID}"
+        delay: ${TC_SWARM_DELAY}s
+    image: prom/node-exporter:v1.3.1
     networks:
       ${SC_NETWORK_NAME}:
         aliases:
-          - grafana
-    depends_on:
-      - prometheus
+          - ${TC_COMMON1_S5_NAME}
     ports:
-      - ${SC_METRICS_GRAFANA_PORT}:3000
+      - ${TC_COMMON1_S5_PORT}:9100
     volumes:
-      - ${SC_PATH_DATA}/grafana:/var/lib/grafana:rw
-      - ${SC_PATH_CONF}/grafana/provisioning/:/etc/grafana/provisioning/
-    env_file:
-      - ${SC_PATH_CONF}/grafana/config.monitoring
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+  ${TC_COMMON1_S6_NAME}:
     deploy:
       replicas: 1
       placement:
-        constraints: [ node.hostname == ${SC_METRICS_HOST} ]
+        constraints: [ node.hostname == ${TC_COMMON1_S_WORKER} ]
+    image: grafana/grafana:latest
+    user: "${TC_COMMON1_UID}:${TC_COMMON1_GID}"
+    networks:
+      ${SC_NETWORK_NAME}:
+        aliases:
+          - ${TC_COMMON1_S5_NAME}
+    depends_on:
+      - ${TC_COMMON1_S3_NAME}
+    ports:
+      - ${TC_COMMON1_S6_PORT}:3000
+    volumes:
+      - ${TC_COMMON1_S6_DATA}:/var/lib/grafana:rw
+      - ${TC_COMMON1_S6_DATA}/provisioning/:/etc/grafana/provisioning/
+    env_file:
+      - ${TC_COMMON1_S6_DATA}/config.monitoring
