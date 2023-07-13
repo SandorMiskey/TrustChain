@@ -616,11 +616,6 @@ _Org1() {
 		commonVerify $? "failed to register ${TC_ORG1_ADMIN}: $out" "$out"
 		out=$(
 			_setAdminClient
-			fabric-ca-client register --id.name $TC_ORG1_USER --id.secret $TC_ORG1_USERPW --id.type user -u https://0.0.0.0:${TC_ORG1_C1_PORT} 2>&1
-		)
-		commonVerify $? "failed to register ${TC_ORG1_USER}: $out" "$out"
-		out=$(
-			_setAdminClient
 			fabric-ca-client register --id.name $TC_ORG1_CLIENT --id.secret $TC_ORG1_CLIENTPW --id.type client -u https://0.0.0.0:${TC_ORG1_C1_PORT} 2>&1
 		)
 		commonVerify $? "failed to register ${TC_ORG1_CLIENT}: $out" "$out"
@@ -806,24 +801,6 @@ _Org1() {
 		unset destNode destLocal
 
 		# endregion: admin
-		# region: user
-
-		commonPrintf "enrolling $TC_ORG1_USER"
-		out=$(
-			export FABRIC_CA_CLIENT_HOME=$( dirname $TC_ORG1_USERMSP )
-			export FABRIC_CA_CLIENT_TLS_CERTFILES=$TC_ORG1_P1_ASSETS_CACERT
-			export FABRIC_CA_CLIENT_MSPDIR=$TC_ORG1_USERMSP
-			fabric-ca-client enroll -u https://${TC_ORG1_USER}:${TC_ORG1_USERPW}@0.0.0.0:${TC_ORG1_C1_PORT} 2>&1
-		)
-		commonVerify $? "failed: $out" "$out"
-
-		local usercert="${TC_ORG1_USERMSP}/signcerts/cert.pem"
-		for destNode in "${TC_ORG1_P1_MSP}" "${TC_ORG1_P2_MSP}" "${TC_ORG1_P3_MSP}"  "${TC_ORG1_G1_MSP}"
-		do
-			_disseminate "$usercert" "${destNode}/users/${TC_ORG1_USER}.pem"
-		done
-
-		# endregion: user
 		# region: client
 
 		commonPrintf "enrolling $TC_ORG1_CLIENT"
@@ -835,7 +812,7 @@ _Org1() {
 		)
 		commonVerify $? "failed: $out" "$out"
 
-		local clientcert="${TC_ORG1_USERMSP}/signcerts/cert.pem"
+		local clientcert="${TC_ORG1_CLIENTMSP}/signcerts/cert.pem"
 		for destNode in "${TC_ORG1_P1_MSP}" "${TC_ORG1_P2_MSP}" "${TC_ORG1_P3_MSP}"  "${TC_ORG1_G1_MSP}"
 		do
 			_disseminate "$clientcert" "${destNode}/users/${TC_ORG1_CLIENT}.pem"
@@ -843,6 +820,7 @@ _Org1() {
 
 		# endregion: client
 
+		unset destNode destLocal
 		unset out
 
 	}
@@ -934,6 +912,11 @@ _Org2() {
 			fabric-ca-client register --id.name $TC_ORG2_ADMIN --id.secret $TC_ORG2_ADMINPW --id.type admin --id.attrs "$TC_ORG2_ADMINATRS" -u https://0.0.0.0:${TC_ORG2_C1_PORT} 2>&1
 		)
 		commonVerify $? "failed to register ${TC_ORG2_ADMIN}: $out" "$out"
+		out=$(
+			_setAdminClient
+			fabric-ca-client register --id.name $TC_ORG2_CLIENT --id.secret $TC_ORG2_CLIENTPW --id.type client -u https://0.0.0.0:${TC_ORG2_C1_PORT} 2>&1
+		)
+		commonVerify $? "failed to register ${TC_ORG1_CLIENT}: $out" "$out"
 	}
 	commonYN "register ${TC_ORG2_STACK} admin, user and client with ${TC_ORG2_C1_FQDN}?" _registerUsers
 
@@ -1070,6 +1053,8 @@ _Org2() {
 
 		local out
 
+		# region: admin
+
 		commonPrintf "enrolling $TC_ORG2_ADMIN"
 		out=$(
 			export FABRIC_CA_CLIENT_HOME=$TC_ORG2_ADMINHOME
@@ -1087,6 +1072,28 @@ _Org2() {
 				_disseminate "$admincert" "${destNode}/${destLocal}/${TC_ORG2_ADMIN}.pem"
 			done
 		done
+
+		unset destNode destLocal
+
+		# endregion: admin
+		# region: client
+
+		commonPrintf "enrolling $TC_ORG2_CLIENT"
+		out=$(
+			export FABRIC_CA_CLIENT_HOME=$( dirname $TC_ORG2_CLIENTMSP )
+			export FABRIC_CA_CLIENT_TLS_CERTFILES=$TC_ORG2_P1_ASSETS_CACERT
+			export FABRIC_CA_CLIENT_MSPDIR=$TC_ORG2_CLIENTMSP
+			fabric-ca-client enroll -u https://${TC_ORG2_CLIENT}:${TC_ORG2_CLIENTPW}@0.0.0.0:${TC_ORG2_C1_PORT} 2>&1
+		)
+		commonVerify $? "failed: $out" "$out"
+
+		local clientcert="${TC_ORG2_CLIENTMSP}/signcerts/cert.pem"
+		for destNode in "${TC_ORG2_P1_MSP}" "${TC_ORG2_P2_MSP}" "${TC_ORG2_P3_MSP}"
+		do
+			_disseminate "$clientcert" "${destNode}/users/${TC_ORG2_CLIENT}.pem"
+		done
+
+		# endregion: client
 
 		unset destNode destLocal
 		unset out

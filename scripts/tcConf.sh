@@ -216,9 +216,9 @@ export TC_TLSCA_C1_DEBUG=false
 		export TC_ORG1_ADMINATRS="hf.Registrar.Roles=client,hf.Registrar.Attributes=*,hf.Revoker=true,hf.GenCRL=true,admin=true:ecert,abac.init=true:ecert"
 		export TC_ORG1_ADMINHOME=${TC_ORG1_DATA}/users/${TC_ORG1_ADMIN}
 		export TC_ORG1_ADMINMSP=${TC_ORG1_ADMINHOME}/msp
-		export TC_ORG1_USER=${TC_ORG1_STACK}-user1
-		export TC_ORG1_USERPW=$TC_ORG1_USERPW
-		export TC_ORG1_USERMSP=${TC_ORG1_DATA}/users/${TC_ORG1_USER}/msp
+		# export TC_ORG1_USER=${TC_ORG1_STACK}-user1
+		# export TC_ORG1_USERPW=$TC_ORG1_USERPW
+		# export TC_ORG1_USERMSP=${TC_ORG1_DATA}/users/${TC_ORG1_USER}/msp
 		export TC_ORG1_CLIENT=${TC_ORG1_STACK}-client1
 		export TC_ORG1_CLIENTPW=$TC_ORG1_CLIENTPW
 		export TC_ORG1_CLIENTMSP=${TC_ORG1_DATA}/users/${TC_ORG1_CLIENT}/msp
@@ -408,6 +408,9 @@ export TC_TLSCA_C1_DEBUG=false
 		export TC_ORG2_ADMINATRS="hf.Registrar.Roles=client,hf.Registrar.Attributes=*,hf.Revoker=true,hf.GenCRL=true,admin=true:ecert,abac.init=true:ecert"
 		export TC_ORG2_ADMINHOME=${TC_ORG2_DATA}/users/${TC_ORG2_ADMIN}
 		export TC_ORG2_ADMINMSP=${TC_ORG2_ADMINHOME}/msp
+		export TC_ORG2_CLIENT=${TC_ORG2_STACK}-client1
+		export TC_ORG2_CLIENTPW=$TC_ORG2_CLIENTPW
+		export TC_ORG2_CLIENTMSP=${TC_ORG2_DATA}/users/${TC_ORG2_CLIENT}/msp
 
 		# endregion: org2 all stack
 		# region: org2 c1
