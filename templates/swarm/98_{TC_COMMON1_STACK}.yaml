@@ -1,0 +1,133 @@
+version: '3.7'
+
+networks:
+  ${TC_NETWORK_NAME}:
+    name: ${TC_NETWORK_NAME}
+    external: true
+
+# volumes:
+#   prometheus_data: {}
+#   grafana_storage: {}
+
+services:
+  ${TC_COMMON1_S1_NAME}:
+    deploy:
+      mode: global
+      placement:
+        constraints: [node.platform.os == linux]
+    image: dockersamples/visualizer
+    networks:
+      ${TC_NETWORK_NAME}:
+        aliases:
+          - ${TC_COMMON1_S1_NAME}
+    ports:
+      - "${TC_COMMON1_S1_PORT}:80"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+  ${TC_COMMON1_S2_NAME}:
+    deploy:
+      mode: global
+      placement:
+        constraints: [node.platform.os == linux]
+    image: gliderlabs/logspout:latest
+    networks:
+      ${TC_NETWORK_NAME}:
+        aliases:
+          - ${TC_COMMON1_S2_NAME}
+    ports:
+      - ${TC_COMMON1_S2_PORT}:80
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+  ${TC_COMMON1_S3_NAME}:
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [ node.hostname == ${TC_COMMON1_S3_WORKER} ]
+    image: prom/prometheus:latest
+    networks:
+      ${SC_NETWORK_NAME}:
+        aliases:
+          - ${TC_COMMON1_S3_NAME}
+    ports:
+      - ${TC_COMMON1_S3_PORT}:9090
+    user: "${TC_COMMON1_S3_UID}:${TC_COMMON1_S3_UID}"
+    volumes:
+      - ${TC_COMMON1_S3_DATA}/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ${TC_COMMON1_S3_DATA}:/prometheus:rw
+  ${TC_COMMON1_S4_NAME}:
+    cap_add:
+      - ALL
+    image: gcr.io/cadvisor/cadvisor:latest
+    networks:
+      ${SC_NETWORK_NAME}:
+        aliases:
+          - ${TC_COMMON1_S4_NAME} 
+    # privileged: true
+    ports:
+      - ${TC_COMMON1_S4_PORT}:8080
+    volumes:
+      # - /cgroup:/cgroup:ro
+      - /sys/fs/cgroup:/cgroup:ro
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /var/run/docker.sock:/var/run/docker.sock:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [ node.hostname == ${SC_METRICS_HOST} ]
+      restart_policy:
+        condition: any 
+        delay: ${SC_SWARM_DELAY}s
+  node-exporter:
+    image: prom/node-exporter:v1.3.1
+    networks:
+      ${SC_NETWORK_NAME}:
+        aliases:
+          - node-exporter
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - --collector.filesystem.ignored-mount-points
+      - "^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)"
+    ports:
+      - ${SC_METRICS_NEXPORTER_PORT}:9100
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [ node.hostname == ${SC_METRICS_HOST} ]
+      restart_policy:
+        condition: any 
+        delay: ${SC_SWARM_DELAY}s
+  grafana:
+    # image: grafana/grafana:8.3.4
+    image: grafana/grafana:latest
+    user: "${SC_UID}:${SC_GID}"
+    networks:
+      ${SC_NETWORK_NAME}:
+        aliases:
+          - grafana
+    depends_on:
+      - prometheus
+    ports:
+      - ${SC_METRICS_GRAFANA_PORT}:3000
+    volumes:
+      - ${SC_PATH_DATA}/grafana:/var/lib/grafana:rw
+      - ${SC_PATH_CONF}/grafana/provisioning/:/etc/grafana/provisioning/
+    env_file:
+      - ${SC_PATH_CONF}/grafana/config.monitoring
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [ node.hostname == ${SC_METRICS_HOST} ]

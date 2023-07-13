@@ -2,25 +2,39 @@
 
 ## public: metrics, management and monitoring (5000 -> 5999)
 
+### common1 (5100 -> 5199)
+
+* [TC_COMMON1_S1_PORT=5201 (visualizer -> TC_COMMON1_S1_NAME:80)](https://35.158.186.93:5201)
+* [TC_COMMON1_S2_PORT=5202 (logspout -> TC_COMMON1_S2_NAME:80)](https://35.158.186.93:5202)
+* [TC_COMMON1_S3_PORT=5203 (prometheus -> TC_COMMON1_S3_NAME:9090)](https://35.158.186.93:5203)
+* [TC_COMMON1_S4_PORT=5204 (cadvisor -> TC_COMMON1_S4_NAME:8080)](https://35.158.186.93:5204)
+
+TC_COMMON1_S3_PORT=5202
+
+### common2 (5200 -> 5299)
+
+* [TC_COMMON2_S4_PORT=5204 (portainer -> TC_COMMON2_S4_NAME:9443)](https://35.158.186.93:5204)
+
 ### org1 (5800 -> 5899)
 
-* [TC_ORG1_G1_API=5800 (-> ORG1_G1:5800)](http://35.158.186.93:5800/)
+* [TC_ORG1_G1_API=5800 (API -> ORG1_G1:5800)](http://35.158.186.93:5800/)
+* Swagger TBD
 
-* [TC_ORG1_D1_PORT=5801 (-> TC_ORG1_D1_FQDN:5984)](http://35.158.186.93:5801/_utils/#login)
-* [TC_ORG1_D2_PORT=5802 (-> TC_ORG1_D2_FQDN:5984)](http://35.158.186.93:5802/_utils/#login)
-* [TC_ORG1_D3_PORT=5803 (-> TC_ORG1_D3_FQDN:5984)](http://35.158.186.93:5803/_utils/#login)
+* [TC_ORG1_D1_PORT=5801 (CouchDB -> TC_ORG1_D1_FQDN:5984)](http://35.158.186.93:5801/_utils/#login)
+* [TC_ORG1_D2_PORT=5802 (CouchDB -> TC_ORG1_D2_FQDN:5984)](http://35.158.186.93:5802/_utils/#login)
+* [TC_ORG1_D3_PORT=5803 (CouchDB -> TC_ORG1_D3_FQDN:5984)](http://35.158.186.93:5803/_utils/#login)
 
 ### org2 (5900 -> 5999)
 
-* [TC_ORG2_D1_PORT=5901 (-> TC_ORG2_D1_FQDN:5984)](http://35.158.186.93:5901/_utils/#login)
-* [TC_ORG2_D3_PORT=5902 (-> TC_ORG2_D2_FQDN:5984)](http://35.158.186.93:5902/_utils/#login)
-* [TC_ORG2_D3_PORT=5903 (-> TC_ORG2_D3_FQDN:5984)](http://35.158.186.93:5903/_utils/#login)
+* [TC_ORG2_D1_PORT=5901 (CouchDB -> TC_ORG2_D1_FQDN:5984)](http://35.158.186.93:5901/_utils/#login)
+* [TC_ORG2_D3_PORT=5902 (CouchDB -> TC_ORG2_D2_FQDN:5984)](http://35.158.186.93:5902/_utils/#login)
+* [TC_ORG2_D3_PORT=5903 (CouchDB -> TC_ORG2_D3_FQDN:5984)](http://35.158.186.93:5903/_utils/#login)
 
 ## private: ca, orderer and peer (6000 -> 9999)
 
 ### common infra (6000 -> 6999)
 
-* TC_TLSCA1_C1_PORT=6001
+* TC_TLSCA_C1_PORT=6001
 
 ### orderer1 (7000 -> 7999)
 

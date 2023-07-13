@@ -2,6 +2,7 @@
 
 * common: metrics and management
 * chaincode + api
+* SASC leftover, delete repo
 
 * tls ca checklist [https://hyperledger-fabric-ca.readthedocs.io/en/latest/deployguide/ca-config.html]
 * operations:

@@ -73,19 +73,20 @@ export TC_SWARM_DELAY=5
 # endregion: swarm
 # region: tls ca
 
-export TC_TLSCA1_STACK=tls1
+export TC_TLSCA_STACK=tls
 
-export TC_TLSCA1_C1_NAME=ca1
-export TC_TLSCA1_C1_FQDN=${TC_TLSCA1_C1_NAME}.${TC_TLSCA1_STACK}.${TC_NETWORK_DOMAIN}
-export TC_TLSCA1_C1_PORT=6001
-export TC_TLSCA1_C1_ADMIN=${TC_TLSCA1_STACK}-${TC_TLSCA1_C1_NAME}-admin1
-export TC_TLSCA1_C1_ADMINPW=$TC_TLSCA1_C1_ADMINPW
-export TC_TLSCA1_C1_WORKER=$TC_SWARM_MANAGER
-export TC_TLSCA1_C1_DATA=${TC_PATH_DATA}/${TC_TLSCA1_STACK}/${TC_TLSCA1_C1_NAME}
-# export TC_TLSCA1_C1_SUBHOME=crypto
-# export TC_TLSCA1_C1_HOME=${TC_TLSCA1_C1_DATA}/${TC_TLSCA1_C1_SUBHOME}
-export TC_TLSCA1_C1_HOME=${TC_TLSCA1_C1_DATA}
-export TC_TLSCA1_C1_DEBUG=false
+export TC_TLSCA_C1_NAME=ca1
+export TC_TLSCA_C1_FQDN=${TC_TLSCA_C1_NAME}.${TC_TLSCA_STACK}.${TC_NETWORK_DOMAIN}
+export TC_TLSCA_C1_PORT=6001
+export TC_TLSCA_C1_ADMIN=${TC_TLSCA_STACK}-${TC_TLSCA_C1_NAME}-admin1
+export TC_TLSCA_C1_ADMINPW=$TC_TLSCA_C1_ADMINPW
+export TC_TLSCA_C1_WORKER=$TC_SWARM_MANAGER
+export TC_TLSCA_C1_DATA=${TC_PATH_STORAGE}/${TC_TLSCA_STACK}/${TC_TLSCA_C1_NAME}
+# export TC_TLSCA_C1_DATA=${TC_PATH_DATA}/${TC_TLSCA_STACK}/${TC_TLSCA_C1_NAME}
+# export TC_TLSCA_C1_SUBHOME=crypto
+# export TC_TLSCA_C1_HOME=${TC_TLSCA_C1_DATA}/${TC_TLSCA_C1_SUBHOME}
+export TC_TLSCA_C1_HOME=${TC_TLSCA_C1_DATA}
+export TC_TLSCA_C1_DEBUG=false
 
 # endregion: tls ca
 # region: orgs
@@ -148,7 +149,7 @@ export TC_TLSCA1_C1_DEBUG=false
 		export TC_ORDERER1_O1_ASSETS_SUBDIR=assets
 		export TC_ORDERER1_O1_ASSETS_DIR=${TC_ORDERER1_O1_DATA}/${TC_ORDERER1_O1_ASSETS_SUBDIR}
 		export TC_ORDERER1_O1_ASSETS_CACERT=${TC_ORDERER1_O1_ASSETS_DIR}/${TC_ORDERER1_C1_FQDN}/ca-cert.pem
-		export TC_ORDERER1_O1_ASSETS_TLSCERT=${TC_ORDERER1_O1_ASSETS_DIR}/${TC_TLSCA1_C1_FQDN}/ca-cert.pem	
+		export TC_ORDERER1_O1_ASSETS_TLSCERT=${TC_ORDERER1_O1_ASSETS_DIR}/${TC_TLSCA_C1_FQDN}/ca-cert.pem	
 
 		# endregion: orderer1 o1
 		# region: orderer1 o2
@@ -172,7 +173,7 @@ export TC_TLSCA1_C1_DEBUG=false
 		export TC_ORDERER1_O2_ASSETS_SUBDIR=assets
 		export TC_ORDERER1_O2_ASSETS_DIR=${TC_ORDERER1_O2_DATA}/${TC_ORDERER1_O2_ASSETS_SUBDIR}
 		export TC_ORDERER1_O2_ASSETS_CACERT=${TC_ORDERER1_O2_ASSETS_DIR}/${TC_ORDERER1_C1_FQDN}/ca-cert.pem
-		export TC_ORDERER1_O2_ASSETS_TLSCERT=${TC_ORDERER1_O2_ASSETS_DIR}/${TC_TLSCA1_C1_FQDN}/ca-cert.pem	
+		export TC_ORDERER1_O2_ASSETS_TLSCERT=${TC_ORDERER1_O2_ASSETS_DIR}/${TC_TLSCA_C1_FQDN}/ca-cert.pem	
 
 		# endregion: orderer1 o2
 		# region: orderer1 o3
@@ -196,7 +197,7 @@ export TC_TLSCA1_C1_DEBUG=false
 		export TC_ORDERER1_O3_ASSETS_SUBDIR=assets
 		export TC_ORDERER1_O3_ASSETS_DIR=${TC_ORDERER1_O3_DATA}/${TC_ORDERER1_O3_ASSETS_SUBDIR}
 		export TC_ORDERER1_O3_ASSETS_CACERT=${TC_ORDERER1_O3_ASSETS_DIR}/${TC_ORDERER1_C1_FQDN}/ca-cert.pem
-		export TC_ORDERER1_O3_ASSETS_TLSCERT=${TC_ORDERER1_O3_ASSETS_DIR}/${TC_TLSCA1_C1_FQDN}/ca-cert.pem
+		export TC_ORDERER1_O3_ASSETS_TLSCERT=${TC_ORDERER1_O3_ASSETS_DIR}/${TC_TLSCA_C1_FQDN}/ca-cert.pem
 
 		# endregion: orderer1 o3
 
@@ -292,7 +293,7 @@ export TC_TLSCA1_C1_DEBUG=false
 		export TC_ORG1_P1_ASSETS_CHAINSUBDIR=chaincode
 		export TC_ORG1_P1_ASSETS_CHAINCODE=${TC_ORG1_P1_ASSETS_DIR}/${TC_ORG1_P1_ASSETS_CHAINSUBDIR}
 		export TC_ORG1_P1_ASSETS_CACERT=${TC_ORG1_P1_ASSETS_DIR}/${TC_ORG1_C1_FQDN}/ca-cert.pem
-		export TC_ORG1_P1_ASSETS_TLSCERT=${TC_ORG1_P1_ASSETS_DIR}/${TC_TLSCA1_C1_FQDN}/ca-cert.pem
+		export TC_ORG1_P1_ASSETS_TLSCERT=${TC_ORG1_P1_ASSETS_DIR}/${TC_TLSCA_C1_FQDN}/ca-cert.pem
 
 		# endregion: org1 p1
 		# region: org1 p2
@@ -314,7 +315,7 @@ export TC_TLSCA1_C1_DEBUG=false
 		export TC_ORG1_P2_MSP=${TC_ORG1_P2_DATA}/msp
 		export TC_ORG1_P2_TLSMSP=${TC_ORG1_P2_DATA}/tls-msp
 		export TC_ORG1_P2_ASSETS_CACERT=${TC_ORG1_P2_DATA}/assets/${TC_ORG1_C1_FQDN}/ca-cert.pem
-		export TC_ORG1_P2_ASSETS_TLSCERT=${TC_ORG1_P2_DATA}/assets/${TC_TLSCA1_C1_FQDN}/ca-cert.pem
+		export TC_ORG1_P2_ASSETS_TLSCERT=${TC_ORG1_P2_DATA}/assets/${TC_TLSCA_C1_FQDN}/ca-cert.pem
 
 		# endregion: org1 p2
 		# region: org1 p3
@@ -336,7 +337,7 @@ export TC_TLSCA1_C1_DEBUG=false
 		export TC_ORG1_P3_MSP=${TC_ORG1_P3_DATA}/msp
 		export TC_ORG1_P3_TLSMSP=${TC_ORG1_P3_DATA}/tls-msp
 		export TC_ORG1_P3_ASSETS_CACERT=${TC_ORG1_P3_DATA}/assets/${TC_ORG1_C1_FQDN}/ca-cert.pem
-		export TC_ORG1_P3_ASSETS_TLSCERT=${TC_ORG1_P3_DATA}/assets/${TC_TLSCA1_C1_FQDN}/ca-cert.pem
+		export TC_ORG1_P3_ASSETS_TLSCERT=${TC_ORG1_P3_DATA}/assets/${TC_TLSCA_C1_FQDN}/ca-cert.pem
 
 		# endregion: org1 p3
 		
@@ -368,7 +369,7 @@ export TC_TLSCA1_C1_DEBUG=false
 		export TC_ORG1_G1_ASSETS_CHAINSUBDIR=chaincode
 		export TC_ORG1_G1_ASSETS_CHAINCODE=${TC_ORG1_G1_ASSETS_DIR}/${TC_ORG1_G1_ASSETS_CHAINSUBDIR}
 		export TC_ORG1_G1_ASSETS_CACERT=${TC_ORG1_G1_ASSETS_DIR}/${TC_ORG1_C1_FQDN}/ca-cert.pem
-		export TC_ORG1_G1_ASSETS_TLSCERT=${TC_ORG1_G1_ASSETS_DIR}/${TC_TLSCA1_C1_FQDN}/ca-cert.pem
+		export TC_ORG1_G1_ASSETS_TLSCERT=${TC_ORG1_G1_ASSETS_DIR}/${TC_TLSCA_C1_FQDN}/ca-cert.pem
 
 		# endregion: org1 g1
 		# region: org1 cli
@@ -478,7 +479,7 @@ export TC_TLSCA1_C1_DEBUG=false
 		export TC_ORG2_P1_ASSETS_CHAINSUBDIR=chaincode
 		export TC_ORG2_P1_ASSETS_CHAINCODE=${TC_ORG2_P1_ASSETS_DIR}/${TC_ORG2_P1_ASSETS_CHAINSUBDIR}
 		export TC_ORG2_P1_ASSETS_CACERT=${TC_ORG2_P1_ASSETS_DIR}/${TC_ORG2_C1_FQDN}/ca-cert.pem
-		export TC_ORG2_P1_ASSETS_TLSCERT=${TC_ORG2_P1_ASSETS_DIR}/${TC_TLSCA1_C1_FQDN}/ca-cert.pem
+		export TC_ORG2_P1_ASSETS_TLSCERT=${TC_ORG2_P1_ASSETS_DIR}/${TC_TLSCA_C1_FQDN}/ca-cert.pem
 
 		# endregion: org2 p1
 		# region: org2 p2
@@ -500,7 +501,7 @@ export TC_TLSCA1_C1_DEBUG=false
 		export TC_ORG2_P2_MSP=${TC_ORG2_P2_DATA}/msp
 		export TC_ORG2_P2_TLSMSP=${TC_ORG2_P2_DATA}/tls-msp
 		export TC_ORG2_P2_ASSETS_CACERT=${TC_ORG2_P2_DATA}/assets/${TC_ORG2_C1_FQDN}/ca-cert.pem
-		export TC_ORG2_P2_ASSETS_TLSCERT=${TC_ORG2_P2_DATA}/assets/${TC_TLSCA1_C1_FQDN}/ca-cert.pem
+		export TC_ORG2_P2_ASSETS_TLSCERT=${TC_ORG2_P2_DATA}/assets/${TC_TLSCA_C1_FQDN}/ca-cert.pem
 
 		# endregion: org2 p2
 		# region: org2 p3
@@ -522,7 +523,7 @@ export TC_TLSCA1_C1_DEBUG=false
 		export TC_ORG2_P3_MSP=${TC_ORG2_P3_DATA}/msp
 		export TC_ORG2_P3_TLSMSP=${TC_ORG2_P3_DATA}/tls-msp
 		export TC_ORG2_P3_ASSETS_CACERT=${TC_ORG2_P3_DATA}/assets/${TC_ORG2_C1_FQDN}/ca-cert.pem
-		export TC_ORG2_P3_ASSETS_TLSCERT=${TC_ORG2_P3_DATA}/assets/${TC_TLSCA1_C1_FQDN}/ca-cert.pem
+		export TC_ORG2_P3_ASSETS_TLSCERT=${TC_ORG2_P3_DATA}/assets/${TC_TLSCA_C1_FQDN}/ca-cert.pem
 
 		# endregion: org2 p3
 
@@ -551,6 +552,47 @@ export TC_TLSCA1_C1_DEBUG=false
 	# endregion: org2
 
 # endregion: orgs
+# region: common services
+
+	# region: common1
+
+	export TC_COMMON1_STACK=mgmt
+	export TC_COMMON1_DATASUB=${TC_COMMON1_STACK}
+	export TC_COMMOM1_DATA=${TC_PATH_STORAGE}/${TC_COMMON1_STACK}
+	
+	export TC_COMMON1_S1_NAME=visualizer
+	export TC_COMMON1_S1_PORT=5101
+	export TC_COMMON1_S2_NAME=logspout
+	export TC_COMMON1_S2_PORT=5102
+	export TC_COMMON1_S3_NAME=prometheus
+	export TC_COMMON1_S3_UID=$( id -u )
+	export TC_COMMON1_S3_GID=$( id -g )
+	export TC_COMMON1_S3_DATA=${TC_COMMOM1_DATA}/${TC_COMMON1_S3_NAME}
+	export TC_COMMON1_S3_PORT=5103
+	export TC_COMMON1_S3_WORKER=$TC_SWARM_MANAGER
+	export TC_COMMON1_S4_NAME=cadvisor
+	export TC_COMMON1_S4_PORT=5104
+	export TC_COMMON1_S4_WORKER=$TC_SWARM_MANAGER
+
+	# endregion: common1
+	# region: common2
+
+	export TC_COMMON2_STACK=mgmt
+	export TC_COMMON2_DATASUB=${TC_COMMON2_STACK}
+	export TC_COMMOM2_DATA=${TC_PATH_STORAGE}/${TC_COMMON2_STACK}
+
+	export TC_COMMON2_S1_NAME=busybox
+	export TC_COMMON2_S1_WORKER=$TC_SWARM_MANAGER
+	export TC_COMMON2_S2_NAME=netshoot
+	export TC_COMMON2_S2_WORKER=$TC_SWARM_MANAGER
+	export TC_COMMON2_S3_NAME=portainer-agent
+	export TC_COMMON2_S4_NAME=portainer
+	export TC_COMMON2_S4_PORT=5204
+	export TC_COMMON2_S4_DATA=${TC_COMMOM2_DATA}/${TC_COMMON2_S4_NAME}
+
+	# endregion: common2
+
+# endregion: common services
 # region: common funcs
 
  [[ -f "$TC_PATH_COMMON" ]] && source "$TC_PATH_COMMON"
