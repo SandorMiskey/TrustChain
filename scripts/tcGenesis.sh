@@ -1317,8 +1317,7 @@ _channels() {
 
 }
 
-# [[ "$TC_EXEC_DRY" == false ]] && commonYN "chreate channels?" _channels
-commonYN "create channels?" _channels
+[[ "$TC_EXEC_DRY" == false ]] && commonYN "create channels?" _channels
 
 # endregion: channels
 # region: common services
@@ -1345,4 +1344,17 @@ commonYN "create channels?" _channels
 	# endregion: bootstrap common1
 
 # endregion: common services
+# region: demo chaincode on ch1
+
+# endregion: demo chaincode ch1
+# region: closing provisions
+
+_prefix=$COMMON_PREFIX
+COMMON_PREFIX="===>>> "
+commonPrintfBold ""
 commonPrintfBold "ALL DONE!"
+commonPrintfBold ""
+COMMON_PREFIX=_prefix
+unset _prefix
+
+# endregion: closing

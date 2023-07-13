@@ -35,7 +35,7 @@ export PATH=${TC_PATH_BIN}:${TC_PATH_SCRIPTS}:$PATH
 # endregion: base paths
 # region: exec control
 
-export TC_EXEC_DRY=false
+export TC_EXEC_DRY=true
 export TC_EXEC_FORCE=false
 export TC_EXEC_PANIC=true
 export TC_EXEC_SURE=false
