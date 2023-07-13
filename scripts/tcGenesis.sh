@@ -80,11 +80,15 @@ _Config() {
 
 		local templateRel=$( echo "$template" | sed s+${TC_PATH_BASE}/++g )
 		local targetRel=$( echo "$target" | sed s+${TC_PATH_BASE}/++g )
-		commonPrintf "$templateRel -> $targetRel"
 		if [[ -d $template ]]; then
+			commonPrintf "mkdir: $templateRel -> $targetRel"
 			err=$( mkdir -p "$target" )
 			commonVerify $? $err
+		elif [[ $(file --mime-encoding -b $template) == "binary" ]]; then
+			commonPrintf "copied: $templateRel -> $targetRel"
+			cp $template $target
 		elif [[ -f $template ]]; then
+			commonPrintf "processed: $templateRel -> $targetRel"
 			( echo "cat <<EOF" ; cat $template ; echo EOF ) | sh > $target
 			commonVerify $? "unable to process $templateRel"
 		else
