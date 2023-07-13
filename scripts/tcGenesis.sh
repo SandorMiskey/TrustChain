@@ -1145,13 +1145,13 @@ _channels() {
 	for chname in "$TC_CHANNEL1_NAME" "$TC_CHANNEL2_NAME"
 	do
 
-		local cfpath="${TC_PATH_WORKBENCH}/channels/${chname}"
+		local cfpath="${TC_PATH_CHANNELS}/${chname}"
 		local gblock=${cfpath}/genesis_block.pb
 
 		# region: genesis block
 
 		_genesis() {
-			commonPrintf "configtxgen genesis block for $chname ($FABRIC_CFG_PATH)"
+			commonPrintf "configtxgen genesis block for $chname ($cfpath)"
 			out=$(
 				export FABRIC_CFG_PATH="$cfpath"
 				configtxgen -profile $TC_CHANNEL_PROFILE -outputBlock ${gblock} -channelID $chname  2>&1

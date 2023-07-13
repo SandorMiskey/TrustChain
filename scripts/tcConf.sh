@@ -23,8 +23,8 @@ export TC_PATH_WORKBENCH=${TC_PATH_BASE}/workbench
 
 # dirs under storage
 export TC_PATH_SWARM=${TC_PATH_WORKBENCH}/swarm
-export TC_PATH_ORGSSUB=organizations
-export TC_PATH_ORGS=${TC_PATH_WORKBENCH}/${TC_PATH_ORGSSUB}
+export TC_PATH_ORGS=${TC_PATH_WORKBENCH}/organizations
+export TC_PATH_CHANNELS=${TC_PATH_WORKBENCH}/channels
 
 # trustchain independent common functions
 export TC_PATH_COMMON=${TC_PATH_SCRIPTS}/commonFuncs.sh
@@ -36,7 +36,7 @@ export PATH=${TC_PATH_BIN}:${TC_PATH_SCRIPTS}:$PATH
 # region: exec control
 
 export TC_EXEC_DRY=false
-export TC_EXEC_FORCE=false
+export TC_EXEC_FORCE=true
 export TC_EXEC_PANIC=true
 export TC_EXEC_SURE=true
 export TC_EXEC_SILENT=false
@@ -557,7 +557,6 @@ export TC_TLSCA_C1_DEBUG=false
 	# region: common1
 
 	export TC_COMMON1_STACK=metrics
-	export TC_COMMON1_DATASUB=${TC_COMMON1_STACK}
 	export TC_COMMOM1_DATA=${TC_PATH_WORKBENCH}/${TC_COMMON1_STACK}
 	export TC_COMMON1_UID=$( id -u )
 	export TC_COMMON1_GID=$( id -g )
@@ -586,7 +585,6 @@ export TC_TLSCA_C1_DEBUG=false
 	# region: common2
 
 	export TC_COMMON2_STACK=mgmt
-	export TC_COMMON2_DATASUB=${TC_COMMON2_STACK}
 	export TC_COMMOM2_DATA=${TC_PATH_WORKBENCH}/${TC_COMMON2_STACK}
 
 	export TC_COMMON2_S1_NAME=busybox
