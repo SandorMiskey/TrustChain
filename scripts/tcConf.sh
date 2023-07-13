@@ -580,6 +580,7 @@ export TC_TLSCA_C1_DEBUG=false
 	export TC_COMMON1_S6_PORT=5106
 	export TC_COMMON1_S6_WORKER=$TC_SWARM_MANAGER
 	export TC_COMMON1_S6_DATA=${TC_COMMOM1_DATA}/${TC_COMMON1_S6_NAME}
+	export TC_COMMON1_S6_PW=$TC_COMMON1_S6_PW
 
 	# endregion: common1
 	# region: common2

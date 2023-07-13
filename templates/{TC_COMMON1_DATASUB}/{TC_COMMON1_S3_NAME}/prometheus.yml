@@ -1,10 +1,10 @@
 global:
   scrape_interval: 5s
   external_labels:
-    monitor: "devopsage-monitor"
+    monitor: "${TC_NETWORK_NAME}- ${TC_COMMON1_STACK}"
 
 scrape_configs:
-  - job_name: "prometheus"
+  - job_name: "TC_COMMON1_S3_NAME"
     static_configs:
       - targets: ["localhost:9090"]
   - job_name: "${TC_ORDERER1_O1_FQDN}"
@@ -16,28 +16,28 @@ scrape_configs:
   - job_name: "${TC_ORDERER1_O3_FQDN}"
     static_configs:
       - targets: ["${TC_ORDERER1_O3_FQDN}:${TC_ORDERER1_O3_OPPORT}"]
-  - job_name: "${TC_ORG1_O1_FQDN}"
+  - job_name: "${TC_ORG1_P1_FQDN}"
     static_configs:
-      - targets: ["${TC_ORG1_O1_FQDN}:${TC_ORG1_O1_OPPORT}"]
-  - job_name: "${TC_ORG1_O2_FQDN}"
+      - targets: ["${TC_ORG1_P1_FQDN}:${TC_ORG1_P1_OPPORT}"]
+  - job_name: "${TC_ORG1_P2_FQDN}"
     static_configs:
-      - targets: ["${TC_ORG1_O2_FQDN}:${TC_ORG1_O2_OPPORT}"]
-  - job_name: "${TC_ORG1_O3_FQDN}"
+      - targets: ["${TC_ORG1_P2_FQDN}:${TC_ORG1_P2_OPPORT}"]
+  - job_name: "${TC_ORG1_P3_FQDN}"
     static_configs:
-      - targets: ["${TC_ORG1_O3_FQDN}:${TC_ORG1_O3_OPPORT}"]
- - job_name: "${TC_ORG2_O1_FQDN}"
+      - targets: ["${TC_ORG1_P3_FQDN}:${TC_ORG1_P3_OPPORT}"]
+  - job_name: "${TC_ORG2_P1_FQDN}"
     static_configs:
-      - targets: ["${TC_ORG2_O1_FQDN}:${TC_ORG2_O1_OPPORT}"]
-  - job_name: "${TC_ORG2_O2_FQDN}"
+      - targets: ["${TC_ORG2_P1_FQDN}:${TC_ORG2_P1_OPPORT}"]
+  - job_name: "${TC_ORG2_P2_FQDN}"
     static_configs:
-      - targets: ["${TC_ORG2_O2_FQDN}:${TC_ORG2_O2_OPPORT}"]
-  - job_name: "${TC_ORG2_O3_FQDN}"
+      - targets: ["${TC_ORG2_P2_FQDN}:${TC_ORG2_P2_OPPORT}"]
+  - job_name: "${TC_ORG2_P3_FQDN}"
     static_configs:
-      - targets: ["${TC_ORG2_O3_FQDN}:${TC_ORG2_O3_OPPORT}"]
+      - targets: ["${TC_ORG2_P3_FQDN}:${TC_ORG2_P3_OPPORT}"]
   - job_name: "${TC_COMMON1_S4_NAME}"
     scrape_interval: 5s
     static_configs:
       - targets: ["${TC_COMMON1_S4_NAME}:8080"]
   - job_name: "${TC_COMMON1_S5_NAME}"
     static_configs:
-      - targets: ["${TC_COMMON1_S5_NAME}":9100"]
+      - targets: ["${TC_COMMON1_S5_NAME}:9100"]
