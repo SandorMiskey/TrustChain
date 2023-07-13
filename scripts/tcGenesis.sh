@@ -60,10 +60,10 @@ commonYN "validate ca binary versions?" _CAVersions
 # region: remove config and persistent data
 
 _WipePersistent() {
-	commonPrintf "removing $TC_PATH_STORAGE"
-	err=$( sudo rm -Rf "$TC_PATH_STORAGE" )
+	commonPrintf "removing $TC_PATH_WORKBENCH"
+	err=$( sudo rm -Rf "$TC_PATH_WORKBENCH" )
 	commonVerify $? $err
-	err=$( mkdir "$TC_PATH_STORAGE" )
+	err=$( mkdir "$TC_PATH_WORKBENCH" )
 	commonVerify $? $err
 }
 
@@ -76,7 +76,7 @@ _Config() {
 	commonPrintf "processing templates:"
 	for template in $( find $TC_PATH_TEMPLATES/* ! -name '.*' -print ); do
 		target=$( commonSetvar $template )
-		target=$( echo $target | sed s+$TC_PATH_TEMPLATES+$TC_PATH_STORAGE+ )
+		target=$( echo $target | sed s+$TC_PATH_TEMPLATES+$TC_PATH_WORKBENCH+ )
 
 		local templateRel=$( echo "$template" | sed s+${TC_PATH_BASE}/++g )
 		local targetRel=$( echo "$target" | sed s+${TC_PATH_BASE}/++g )
@@ -1141,7 +1141,7 @@ _channels() {
 	for chname in "$TC_CHANNEL1_NAME" "$TC_CHANNEL2_NAME"
 	do
 
-		local cfpath="${TC_PATH_STORAGE}/channels/${chname}"
+		local cfpath="${TC_PATH_WORKBENCH}/channels/${chname}"
 		local gblock=${cfpath}/genesis_block.pb
 
 		# region: genesis block
@@ -1286,7 +1286,7 @@ _channels() {
 
 	commonPrintf "listing all the channels on org1_p1"
 	out=$(
-		export FABRIC_CFG_PATH="${TC_PATH_STORAGE}/channels/${TC_CHANNEL1_NAME}"
+		export FABRIC_CFG_PATH="${TC_PATH_WORKBENCH}/channels/${TC_CHANNEL1_NAME}"
 		export CORE_PEER_TLS_ENABLED=true
 		export CORE_PEER_LOCALMSPID="${TC_ORG1_STACK}MSP"
 		export CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG1_DATA}/msp/tlscacerts/ca-cert.pem
@@ -1298,11 +1298,11 @@ _channels() {
 
 	for chname in "$TC_CHANNEL1_NAME" "$TC_CHANNEL2_NAME"
 	do
-		local cfpath="${TC_PATH_STORAGE}/channels/${chname}"
+		local cfpath="${TC_PATH_WORKBENCH}/channels/${chname}"
 
 		commonPrintf "get info for $chname on org1_p1"
 		out=$(
-			export FABRIC_CFG_PATH="${TC_PATH_STORAGE}/channels/${TC_CHANNEL1_NAME}"
+			export FABRIC_CFG_PATH="${TC_PATH_WORKBENCH}/channels/${TC_CHANNEL1_NAME}"
 			export CORE_PEER_TLS_ENABLED=true
 			export CORE_PEER_LOCALMSPID="te-food-endorsersMSP"
 			export CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG1_DATA}/msp/tlscacerts/ca-cert.pem

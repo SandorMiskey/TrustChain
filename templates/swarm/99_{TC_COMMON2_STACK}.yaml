@@ -22,7 +22,7 @@ services:
     stdin_open: true
     tty: true
     volumes:
-      - ${TC_PATH_STORAGE}:${TC_PATH_STORAGE}
+      - ${TC_PATH_WORKBENCH}:${TC_PATH_WORKBENCH}
       - ${TC_PATH_SCRIPTS}:${TC_PATH_SCRIPTS}
   ${TC_COMMON2_S2_NAME}:
     command: sh
@@ -40,7 +40,7 @@ services:
     stdin_open: true
     tty: true
     volumes:
-      - ${TC_PATH_STORAGE}:${TC_PATH_STORAGE}
+      - ${TC_PATH_WORKBENCH}:${TC_PATH_WORKBENCH}
       - ${TC_PATH_SCRIPTS}:${TC_PATH_SCRIPTS}
   ${TC_COMMON2_S3_NAME}:
     image: portainer/agent:2.17.0
