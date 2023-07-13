@@ -36,9 +36,9 @@ export PATH=${TC_PATH_BIN}:${TC_PATH_SCRIPTS}:$PATH
 # region: exec control
 
 export TC_EXEC_DRY=false
-export TC_EXEC_FORCE=true
+export TC_EXEC_FORCE=false
 export TC_EXEC_PANIC=true
-export TC_EXEC_SURE=true
+export TC_EXEC_SURE=false
 export TC_EXEC_SILENT=false
 export TC_EXEC_VERBOSE=true
 
