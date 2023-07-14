@@ -1361,6 +1361,26 @@ _channels() {
 # endregion: common services
 # region: demo chaincode on ch1
 
+_deployBasic() {
+	local out
+	local path=${TC_PATH_CHAINCODE}/basic
+
+	commonPP $path
+
+	commonPrintf "vendoring modules"
+	out=$( GO111MODULE=on go mod vendor )
+	commonVerify "failed: $out" $out
+
+	commonPrintf "packing"
+	out=$(
+		export FABRIC_CFG_PATH="${TC_PATH_CHANNELS}/${TC_CHANNEL1_NAME}"
+		peer lifecycle chaincode package basic.tar.gz --path $path --lang golang --label basic_1.0
+
+	)
+
+}
+commonYN "deploay basic chaincode on ${TC_CHANNEL1_NAME}?" _deployBasic
+
 # endregion: demo chaincode ch1
 # region: closing provisions
 
