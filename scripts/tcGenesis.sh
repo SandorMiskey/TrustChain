@@ -100,9 +100,10 @@ _templates() {
 		fi
 	done
 
-	commonPrintf "unpack chaincode templates"
-	for template in $( find $TC_PATH_CHAINCODE/tgz* -print ); do 
-		local out=$( tar xzf $template 2>&1 )
+	commonPrintf "unpacking chaincode templates"
+	for template in $( find $TC_PATH_CHAINCODE/*tgz -print ); do 
+		commonPrintf "working on $template"
+		local out=$( tar -C "${TC_PATH_CHAINCODE}/" -xzvf $template 2>&1 )
 		commonVerify $? "failed: $out" "$out"
 	done
 
@@ -112,6 +113,7 @@ _templates() {
 }
 
 [[ "$TC_EXEC_DRY" == false ]] && commonYN "process templates?" _templates 
+pwd
 
 # endregion: process templates
 # region: swarm init
@@ -172,7 +174,7 @@ _SwarmPrune() {
 if [ "$TC_EXEC_DRY" == false ]; then
 	commonYN "leave docker swarm?" _SwarmLeave
 	commonYN "init docker swarm?" _SwarmInit
-	ommonYN "prune networks/volumes/containers/images?" _SwarmPrune
+	commonYN "prune networks/volumes/containers/images?" _SwarmPrune
 fi
 
 # endregion: swarm init
