@@ -68,8 +68,9 @@ export TC_ORG2_P3_CA_PW=TC_ORG2_P3_CA_PW
 # endregion: org2 ca
 # region: common
 
-export TC_COMMON1_S6_PW=TC_COMMON1_S6_PW
-export TC_COMMON2_S4_PW=TC_COMMON2_S4_PW
+export TC_COMMON2_S3_PW=TC_COMMON2_S3_PW
+export TC_COMMON2_S6_PW=TC_COMMON2_S6_PW
+export TC_COMMON3_S4_PW=TC_COMMON3_S4_PW
 
 # endregion: common
 

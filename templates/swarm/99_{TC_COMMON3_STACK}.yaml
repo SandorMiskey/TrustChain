@@ -6,58 +6,58 @@ networks:
     external: true
 
 services:
-  ${TC_COMMON2_S1_NAME}:
+  ${TC_COMMON3_S1_NAME}:
     command: sh
     deploy:
       replicas: 1
       placement:
-        constraints: [ node.hostname == ${TC_COMMON2_S1_WORKER} ]
+        constraints: [ node.hostname == ${TC_COMMON3_S1_WORKER} ]
     image: busybox
     labels:
-      service: ${TC_COMMON2_S1_NAME}
+      service: ${TC_COMMON3_S1_NAME}
     networks:
       ${TC_NETWORK_NAME}:
         aliases:
-          - ${TC_COMMON2_S1_NAME}
+          - ${TC_COMMON3_S1_NAME}
     stdin_open: true
     tty: true
     volumes:
       - ${TC_PATH_WORKBENCH}:${TC_PATH_WORKBENCH}
       - ${TC_PATH_SCRIPTS}:${TC_PATH_SCRIPTS}
-  ${TC_COMMON2_S2_NAME}:
+  ${TC_COMMON3_S2_NAME}:
     command: sh
     deploy:
       replicas: 1
       placement:
-        constraints: [ node.hostname == ${TC_COMMON2_S2_WORKER} ]
+        constraints: [ node.hostname == ${TC_COMMON3_S2_WORKER} ]
     image: nicolaka/netshoot
     labels:
-      service: ${TC_COMMON2_S2_NAME}
+      service: ${TC_COMMON3_S2_NAME}
     networks:
       ${TC_NETWORK_NAME}:
         aliases:
-          - ${TC_COMMON2_S2_NAME}
+          - ${TC_COMMON3_S2_NAME}
     stdin_open: true
     tty: true
     volumes:
       - ${TC_PATH_WORKBENCH}:${TC_PATH_WORKBENCH}
       - ${TC_PATH_SCRIPTS}:${TC_PATH_SCRIPTS}
-  ${TC_COMMON2_S3_NAME}:
+  ${TC_COMMON3_S3_NAME}:
     image: portainer/agent:2.17.0
     deploy:
       mode: global
       placement:
         constraints: [node.platform.os == linux]
     labels:
-      service: ${TC_COMMON2_S3_NAME}
+      service: ${TC_COMMON3_S3_NAME}
     networks:
       ${TC_NETWORK_NAME}:
         aliases:
-          - ${TC_COMMON2_S3_NAME}
+          - ${TC_COMMON3_S3_NAME}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /var/lib/docker/volumes:/var/lib/docker/volumes
-  ${TC_COMMON2_S4_NAME}:
+  ${TC_COMMON3_S4_NAME}:
     command: -H tcp://tasks.portainer-agent:9001 --tlsskipverify --admin-password-file /data/portainer_password
     deploy:
       mode: replicated
@@ -68,11 +68,11 @@ services:
     networks:
       ${TC_NETWORK_NAME}:
         aliases:
-          - ${TC_COMMON2_S4_NAME}
+          - ${TC_COMMON3_S4_NAME}
     ports:
-      - "${TC_COMMON2_S4_PORT}:9443"
+      - "${TC_COMMON3_S4_PORT}:9443"
       # - "9000:9000"   # ?
       # - "8000:8000"   # TCP tunnel server over port, only required if you plan to use the Edge compute features with Edge agents.
     volumes:
-      - ${TC_COMMON2_S4_DATA}:/data
+      - ${TC_COMMON3_S4_DATA}:/data
 

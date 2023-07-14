@@ -79,13 +79,17 @@ _Config() {
 		target=$( echo $target | sed s+$TC_PATH_TEMPLATES+$TC_PATH_WORKBENCH+ )
 
 		local templateRel=$( echo "$template" | sed s+${TC_PATH_BASE}/++g )
-		local targetRel=$( echo "$target" | sed s+${TC_PATH_BASE}/++g )
+		local targetRel=$( echo "$target" | sed s+${TC_PATH_BASE}/++g | sed s+_nope$++g )
 		if [[ -d $template ]]; then
 			commonPrintf "mkdir: $templateRel -> $targetRel"
 			err=$( mkdir -p "$target" )
 			commonVerify $? $err
+		elif [[ $template == *_nope ]]; then
+			target=$( echo "$target" | sed s+_nope$++g )
+			commonPrintfBold "rename and cp: $templateRel -> $targetRel" "${COMMON_BLUE}%s\n${COMMON_NORM}"
+			cp $template $target
 		elif [[ $(file --mime-encoding -b $template) == "binary" ]]; then
-			commonPrintf "copied: $templateRel -> $targetRel"
+			commonPrintf "binary or empty: $templateRel -> $targetRel" "${COMMON_RED}%s\n${COMMON_NORM}"
 			cp $template $target
 		elif [[ -f $template ]]; then
 			commonPrintf "processed: $templateRel -> $targetRel"
@@ -1333,26 +1337,26 @@ _channels() {
 # endregion: channels
 # region: common services
 
-	# region: bootstrap common1
+	# region: bootstrap COMMON2
 
-	_bootstrapCommon2() {
-		commonPrintf "bootstrapping >>>${TC_COMMON1_STACK}<<<"
-		${TC_PATH_SCRIPTS}/tcBootstrap.sh -m up -s ${TC_COMMON1_STACK}
-		commonVerify $? "failed!"
-	}
-	commonYN "bootstrap ${TC_COMMON1_STACK}?" _bootstrapCommon2
-
-	# endregion: bootstrap common1
-	# region: bootstrap common2
-
-	_bootstrapCommon2() {
+	_bootstrapCOMMON3() {
 		commonPrintf "bootstrapping >>>${TC_COMMON2_STACK}<<<"
 		${TC_PATH_SCRIPTS}/tcBootstrap.sh -m up -s ${TC_COMMON2_STACK}
 		commonVerify $? "failed!"
 	}
-	commonYN "bootstrap ${TC_COMMON2_STACK}?" _bootstrapCommon2
+	commonYN "bootstrap ${TC_COMMON2_STACK}?" _bootstrapCOMMON3
 
-	# endregion: bootstrap common1
+	# endregion: bootstrap COMMON2
+	# region: bootstrap COMMON3
+
+	_bootstrapCOMMON3() {
+		commonPrintf "bootstrapping >>>${TC_COMMON3_STACK}<<<"
+		${TC_PATH_SCRIPTS}/tcBootstrap.sh -m up -s ${TC_COMMON3_STACK}
+		commonVerify $? "failed!"
+	}
+	commonYN "bootstrap ${TC_COMMON3_STACK}?" _bootstrapCOMMON3
+
+	# endregion: bootstrap COMMON2
 
 # endregion: common services
 # region: demo chaincode on ch1
