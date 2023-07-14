@@ -375,8 +375,8 @@ services:
         delay: ${TC_SWARM_DELAY}s
         max_attempts: 5
     environment:
-      - CORE_PEER_ADDRESS=${TC_ORG1_G1_PEER_FQDN}:${TC_ORG1_G1_PORT}
-      - CORE_PEER_ID=${TC_ORG1_G1_CA_NAME}
+      - CORE_PEER_ADDRESS=$TC_ORG1_G1_PEER_ADDRESS
+      - CORE_PEER_ID=$TC_ORG1_G1_PEER_ID
       - CORE_PEER_LOCALMSPID=${TC_ORG1_STACK}MSP
       - CORE_PEER_MSPCONFIGPATH=${TC_ORG1_G1_MSP}
       - CORE_PEER_NETWORKID=${TC_SWARM_NETNAME}
@@ -401,12 +401,9 @@ services:
           - ${TC_ORG1_G1_NAME}
           - ${TC_ORG1_G1_FQDN}
     ports:
-        - ${TC_ORG1_G1_API}:${TC_ORG1_G1_API}
-    #   - ${TC_ORG1_G1_PORT}:${TC_ORG1_G1_PORT}
-    #   - ${TC_ORG1_G1_CHPORT}:${TC_ORG1_G1_CHPORT}
-    #   - ${TC_ORG1_G1_OPPORT}:${TC_ORG1_G1_OPPORT}
-    stdin_open: true
-    tty: true
+      - ${TC_ORG1_G1_API1}:${TC_ORG1_G1_API1}
+    # stdin_open: true
+    # tty: true
     volumes:
       - ${TC_ORG1_G1_DATA}:${TC_ORG1_G1_DATA}
     working_dir: ${TC_ORG1_G1_ASSETS_DIR}

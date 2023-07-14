@@ -4,6 +4,10 @@
 # Copyright TE-FOOD International GmbH., All Rights Reserved
 #
 
+#
+# An example of what environment variables should be set, which are better not to be included in the repo.
+#
+
 # region: passwords
 
 # region: tls ca
@@ -77,7 +81,6 @@ export TC_COMMON3_S4_PW=TC_COMMON3_S4_PW
 # endregion: passwords
 # region: init
 
-# export FABRIC_CA_CLIENT_LOGLEVEL=info
 export TC_PATH_BASE=/srv/TrustChain
 export TC_PATH_RC=${TC_PATH_BASE}/scripts/tcConf.sh
 export COMMON_FUNCS=${TC_PATH_BASE}/scripts/commonFuncs.sh
@@ -85,10 +88,3 @@ export COMMON_FUNCS=${TC_PATH_BASE}/scripts/commonFuncs.sh
 source $TC_PATH_RC
 
 # endregion: init
-
-#
-# legacy stuff to be removed
-#
-# export SC_COUCHDB_PASSWORD=CtragkHhs3hPaWaV
-# export SC_METRICS_GRAFANA_PASSWORD=CtragkHhs3hPaWaV
-# export SC_MGMT_PORTAINER_PASSWORD=CtragkHhs3hPaWaV

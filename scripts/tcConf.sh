@@ -21,11 +21,12 @@ export TC_PATH_SCRIPTS=${TC_PATH_BASE}/scripts
 export TC_PATH_TEMPLATES=${TC_PATH_BASE}/templates
 export TC_PATH_WORKBENCH=${TC_PATH_BASE}/workbench
 
-# dirs under storage
+# dirs under workbench
 export TC_PATH_SWARM=${TC_PATH_WORKBENCH}/swarm
 export TC_PATH_ORGS=${TC_PATH_WORKBENCH}/organizations
 export TC_PATH_CHANNELS=${TC_PATH_WORKBENCH}/channels
 export TC_PATH_CHAINCODE=${TC_PATH_WORKBENCH}/chaincode
+export TC_PATH_LOCAL=${TC_PATH_WORKBENCH}/tcLocal.sh
 
 # trustchain independent common functions
 export TC_PATH_COMMON=${TC_PATH_SCRIPTS}/commonFuncs.sh
@@ -37,7 +38,7 @@ export PATH=${TC_PATH_BIN}:${TC_PATH_SCRIPTS}:$PATH
 # region: exec control
 
 export TC_EXEC_DRY=false
-export TC_EXEC_FORCE=true
+export TC_EXEC_FORCE=false
 export TC_EXEC_PANIC=true
 export TC_EXEC_SURE=true
 export TC_EXEC_SILENT=false
@@ -351,16 +352,12 @@ export TC_COMMON1_C1_DEBUG=false
 		export TC_ORG1_G1_PEER_ID=$TC_ORG1_P1_CA_NAME
 		export TC_ORG1_G1_WORKER=$TC_SWARM_MANAGER
 		export TC_ORG1_G1_LOGLEVEL=$TC_ORG1_LOGLEVEL
+		export TC_ORG1_G1_API1=5800
 
 		export TC_ORG1_G1_TLS_NAME=$TC_ORG1_STACK-$TC_ORG1_G1_NAME
 		export TC_ORG1_G1_TLS_PW=$TC_ORG1_G1_TLS_PW
 		export TC_ORG1_G1_CA_NAME=${TC_ORG1_G1_NAME}-${TC_ORG1_STACK}
 		export TC_ORG1_G1_CA_PW=$TC_ORG1_G1_CA_PW
-
-		export TC_ORG1_G1_API=5800
-		export TC_ORG1_G1_PORT=$TC_ORG1_P1_PORT
-		# export TC_ORG1_G1_CHPORT=$TC_ORG1_P1_CHPORT
-		# export TC_ORG1_G1_OPPORT=$TC_ORG1_P1_OPPORT
 
 		export TC_ORG1_G1_DATA=${TC_ORG1_DATA}/${TC_ORG1_G1_NAME}
 		export TC_ORG1_G1_MSP=${TC_ORG1_G1_DATA}/msp
@@ -555,7 +552,7 @@ export TC_COMMON1_C1_DEBUG=false
 	# endregion: org2
 
 # endregion: orgs
-# region: common services
+# region: mgmt and metrics
 
 	# region: COMMON2
 
@@ -604,16 +601,21 @@ export TC_COMMON1_C1_DEBUG=false
 
 	# endregion: COMMON3
 
-# endregion: common services
+# endregion: mgmt and metrics
 # region: common funcs
 
- [[ -f "$TC_PATH_COMMON" ]] && source "$TC_PATH_COMMON"
+[[ -f "$TC_PATH_COMMON" ]] && source "$TC_PATH_COMMON"
+[[ -f "$COMMON_FUNCS" ]] && source "$COMMON_FUNCS"
 
 export COMMON_FORCE=$TC_EXEC_FORCE
 export COMMON_PANIC=$TC_EXEC_PANIC
 export COMMON_PREREQS=("${TC_DEPS_BINS[@]}")
 export COMMON_SILENT=$TC_EXEC_SILENT
 export COMMON_VERBOSE=$TC_EXEC_VERBOSE
-export COMMON_FUNCS=$TC_PATH_COMMOM
 
 # endregion: common funcs
+# region: local under workbench
+
+[[ -f "$TC_PATH_LOCAL" ]] && source "$TC_PATH_LOCAL"
+
+# endregion: local under workbench

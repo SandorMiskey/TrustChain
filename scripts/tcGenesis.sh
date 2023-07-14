@@ -60,11 +60,20 @@ commonYN "validate ca binary versions?" _CAVersions
 # region: remove config and persistent data
 
 _WipePersistent() {
-	commonPrintf "removing $TC_PATH_WORKBENCH"
-	err=$( sudo rm -Rf "$TC_PATH_WORKBENCH" )
-	commonVerify $? $err
-	err=$( mkdir "$TC_PATH_WORKBENCH" )
-	commonVerify $? $err
+
+
+	_wipe() {
+		commonPrintf "removing $TC_PATH_WORKBENCH"
+		err=$( sudo rm -Rf "$TC_PATH_WORKBENCH" )
+		commonVerify $? $err
+		err=$( mkdir "$TC_PATH_WORKBENCH" )
+		commonVerify $? $err
+	}
+
+	local force=$COMMON_FORCE
+	COMMON_FORCE=$TC_EXEC_SURE
+	commonYN "THIS WILL WIPE ALL PERSISTENT DATA OF YOURS... SURE?" _wipe
+	COMMON_FORCE=$force
 }
 
 [[ "$TC_EXEC_DRY" == false ]] && commonYN "wipe persistent data?" _WipePersistent
@@ -1369,158 +1378,17 @@ _channels() {
 	# endregion: bootstrap COMMON2
 
 # endregion: common services
-# region: demo chaincode on ch1
+# region: deploy chaincode
 
-_deployBasic() {
-	local out
-	local path=${TC_PATH_CHAINCODE}/basic
-	local certOrderer="${TC_ORDERER1_O1_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_COMMON1_C1_PORT}.pem" 
+commonYN "deploay basic chaincode on ${TC_CHANNEL1_NAME}?" ${TC_PATH_SCRIPTS}/tcChaincodeInit.sh "basic" "$TC_CHANNEL1_NAME"
 
-	commonPP $path
-
-	# region: vendoring
-
-	commonPrintf "vendoring modules"
-	out=$( GO111MODULE=on go mod vendor  2>&1 )
-	commonVerify $? "failed: $out"
-
-	# endregion: vendoring
-	# region: packing
-
-	commonPrintf "packaging chaincode"
-	out=$(
-		export FABRIC_CFG_PATH="${TC_PATH_CHANNELS}/${TC_CHANNEL1_NAME}"
-		peer lifecycle chaincode package basic.tar.gz --path $path --lang golang --label basic_1.0 2>&1
-	)
-	commonVerify $? "failed: $out"
-
-	# endregion: packing
-	# region: installing
-
-	commonPrintf "install chaincode on $TC_ORG1_STACK peers"
-	for port in $TC_ORG1_P1_PORT $TC_ORG1_P2_PORT $TC_ORG1_P3_PORT
-	do
-		commonPrintf "targeting localhost:${port}"
-		out=$(
-			export FABRIC_CFG_PATH="${TC_PATH_CHANNELS}/${TC_CHANNEL1_NAME}"
-			export CORE_PEER_TLS_ENABLED=true
-			export CORE_PEER_LOCALMSPID="${TC_ORG1_STACK}MSP"
-			export CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG1_DATA}/msp/tlscacerts/ca-cert.pem
-			export CORE_PEER_MSPCONFIGPATH=$TC_ORG1_ADMINMSP
-			export CORE_PEER_ADDRESS=localhost:${port}
-			peer lifecycle chaincode install basic.tar.gz 2>&1
-		)
-		commonVerify $? "failed: $out" "$out"
-	done
-
-	commonPrintf "install chaincode on $TC_ORG2_STACK peers"
-	for port in $TC_ORG2_P1_PORT $TC_ORG2_P2_PORT $TC_ORG2_P3_PORT
-	do
-		commonPrintf "targeting localhost:${port}"
-		out=$(
-			export FABRIC_CFG_PATH="${TC_PATH_CHANNELS}/${TC_CHANNEL1_NAME}"
-			export CORE_PEER_TLS_ENABLED=true
-			export CORE_PEER_LOCALMSPID="${TC_ORG2_STACK}MSP"
-			export CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG2_DATA}/msp/tlscacerts/ca-cert.pem
-			export CORE_PEER_MSPCONFIGPATH=$TC_ORG2_ADMINMSP
-			export CORE_PEER_ADDRESS=localhost:${port}
-			peer lifecycle chaincode install basic.tar.gz 2>&1
-		)
-		commonVerify $? "failed: $out" "$out"
-	done
-
-	# endregion: installing
-	# region: approve a chaincode definition
-
-	commonPrintf "getting package id"
-	out=$(
-		export FABRIC_CFG_PATH="${TC_PATH_CHANNELS}/${TC_CHANNEL1_NAME}"
-		export CORE_PEER_TLS_ENABLED=true
-		export CORE_PEER_LOCALMSPID="${TC_ORG1_STACK}MSP"
-		export CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG1_DATA}/msp/tlscacerts/ca-cert.pem
-		export CORE_PEER_MSPCONFIGPATH=$TC_ORG1_ADMINMSP
-		export CORE_PEER_ADDRESS=localhost:${TC_ORG1_P1_PORT}
-		peer lifecycle chaincode queryinstalled -O json  2>&1
-	)
-	commonVerify $? "failed: $out" "$out"
-	local packageId=$( echo $out | jq ".installed_chaincodes[-1].package_id" | sed s/\"//g  2>&1 )
-	commonVerify $? "failed: $packageId" "package id: $packageId"
-
-	commonPrintf "approving chaincode definition for $TC_ORG1_STACK"
-	out=$(
-		export FABRIC_CFG_PATH="${TC_PATH_CHANNELS}/${TC_CHANNEL1_NAME}"
-		export CORE_PEER_TLS_ENABLED=true
-		export CORE_PEER_LOCALMSPID="${TC_ORG1_STACK}MSP"
-		export CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG1_DATA}/msp/tlscacerts/ca-cert.pem
-		export CORE_PEER_MSPCONFIGPATH=$TC_ORG1_ADMINMSP
-		export CORE_PEER_ADDRESS=localhost:${TC_ORG1_P1_PORT}
-		peer lifecycle chaincode approveformyorg -o localhost:${TC_ORDERER1_O1_PORT} --ordererTLSHostnameOverride $TC_ORDERER1_O1_NAME --channelID ${TC_CHANNEL1_NAME} --name basic --version 1.0 --package-id $packageId --sequence 1 --tls --cafile "$certOrderer" 2>&1 
-	)
-	commonVerify $? "failed: $out" "$out"
-
-	commonPrintf "approving chaincode definition for $TC_ORG2_STACK"
-	out=$(
-		export FABRIC_CFG_PATH="${TC_PATH_CHANNELS}/${TC_CHANNEL1_NAME}"
-		export CORE_PEER_TLS_ENABLED=true
-		export CORE_PEER_LOCALMSPID="${TC_ORG2_STACK}MSP"
-		export CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG2_DATA}/msp/tlscacerts/ca-cert.pem
-		export CORE_PEER_MSPCONFIGPATH=$TC_ORG2_ADMINMSP
-		export CORE_PEER_ADDRESS=localhost:${TC_ORG2_P1_PORT}
-		peer lifecycle chaincode approveformyorg -o localhost:${TC_ORDERER1_O1_PORT} --ordererTLSHostnameOverride $TC_ORDERER1_O1_NAME --channelID ${TC_CHANNEL1_NAME} --name basic --version 1.0 --package-id $packageId --sequence 1 --tls --cafile "$certOrderer" 2>&1 
-	)
-	commonVerify $? "failed: $out" "$out"
-
-	# endregion: approve a chaincode definition
-	# region: commit
-
-	commonSleep 5 "check whether channel members have approved the definition"
-	out=$(
-		export FABRIC_CFG_PATH="${TC_PATH_CHANNELS}/${TC_CHANNEL1_NAME}"
-		export CORE_PEER_TLS_ENABLED=true
-		export CORE_PEER_LOCALMSPID="${TC_ORG1_STACK}MSP"
-		export CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG1_DATA}/msp/tlscacerts/ca-cert.pem
-		export CORE_PEER_MSPCONFIGPATH=$TC_ORG1_ADMINMSP
-		export CORE_PEER_ADDRESS=localhost:${TC_ORG1_P1_PORT}
-		peer lifecycle chaincode checkcommitreadiness --channelID $TC_CHANNEL1_NAME --name basic --version 1.0 --sequence 1 --tls --cafile "$certOrderer" --output json 2>&1 
-	)
-	commonVerify $? "failed: $out" "status: $out"
-
-	commonPrintf "commiting chaincode"
-	out=$(
-		export FABRIC_CFG_PATH="${TC_PATH_CHANNELS}/${TC_CHANNEL1_NAME}"
-		export CORE_PEER_TLS_ENABLED=true
-		export CORE_PEER_LOCALMSPID="${TC_ORG1_STACK}MSP"
-		export CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG1_DATA}/msp/tlscacerts/ca-cert.pem
-		export CORE_PEER_MSPCONFIGPATH=$TC_ORG1_ADMINMSP
-		export CORE_PEER_ADDRESS=localhost:${TC_ORG1_P1_PORT}
-		peer lifecycle chaincode commit -o localhost:${TC_ORDERER1_O1_PORT} --ordererTLSHostnameOverride $TC_ORDERER1_O1_NAME --channelID $TC_CHANNEL1_NAME --name basic --version 1.0 --sequence 1 --tls --cafile "$certOrderer" --peerAddresses localhost:${TC_ORG1_P1_PORT} --tlsRootCertFiles "${TC_ORG1_P1_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_COMMON1_C1_PORT}.pem" --peerAddresses localhost:${TC_ORG2_P1_PORT} --tlsRootCertFiles "${TC_ORG2_P1_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_COMMON1_C1_PORT}.pem" 2>&1 
-	)
-	commonVerify $? "failed: $out" "status: $out"
-
-	commonSleep 5 "check if chaincode definition has been committed"
-	out=$(
-		export FABRIC_CFG_PATH="${TC_PATH_CHANNELS}/${TC_CHANNEL1_NAME}"
-		export CORE_PEER_TLS_ENABLED=true
-		export CORE_PEER_LOCALMSPID="${TC_ORG1_STACK}MSP"
-		export CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG1_DATA}/msp/tlscacerts/ca-cert.pem
-		export CORE_PEER_MSPCONFIGPATH=$TC_ORG1_ADMINMSP
-		export CORE_PEER_ADDRESS=localhost:${TC_ORG1_P1_PORT}
-		peer lifecycle chaincode querycommitted --channelID $TC_CHANNEL1_NAME --name basic --cafile "$certOrderer" 2>&1 
-	)
-	commonVerify $? "failed: $out" "status: $out"
-
-	# endregion: commit
-
-}
-commonYN "deploay basic chaincode on ${TC_CHANNEL1_NAME}?" _deployBasic
-
-# endregion: demo chaincode ch1
+# endregion: deploy chaincode
 # region: closing provisions
 
 _prefix=$COMMON_PREFIX
 COMMON_PREFIX="===>>> "
 commonPrintfBold ""
-commonPrintfBold "ALL DONE!"
+commonPrintfBold "ALL DONE! IF THIS IS FINAL, ISSUE THE FOLLOWING COMMAND: sudo chmod a-x ${TC_PATH_SCRIPTS}/_tcGenesis.sh"
 commonPrintfBold ""
 COMMON_PREFIX=_prefix
 unset _prefix
