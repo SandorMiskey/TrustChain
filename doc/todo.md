@@ -15,3 +15,9 @@
 * SASC leftover -> TrustChain
 * CSR in fabric-ca-server config (and in -client config?)
 * what if orderer1-admin not admin @tls-ca
+* renames
+  * Cn -> CAn
+  * Dn -> DBn
+  * Pn -> PEERn
+  * On -> ORDERERn
+  * Sn -> SERVICEn

@@ -362,7 +362,8 @@ services:
     working_dir: ${TC_PATH_BASE}
 
   ${TC_ORG1_G1_NAME}:
-    command: /bin/bash
+    # command: /bin/bash
+    command: /bin/bash ${TC_ORG1_G1_ASSETS_DIR}/init.sh
     # depends_on:
     #   - ${TC_ORG1_D1_FQDN}
     deploy:
@@ -408,4 +409,4 @@ services:
     tty: true
     volumes:
       - ${TC_ORG1_G1_DATA}:${TC_ORG1_G1_DATA}
-    working_dir: ${TC_ORG1_G1_DATA}
+    working_dir: ${TC_ORG1_G1_ASSETS_DIR}

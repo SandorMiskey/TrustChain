@@ -1344,7 +1344,7 @@ _channels() {
 		${TC_PATH_SCRIPTS}/tcBootstrap.sh -m up -s ${TC_COMMON2_STACK}
 		commonVerify $? "failed!"
 	}
-	commonYN "bootstrap ${TC_COMMON2_STACK}?" _bootstrapCOMMON3
+	# commonYN "bootstrap ${TC_COMMON2_STACK}?" _bootstrapCOMMON3
 
 	# endregion: bootstrap COMMON2
 	# region: bootstrap COMMON3
@@ -1354,7 +1354,7 @@ _channels() {
 		${TC_PATH_SCRIPTS}/tcBootstrap.sh -m up -s ${TC_COMMON3_STACK}
 		commonVerify $? "failed!"
 	}
-	commonYN "bootstrap ${TC_COMMON3_STACK}?" _bootstrapCOMMON3
+	# commonYN "bootstrap ${TC_COMMON3_STACK}?" _bootstrapCOMMON3
 
 	# endregion: bootstrap COMMON2
 

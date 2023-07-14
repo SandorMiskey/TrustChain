@@ -1,0 +1,1 @@
+/srv/TrustChain/scripts/commonFuncs.sh
