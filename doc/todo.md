@@ -1,5 +1,6 @@
 # todo
 
+* workbench config
 * chaincode + api
   * chaincode
   * swagger
