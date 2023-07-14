@@ -36,7 +36,7 @@ TC_COMMON2_S3_PORT=5202
 
 ### common infra (6000 -> 6999)
 
-* TC_TLSCA_C1_PORT=6001
+* TC_COMMON1_C1_PORT=6001
 
 ### orderer1 (7000 -> 7999)
 

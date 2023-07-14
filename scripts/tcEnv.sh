@@ -8,7 +8,7 @@
 
 # region: tls ca
 
-export TC_TLSCA_C1_ADMINPW=TC_TLSCA_C1_ADMINPW
+export TC_COMMON1_C1_ADMINPW=TC_COMMON1_C1_ADMINPW
 
 # endregion: tls ca
 # region: orderer1 ca

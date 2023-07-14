@@ -132,7 +132,7 @@ services:
       # - CORE_OPERATIONS_TLS_KEY_FILE=${TC_ORG1_P1_TLSMSP}/keystore/key.pem
       # - CORE_OPERATIONS_TLS_CLIENTAUTHREQUIRED=true
       # - CORE_OPERATIONS_TLS_CLIENTROOTCAS_FILES:
-      #   - ${TC_ORG1_P1_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_TLSCA_C1_PORT}.pem
+      #   - ${TC_ORG1_P1_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_COMMON1_C1_PORT}.pem
       - CORE_PEER_ADDRESS=${TC_ORG1_P1_FQDN}:${TC_ORG1_P1_PORT}
       - CORE_PEER_CHAINCODEADDRESS=${TC_ORG1_P1_FQDN}:${TC_ORG1_P1_CHPORT}
       - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:${TC_ORG1_P1_CHPORT}
@@ -150,12 +150,12 @@ services:
       - CORE_PEER_NETWORKID=${TC_SWARM_NETNAME}
       - CORE_PEER_MSPCONFIGPATH=${TC_ORG1_P1_MSP}
       - CORE_PEER_TLS_ENABLED=true
-      - CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG1_P1_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_TLSCA_C1_PORT}.pem
+      - CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG1_P1_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_COMMON1_C1_PORT}.pem
       - CORE_PEER_TLS_CERT_FILE=${TC_ORG1_P1_TLSMSP}/signcerts/cert.pem
       - CORE_PEER_TLS_KEY_FILE=${TC_ORG1_P1_TLSMSP}/keystore/key.pem
       # - CORE_PEER_TLS_CLIENTAUTHREQUIRED=true
       # - CORE_PEER_TLS_CLIENTROOTCAS_FILES:
-      #     - ${TC_ORG1_P1_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_TLSCA_C1_PORT}.pem
+      #     - ${TC_ORG1_P1_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_COMMON1_C1_PORT}.pem
       - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
       - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=${TC_NETWORK_NAME}
       - FABRIC_LOGGING_SPEC=${TC_ORG1_P1_LOGLEVEL}
@@ -199,7 +199,7 @@ services:
       # - CORE_OPERATIONS_TLS_KEY_FILE=${TC_ORG1_P2_TLSMSP}/keystore/key.pem
       # - CORE_OPERATIONS_TLS_CLIENTAUTHREQUIRED=true
       # - CORE_OPERATIONS_TLS_CLIENTROOTCAS_FILES:
-      #   - ${TC_ORG1_P2_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_TLSCA_C1_PORT}.pem
+      #   - ${TC_ORG1_P2_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_COMMON1_C1_PORT}.pem
       - CORE_PEER_ADDRESS=${TC_ORG1_P2_FQDN}:${TC_ORG1_P2_PORT}
       - CORE_PEER_CHAINCODEADDRESS=${TC_ORG1_P2_FQDN}:${TC_ORG1_P2_CHPORT}
       - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:${TC_ORG1_P2_CHPORT}
@@ -219,10 +219,10 @@ services:
       - CORE_PEER_TLS_ENABLED=true
       - CORE_PEER_TLS_CERT_FILE=${TC_ORG1_P2_TLSMSP}/signcerts/cert.pem
       - CORE_PEER_TLS_KEY_FILE=${TC_ORG1_P2_TLSMSP}/keystore/key.pem
-      - CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG1_P2_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_TLSCA_C1_PORT}.pem
+      - CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG1_P2_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_COMMON1_C1_PORT}.pem
       # - CORE_PEER_TLS_CLIENTAUTHREQUIRED=true
       # - CORE_PEER_TLS_CLIENTROOTCAS_FILES:
-      #     - ${TC_ORG1_P2_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_TLSCA_C1_PORT}.pem
+      #     - ${TC_ORG1_P2_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_COMMON1_C1_PORT}.pem
       - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
       - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=${TC_NETWORK_NAME}
       - FABRIC_LOGGING_SPEC=${TC_ORG1_P2_LOGLEVEL}
@@ -266,7 +266,7 @@ services:
       # - CORE_OPERATIONS_TLS_KEY_FILE=${TC_ORG1_P3_TLSMSP}/keystore/key.pem
       # - CORE_OPERATIONS_TLS_CLIENTAUTHREQUIRED=true
       # - CORE_OPERATIONS_TLS_CLIENTROOTCAS_FILES:
-      #   - ${TC_ORG1_P3_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_TLSCA_C1_PORT}.pem
+      #   - ${TC_ORG1_P3_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_COMMON1_C1_PORT}.pem
       - CORE_PEER_ADDRESS=${TC_ORG1_P3_FQDN}:${TC_ORG1_P3_PORT}
       - CORE_PEER_CHAINCODEADDRESS=${TC_ORG1_P3_FQDN}:${TC_ORG1_P3_CHPORT}
       - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:${TC_ORG1_P3_CHPORT}
@@ -286,10 +286,10 @@ services:
       - CORE_PEER_TLS_ENABLED=true
       - CORE_PEER_TLS_CERT_FILE=${TC_ORG1_P3_TLSMSP}/signcerts/cert.pem
       - CORE_PEER_TLS_KEY_FILE=${TC_ORG1_P3_TLSMSP}/keystore/key.pem
-      - CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG1_P3_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_TLSCA_C1_PORT}.pem
+      - CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG1_P3_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_COMMON1_C1_PORT}.pem
       # - CORE_PEER_TLS_CLIENTAUTHREQUIRED=true
       # - CORE_PEER_TLS_CLIENTROOTCAS_FILES:
-      #     - ${TC_ORG1_P3_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_TLSCA_C1_PORT}.pem
+      #     - ${TC_ORG1_P3_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_COMMON1_C1_PORT}.pem
       - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
       - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=${TC_NETWORK_NAME}
       - FABRIC_LOGGING_SPEC=${TC_ORG1_P3_LOGLEVEL}
@@ -330,12 +330,12 @@ services:
       - CORE_PEER_MSPCONFIGPATH=${TC_ORG1_CLI1_MSP}
       - CORE_PEER_NETWORKID=${TC_SWARM_NETNAME}
       - CORE_PEER_TLS_ENABLED=true
-      - CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG1_CLI1_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_TLSCA_C1_PORT}.pem
+      - CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG1_CLI1_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_COMMON1_C1_PORT}.pem
       # - CORE_PEER_TLS_CERT_FILE=${TC_ORG1_CLI1_TLSMSP}/signcerts/cert.pem
       # - CORE_PEER_TLS_KEY_FILE=${TC_ORG1_CLI1_TLSMSP}/keystore/key.pem
       # - CORE_PEER_TLS_CLIENTAUTHREQUIRED=true
       # - CORE_PEER_TLS_CLIENTROOTCAS_FILES:
-      #     - ${TC_ORG1_CLI1_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_TLSCA_C1_PORT}.pem
+      #     - ${TC_ORG1_CLI1_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_COMMON1_C1_PORT}.pem
       - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
       - FABRIC_LOGGING_SPEC=${TC_ORG1_CLI1_LOGLEVEL}
       # - GOPATH=/opt/gopath
@@ -380,12 +380,12 @@ services:
       - CORE_PEER_MSPCONFIGPATH=${TC_ORG1_G1_MSP}
       - CORE_PEER_NETWORKID=${TC_SWARM_NETNAME}
       - CORE_PEER_TLS_ENABLED=true
-      - CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG1_G1_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_TLSCA_C1_PORT}.pem
+      - CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG1_G1_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_COMMON1_C1_PORT}.pem
       # - CORE_PEER_TLS_CERT_FILE=${TC_ORG1_G1_TLSMSP}/signcerts/cert.pem
       # - CORE_PEER_TLS_KEY_FILE=${TC_ORG1_G1_TLSMSP}/keystore/key.pem
       # - CORE_PEER_TLS_CLIENTAUTHREQUIRED=true
       # - CORE_PEER_TLS_CLIENTROOTCAS_FILES:
-      #     - ${TC_ORG1_G1_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_TLSCA_C1_PORT}.pem
+      #     - ${TC_ORG1_G1_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_COMMON1_C1_PORT}.pem
       - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
       - FABRIC_LOGGING_SPEC=${TC_ORG1_G1_LOGLEVEL}
       # - GOPATH=/opt/gopath
