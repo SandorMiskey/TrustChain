@@ -20,12 +20,12 @@ export TC_PATH_BIN=${TC_PATH_BASE}/bin
 export TC_PATH_SCRIPTS=${TC_PATH_BASE}/scripts
 export TC_PATH_TEMPLATES=${TC_PATH_BASE}/templates
 export TC_PATH_WORKBENCH=${TC_PATH_BASE}/workbench
-export TC_PATH_CHAINCODE=${TC_PATH_BASE}/chaincode
 
 # dirs under storage
 export TC_PATH_SWARM=${TC_PATH_WORKBENCH}/swarm
 export TC_PATH_ORGS=${TC_PATH_WORKBENCH}/organizations
 export TC_PATH_CHANNELS=${TC_PATH_WORKBENCH}/channels
+export TC_PATH_CHAINCODE=${TC_PATH_WORKBENCH}/chaincode
 
 # trustchain independent common functions
 export TC_PATH_COMMON=${TC_PATH_SCRIPTS}/commonFuncs.sh
@@ -36,7 +36,7 @@ export PATH=${TC_PATH_BIN}:${TC_PATH_SCRIPTS}:$PATH
 # endregion: base paths
 # region: exec control
 
-export TC_EXEC_DRY=true
+export TC_EXEC_DRY=false
 export TC_EXEC_FORCE=true
 export TC_EXEC_PANIC=true
 export TC_EXEC_SURE=true
