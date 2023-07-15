@@ -1380,9 +1380,33 @@ _channels() {
 # endregion: common services
 # region: deploy chaincode
 
-commonYN "deploay basic chaincode on ${TC_CHANNEL1_NAME}?" ${TC_PATH_SCRIPTS}/tcChaincodeInit.sh "basic" "$TC_CHANNEL1_NAME"
+[[ "$TC_EXEC_DRY" == false ]] && commonYN "deploay basic chaincode on ${TC_CHANNEL1_NAME}?" ${TC_PATH_SCRIPTS}/tcChaincodeInit.sh "basic" "$TC_CHANNEL1_NAME"
 
 # endregion: deploy chaincode
+# region: raw api
+
+_buildRaw() {
+	local out
+
+	commonPrintf "building raw api"
+	commonPP ${TC_PATH_BASE}/rawapi
+	out=$( go mod tidy 2>&1 )
+	commonVerify $? "failed: $out"
+	out=$( CGO_ENABLED=0 go build main.go 2>&1 )
+	commonVerify $? "failed: $out"
+	commonPrintf "moving binary under $TC_ORG1_G1_ASSETS_DIR"
+	out=$( mv main ${TC_ORG1_G1_ASSETS_DIR}/ 2>&1 )
+	commonVerify $? "failed: $out"
+	commonPrintf "restart $TC_ORG1_STACK"
+	${TC_PATH_SCRIPTS}/tcBootstrap.sh -m down -s $TC_ORG1_STACK 
+	commonVerify $? "failed: $out"
+	${TC_PATH_SCRIPTS}/tcBootstrap.sh -m up -s $TC_ORG1_STACK 
+	commonVerify $? "failed: $out"
+
+}
+commonYN "build raw api?" _buildRaw
+
+# endregion: raw api
 # region: closing provisions
 
 _prefix=$COMMON_PREFIX

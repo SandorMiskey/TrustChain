@@ -363,7 +363,7 @@ services:
 
   ${TC_ORG1_G1_NAME}:
     # command: /bin/bash
-    command: /bin/bash ${TC_ORG1_G1_ASSETS_DIR}/init.sh
+    command: /bin/bash ${TC_PATH_SCRIPTS}/tcGwInit.sh
     # depends_on:
     #   - ${TC_ORG1_D1_FQDN}
     deploy:
@@ -375,22 +375,48 @@ services:
         delay: ${TC_SWARM_DELAY}s
         max_attempts: 5
     environment:
-      - CORE_PEER_ADDRESS=$TC_ORG1_G1_PEER_ADDRESS
-      - CORE_PEER_ID=$TC_ORG1_G1_PEER_ID
-      - CORE_PEER_LOCALMSPID=${TC_ORG1_STACK}MSP
-      - CORE_PEER_MSPCONFIGPATH=${TC_ORG1_G1_MSP}
-      - CORE_PEER_NETWORKID=${TC_SWARM_NETNAME}
-      - CORE_PEER_TLS_ENABLED=true
-      - CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG1_G1_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_COMMON1_C1_PORT}.pem
+      #
+      # set env
+      #
+      - TC_PATH_BASE=${TC_PATH_BASE}
+      - TC_PATH_RC=${TC_PATH_BASE}/scripts/tcConf.sh
+      - COMMON_FUNCS=${TC_PATH_BASE}/scripts/commonFuncs.sh
+      #
+      # hyperledger settings
+      #
+      # - CORE_PEER_MSPCONFIGPATH=${TC_ORG1_G1_MSP}
+      # - CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG1_G1_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_COMMON1_C1_PORT}.pem
       # - CORE_PEER_TLS_CERT_FILE=${TC_ORG1_G1_TLSMSP}/signcerts/cert.pem
       # - CORE_PEER_TLS_KEY_FILE=${TC_ORG1_G1_TLSMSP}/keystore/key.pem
-      # - CORE_PEER_TLS_CLIENTAUTHREQUIRED=true
       # - CORE_PEER_TLS_CLIENTROOTCAS_FILES:
       #     - ${TC_ORG1_G1_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_COMMON1_C1_PORT}.pem
-      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
-      - FABRIC_LOGGING_SPEC=${TC_ORG1_G1_LOGLEVEL}
-      # - GOPATH=/opt/gopath
-      # - GOPATH=${TC_ORG1_G1_ASSETS_CHAINCODE}
+      #
+      # raw api
+      #
+      - TC_RAWAPI_HTTP_ENABLED=true
+      - TC_RAWAPI_HTTP_NAME="TrustChain backend"
+      - TC_RAWAPI_HTTP_PORT=$TC_RAWAPI_HTTP_PORT
+      - TC_RAWAPI_HTTP_STATIC_ENABLED=false
+      - TC_RAWAPI_HTTP_STATIC_ROOT="/tmp"
+      - TC_RAWAPI_HTTP_STATIC_INDEX="index.html"
+      - TC_RAWAPI_HTTP_STATIC_ERROR="index.html"
+      - TC_RAWAPI_HTTPS_ENABLED=true
+      - TC_RAWAPI_HTTPS_PORT=$TC_RAWAPI_HTTPS_PORT
+      - TC_RAWAPI_HTTPS_CERT=""
+      - TC_RAWAPI_HTTPS_CERT_FILE=""
+      - TC_RAWAPI_HTTPS_KEY=""
+      - TC_RAWAPI_HTTPS_KEY_FILE=""
+      - TC_RAWAPI_LOGALLERRORS=true
+      - TC_RAWAPI_MAXREQUESTBODYSIZE=4194304
+      - TC_RAWAPI_NETWORKPROTO="tcp"
+      - TC_RAWAPI_LOGLEVEL=7
+      - TC_RAWAPI_ORGNAME=$TC_ORG1_STACK
+      - TC_RAWAPI_MSPID=${TC_ORG1_STACK}MSP
+      - TC_RAWAPI_CERTPATH="${TC_ORG1_CLIENTMSP}/signcerts/cert.pem"
+      - TC_RAWAPI_KEYPATH="${TC_ORG1_CLIENTMSP}/keytore/"
+      - TC_RAWAPI_TLSCERTPATH=${TC_ORG1_G1_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_COMMON1_C1_PORT}.PEM
+      - TC_RAWAPI_PEERENDPOINT=$TC_ORG1_P1_FQDN}:${TC_ORG1_P1_PORT}
+      - TC_RAWAPI_GATEWAYPEER=${TC_ORG1_P1_FQDN}
     hostname: ${TC_ORG1_G1_FQDN}
     image: hyperledger/fabric-tools:${TC_DEPS_FABRIC}
     labels:
@@ -401,9 +427,11 @@ services:
           - ${TC_ORG1_G1_NAME}
           - ${TC_ORG1_G1_FQDN}
     ports:
-      - ${TC_ORG1_G1_API1}:${TC_ORG1_G1_API1}
+      - ${TC_ORG1_G1_PORT1}:${TC_ORG1_G1_PORT1}
+      - ${TC_ORG1_G1_PORT2}:${TC_ORG1_G1_PORT2}
     # stdin_open: true
     # tty: true
     volumes:
       - ${TC_ORG1_G1_DATA}:${TC_ORG1_G1_DATA}
-    working_dir: ${TC_ORG1_G1_ASSETS_DIR}
+      - ${TC_PATH_SCRIPTS}:${TC_PATH_SCRIPTS}
+    working_dir: ${TC_PATH_BASE}

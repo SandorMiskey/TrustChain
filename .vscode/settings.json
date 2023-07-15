@@ -61,7 +61,7 @@
     "valyala",
     "wmenu"
   ],
-  "editor.foldingStrategy": "auto",
+  "editor.foldingStrategy": "indentation",
   "files.exclude": {
     "**/*.fasthttp.gz": true,
     "**/main.wasm": true

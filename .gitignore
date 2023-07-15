@@ -1,5 +1,7 @@
+backend/samples
 bin
 doc/email
+doc/fabric-samples
 env.sh
 storage
 workbench
