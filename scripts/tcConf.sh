@@ -37,7 +37,7 @@ export PATH=${TC_PATH_BIN}:${TC_PATH_SCRIPTS}:$PATH
 # endregion: base paths
 # region: exec control
 
-export TC_EXEC_DRY=false
+export TC_EXEC_DRY=true
 export TC_EXEC_FORCE=true
 export TC_EXEC_PANIC=true
 export TC_EXEC_SURE=true
@@ -622,8 +622,8 @@ export TC_RAWAPI_LOGLEVEL=7
 export TC_RAWAPI_ORGNAME=$TC_ORG1_STACK
 export TC_RAWAPI_MSPID=${TC_ORG1_STACK}MSP
 export TC_RAWAPI_CERTPATH="${TC_ORG1_CLIENTMSP}/signcerts/cert.pem"
-export TC_RAWAPI_KEYPATH="${TC_ORG1_CLIENTMSP}/keytore/"
-export TC_RAWAPI_TLSCERTPATH=${TC_ORG1_G1_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_COMMON1_C1_PORT}.PEM
+export TC_RAWAPI_KEYPATH="${TC_ORG1_CLIENTMSP}/keystore/"
+export TC_RAWAPI_TLSCERTPATH=${TC_ORG1_G1_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_COMMON1_C1_PORT}.pem
 export TC_RAWAPI_PEERENDPOINT=${TC_ORG1_P1_FQDN}:${TC_ORG1_P1_PORT}
 export TC_RAWAPI_GATEWAYPEER=${TC_ORG1_P1_FQDN}
 

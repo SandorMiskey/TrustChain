@@ -1,10 +1,11 @@
-module github.com/SandorMiskey/TrustChain/backend
+module github.com/SandorMiskey/TrustChain/rawapi
 
 go 1.18
 
 require (
 	github.com/SandorMiskey/TEx-kit v0.0.1
 	github.com/buaazp/fasthttprouter v0.1.1
+	github.com/davecgh/go-spew v1.1.1
 	github.com/hyperledger/fabric-gateway v1.2.2
 	github.com/valyala/fasthttp v1.48.0
 	google.golang.org/grpc v1.53.0

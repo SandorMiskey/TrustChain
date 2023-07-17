@@ -12,6 +12,7 @@ import (
 
 	"github.com/SandorMiskey/TEx-kit/cfg"
 	"github.com/SandorMiskey/TEx-kit/log"
+	"github.com/SandorMiskey/TrustChain/rawapi/fabric"
 
 	// "github.com/davecgh/go-spew/spew"
 	"github.com/buaazp/fasthttprouter"
@@ -22,9 +23,11 @@ import (
 // region: global variables
 
 var (
-	Config cfg.Config
 	// Db     *db.Db
-	Logger log.Logger
+	Config    cfg.Config
+	Logger    log.Logger
+	OrgConfig fabric.OrgSetup
+	OrgSetup  *fabric.OrgSetup
 )
 
 const (
@@ -125,8 +128,30 @@ func main() {
 	// endregion: db
 	// region: fabric gw
 
+	OrgConfig = fabric.OrgSetup{
+		OrgName:      Config.Entries["tc_rawapi_orgName"].Value.(string),
+		MSPID:        Config.Entries["tc_rawapi_MSPID"].Value.(string),
+		CertPath:     Config.Entries["tc_rawapi_certPath"].Value.(string),
+		KeyPath:      Config.Entries["tc_rawapi_keyPath"].Value.(string),
+		TLSCertPath:  Config.Entries["tc_rawapi_TLSCertPath"].Value.(string),
+		PeerEndpoint: Config.Entries["tc_rawapi_peerEndpoint"].Value.(string),
+		GatewayPeer:  Config.Entries["tc_rawapi_gatewayPeer"].Value.(string),
+		Logger:       Logger,
+	}
+
+	OrgSetup, err = fabric.Initialize(OrgConfig)
+	if err != nil {
+		Logger.Out(LOG_EMERG, fmt.Sprintf("error initializing setup for %s: %s", OrgConfig.OrgName, err))
+		panic(err)
+	}
+	Logger.Out(LOG_DEBUG, fmt.Sprintf("%+v\n", OrgSetup))
+
+	// web.Serve(web.OrgSetup(*orgSetup))
+
 	// endregion: fabric gw
 	// region: http routing
+
+	// region: routers
 
 	httpRouterActual := fasthttprouter.New()
 	if Config.Entries["tc_rawapi_http_static_enabled"].Value.(bool) {
@@ -148,11 +173,21 @@ func main() {
 	httpRouterPre := fasthttprouter.New()
 	httpRouterPre.NotFound = func(ctx *fasthttp.RequestCtx) {
 		Logger.Out(LOG_DEBUG, fmt.Sprintf("%s request on %s from %s with content type '%s' and body '%s' (%s)", ctx.Method(), ctx.Path(), ctx.RemoteAddr(), ctx.Request.Header.Peek("Content-Type"), ctx.PostBody(), ctx))
-		Logger.Out(LOG_INFO, ctx)
+		Logger.Out(LOG_INFO, fmt.Sprintf("%v: %v", ctx.ID, ctx))
 		httpRouterActual.Handler(ctx)
 	}
 
-	httpRouterActual.GET("/test", fooBarGET)
+	//  endregion: routers
+	// region: routes
+
+	httpRouterActual.GET("/debug", debugConfigGET)
+	httpRouterActual.GET("/debug/Config", debugConfigGET)
+	httpRouterActual.GET("/debug/OrgConfig", debugOrgConfigGET)
+	httpRouterActual.GET("/debug/OrgSetup", debugOrgSetupGET)
+
+	httpRouterActual.POST("/invoke", OrgSetup.Invoke)
+
+	// endregion: routes
 
 	// endregion: http routing
 	// region: http and https
@@ -206,8 +241,18 @@ func main() {
 
 }
 
-func fooBarGET(ctx *fasthttp.RequestCtx) {
+func debugConfigGET(ctx *fasthttp.RequestCtx) {
 	ctx.SetStatusCode(200)
 	ctx.SetContentType("application/json")
-	ctx.SetBodyString("{ testing: 1 }")
+	ctx.SetBodyString(fmt.Sprintf("%+v\n", Config))
+}
+func debugOrgConfigGET(ctx *fasthttp.RequestCtx) {
+	ctx.SetStatusCode(200)
+	ctx.SetContentType("application/json")
+	ctx.SetBodyString(fmt.Sprintf("%+v\n", OrgConfig))
+}
+func debugOrgSetupGET(ctx *fasthttp.RequestCtx) {
+	ctx.SetStatusCode(200)
+	ctx.SetContentType("application/json")
+	ctx.SetBodyString(fmt.Sprintf("%+v\n", OrgSetup))
 }
