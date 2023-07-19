@@ -34,6 +34,15 @@ scrape_configs:
   - job_name: "${TC_ORG2_P3_FQDN}"
     static_configs:
       - targets: ["${TC_ORG2_P3_FQDN}:${TC_ORG2_P3_OPPORT}"]
+  - job_name: "${TC_ORG3_P1_FQDN}"
+    static_configs:
+      - targets: ["${TC_ORG3_P1_FQDN}:${TC_ORG3_P1_OPPORT}"]
+  - job_name: "${TC_ORG3_P2_FQDN}"
+    static_configs:
+      - targets: ["${TC_ORG3_P2_FQDN}:${TC_ORG3_P2_OPPORT}"]
+  - job_name: "${TC_ORG3_P3_FQDN}"
+    static_configs:
+      - targets: ["${TC_ORG3_P3_FQDN}:${TC_ORG3_P3_OPPORT}"]
   - job_name: "${TC_COMMON2_S4_NAME}"
     scrape_interval: 5s
     static_configs:

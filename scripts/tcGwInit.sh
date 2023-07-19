@@ -106,7 +106,6 @@ Y9rdr62KQ5aXN9FAarw54Yu3FnUOAxHK
 # endregion: HTTPS
 
 commonPrintfBold "init.sh starts"
-commonPrintf "$( env )"
 
 while true
 do

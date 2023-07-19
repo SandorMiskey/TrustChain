@@ -5,8 +5,8 @@ go 1.18
 require (
 	github.com/SandorMiskey/TEx-kit v0.0.1
 	github.com/buaazp/fasthttprouter v0.1.1
-	github.com/davecgh/go-spew v1.1.1
 	github.com/hyperledger/fabric-gateway v1.2.2
+	github.com/hyperledger/fabric-protos-go-apiv2 v0.2.0
 	github.com/valyala/fasthttp v1.48.0
 	google.golang.org/grpc v1.53.0
 )
@@ -14,7 +14,6 @@ require (
 require (
 	github.com/andybalholm/brotli v1.0.5 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
-	github.com/hyperledger/fabric-protos-go-apiv2 v0.2.0 // indirect
 	github.com/klauspost/compress v1.16.3 // indirect
 	github.com/miekg/pkcs11 v1.1.1 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect

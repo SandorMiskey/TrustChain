@@ -413,8 +413,8 @@ services:
       - TC_RAWAPI_ORGNAME=$TC_ORG1_STACK
       - TC_RAWAPI_MSPID=${TC_ORG1_STACK}MSP
       - TC_RAWAPI_CERTPATH="${TC_ORG1_CLIENTMSP}/signcerts/cert.pem"
-      - TC_RAWAPI_KEYPATH="${TC_ORG1_CLIENTMSP}/keytore/"
-      - TC_RAWAPI_TLSCERTPATH=${TC_ORG1_G1_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_COMMON1_C1_PORT}.PEM
+      - TC_RAWAPI_KEYPATH="${TC_ORG1_CLIENTMSP}/keystore/"
+      - TC_RAWAPI_TLSCERTPATH=${TC_ORG1_G1_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_COMMON1_C1_PORT}.pem
       - TC_RAWAPI_PEERENDPOINT=$TC_ORG1_P1_FQDN}:${TC_ORG1_P1_PORT}
       - TC_RAWAPI_GATEWAYPEER=${TC_ORG1_P1_FQDN}
     hostname: ${TC_ORG1_G1_FQDN}
@@ -433,5 +433,6 @@ services:
     # tty: true
     volumes:
       - ${TC_ORG1_G1_DATA}:${TC_ORG1_G1_DATA}
+      - ${TC_ORG1_CLIENTHOME}:${TC_ORG1_CLIENTHOME}
       - ${TC_PATH_SCRIPTS}:${TC_PATH_SCRIPTS}
     working_dir: ${TC_PATH_BASE}

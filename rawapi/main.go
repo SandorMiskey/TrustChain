@@ -5,17 +5,16 @@ package main
 import (
 	"fmt"
 	"log/syslog"
-	"net"
 	"os"
-	"strconv"
 	"sync"
 
 	"github.com/SandorMiskey/TEx-kit/cfg"
 	"github.com/SandorMiskey/TEx-kit/log"
 	"github.com/SandorMiskey/TrustChain/rawapi/fabric"
+	"github.com/SandorMiskey/TrustChain/rawapi/http"
 
 	// "github.com/davecgh/go-spew/spew"
-	"github.com/buaazp/fasthttprouter"
+
 	"github.com/valyala/fasthttp"
 )
 
@@ -24,10 +23,11 @@ import (
 
 var (
 	// Db     *db.Db
-	Config    cfg.Config
-	Logger    log.Logger
-	OrgConfig fabric.OrgSetup
-	OrgSetup  *fabric.OrgSetup
+	Config         cfg.Config
+	Logger         log.Logger
+	OrgInstance    fabric.OrgSetup
+	ServerInstance http.ServerSetup
+	RouterInstance http.RouterSetup
 )
 
 const (
@@ -128,7 +128,7 @@ func main() {
 	// endregion: db
 	// region: fabric gw
 
-	OrgConfig = fabric.OrgSetup{
+	OrgInstance = fabric.OrgSetup{
 		OrgName:      Config.Entries["tc_rawapi_orgName"].Value.(string),
 		MSPID:        Config.Entries["tc_rawapi_MSPID"].Value.(string),
 		CertPath:     Config.Entries["tc_rawapi_certPath"].Value.(string),
@@ -136,56 +136,55 @@ func main() {
 		TLSCertPath:  Config.Entries["tc_rawapi_TLSCertPath"].Value.(string),
 		PeerEndpoint: Config.Entries["tc_rawapi_peerEndpoint"].Value.(string),
 		GatewayPeer:  Config.Entries["tc_rawapi_gatewayPeer"].Value.(string),
-		Logger:       Logger,
+		Logger:       &Logger,
 	}
+	Logger.Out(LOG_DEBUG, fmt.Sprintf("OrgSetup: %+v\n", OrgInstance))
 
-	OrgSetup, err = fabric.Initialize(OrgConfig)
+	_, err = OrgInstance.Init()
 	if err != nil {
-		Logger.Out(LOG_EMERG, fmt.Sprintf("error initializing setup for %s: %s", OrgConfig.OrgName, err))
+		Logger.Out(LOG_EMERG, fmt.Sprintf("error initializing setup for %s: %s", OrgInstance.OrgName, err))
 		panic(err)
 	}
-	Logger.Out(LOG_DEBUG, fmt.Sprintf("%+v\n", OrgSetup))
-
-	// web.Serve(web.OrgSetup(*orgSetup))
+	Logger.Out(LOG_DEBUG, fmt.Sprintf("OrgInstance: %+v\n", OrgInstance))
 
 	// endregion: fabric gw
 	// region: http routing
 
-	// region: routers
+	// region: router
 
-	httpRouterActual := fasthttprouter.New()
-	if Config.Entries["tc_rawapi_http_static_enabled"].Value.(bool) {
-		httpFS := &fasthttp.FS{
-			Root:       Config.Entries["tc_rawapi_http_static_root"].Value.(string),
-			IndexNames: []string{Config.Entries["tc_rawapi_http_static_index"].Value.(string)},
-			PathNotFound: func(ctx *fasthttp.RequestCtx) {
-				Logger.Out(LOG_NOTICE, "dead end", ctx)
-				ctx.Redirect(Config.Entries["tc_rawapi_http_static_error"].Value.(string), 303)
-			},
-			Compress:           true,
-			AcceptByteRange:    true,
-			GenerateIndexPages: false,
-		}
-
-		httpRouterActual.NotFound = httpFS.NewRequestHandler()
+	RouterInstance = http.RouterSetup{
+		Logger:        &Logger,
+		StaticEnabled: Config.Entries["tc_rawapi_http_static_enabled"].Value.(bool),
+		StaticRoot:    Config.Entries["tc_rawapi_http_static_root"].Value.(string),
+		StaticIndex:   Config.Entries["tc_rawapi_http_static_index"].Value.(string),
+		StaticError:   Config.Entries["tc_rawapi_http_static_error"].Value.(string),
 	}
+	Logger.Out(LOG_DEBUG, fmt.Sprintf("RouterSetup: %+v\n", RouterInstance))
 
-	httpRouterPre := fasthttprouter.New()
-	httpRouterPre.NotFound = func(ctx *fasthttp.RequestCtx) {
-		Logger.Out(LOG_DEBUG, fmt.Sprintf("%s request on %s from %s with content type '%s' and body '%s' (%s)", ctx.Method(), ctx.Path(), ctx.RemoteAddr(), ctx.Request.Header.Peek("Content-Type"), ctx.PostBody(), ctx))
-		Logger.Out(LOG_INFO, fmt.Sprintf("%v: %v", ctx.ID, ctx))
-		httpRouterActual.Handler(ctx)
+	_, err = RouterInstance.RouterInit()
+	if err != nil {
+		Logger.Out(LOG_EMERG, fmt.Sprintf("error in http:RouterInit(): %s (%+v)", err, RouterInstance))
+		panic(err)
 	}
+	Logger.Out(LOG_DEBUG, fmt.Sprintf("RouterInstance: %+v\n", RouterInstance))
 
-	//  endregion: routers
+	// endregion: router
 	// region: routes
 
-	httpRouterActual.GET("/debug", debugConfigGET)
-	httpRouterActual.GET("/debug/Config", debugConfigGET)
-	httpRouterActual.GET("/debug/OrgConfig", debugOrgConfigGET)
-	httpRouterActual.GET("/debug/OrgSetup", debugOrgSetupGET)
+	Routes := RouterInstance.Routes
 
-	httpRouterActual.POST("/invoke", OrgSetup.Invoke)
+	Routes.POST("/invoke", OrgInstance.Invoke)
+	Routes.GET("/query", OrgInstance.Query)
+	Routes.GET("/debug", debugSupersetGET)
+	Routes.GET("/dummy", func(ctx *fasthttp.RequestCtx) {
+		r := &http.Response{
+			CTX:     ctx,
+			Logger:  &Logger,
+			Status:  200,
+			Message: fmt.Errorf("dummytext"),
+		}
+		r.Send(nil)
+	})
 
 	// endregion: routes
 
@@ -194,46 +193,29 @@ func main() {
 
 	var wg sync.WaitGroup
 
-	if Config.Entries["tc_rawapi_http_enabled"].Value.(bool) {
-		http := &fasthttp.Server{
-			// Logger:             Logger,
-			Handler:            httpRouterPre.Handler,
-			LogAllErrors:       Config.Entries["tc_rawapi_http_logAllErrors"].Value.(bool),
-			MaxRequestBodySize: Config.Entries["tc_rawapi_http_maxRequestBodySize"].Value.(int),
-			Name:               Config.Entries["tc_rawapi_http_name"].Value.(string),
-		}
-		ln, err := net.Listen(Config.Entries["tc_rawapi_http_networkProto"].Value.(string), ":"+strconv.Itoa(Config.Entries["tc_rawapi_http_port"].Value.(int)))
-		if err != nil {
-			Logger.Out(LOG_ERR, "error while opening http listener", err)
-		} else {
-			wg.Add(1)
-			go func() {
-				Logger.Out(LOG_INFO, "listening for HTTP requests", Config.Entries["tc_rawapi_http_networkProto"].Value, Config.Entries["tc_rawapi_http_port"].Value)
-				http.Serve(ln)
-			}()
-		}
+	ServerInstance = http.ServerSetup{
+		HttpEnabled:        Config.Entries["tc_rawapi_http_enabled"].Value.(bool),
+		HttpPort:           Config.Entries["tc_rawapi_http_port"].Value.(int),
+		HttpsEnabled:       Config.Entries["tc_rawapi_https_enabled"].Value.(bool),
+		HttpsPort:          Config.Entries["tc_rawapi_https_port"].Value.(int),
+		HttpsCert:          Config.Entries["tc_rawapi_https_cert"].Value.(string),
+		HttpsKey:           Config.Entries["tc_rawapi_https_key"].Value.(string),
+		LogAllErrors:       Config.Entries["tc_rawapi_http_logAllErrors"].Value.(bool),
+		Logger:             &Logger,
+		MaxRequestBodySize: Config.Entries["tc_rawapi_http_maxRequestBodySize"].Value.(int),
+		Name:               Config.Entries["tc_rawapi_http_name"].Value.(string),
+		NetworkProto:       Config.Entries["tc_rawapi_http_networkProto"].Value.(string),
+		Router:             RouterInstance.Router,
+		WaitGroup:          &wg,
 	}
+	Logger.Out(LOG_DEBUG, fmt.Sprintf("ServerSetup: %+v\n", ServerInstance))
 
-	if Config.Entries["tc_rawapi_https_enabled"].Value.(bool) {
-		https := &fasthttp.Server{
-			// Logger:          Logger,
-			Handler:            httpRouterPre.Handler,
-			LogAllErrors:       Config.Entries["tc_rawapi_http_logAllErrors"].Value.(bool),
-			MaxRequestBodySize: Config.Entries["tc_rawapi_http_maxRequestBodySize"].Value.(int),
-			Name:               Config.Entries["tc_rawapi_http_name"].Value.(string),
-		}
-		ln, err := net.Listen(Config.Entries["tc_rawapi_http_networkProto"].Value.(string), ":"+strconv.Itoa(Config.Entries["tc_rawapi_https_port"].Value.(int)))
-		if err != nil {
-			Logger.Out(LOG_ERR, "error while opening https listener", err)
-		} else {
-
-			wg.Add(1)
-			go func() {
-				Logger.Out(LOG_INFO, "listening for HTTPS requests", Config.Entries["tc_rawapi_http_networkProto"].Value, Config.Entries["tc_rawapi_https_port"].Value)
-				https.ServeTLSEmbed(ln, []byte(Config.Entries["tc_rawapi_https_cert"].Value.(string)), []byte(Config.Entries["tc_rawapi_https_key"].Value.(string)))
-			}()
-		}
+	_, err = ServerInstance.ServerLaunch()
+	if err != nil {
+		Logger.Out(LOG_EMERG, fmt.Sprintf("error initializing server for %s: %s", ServerInstance.Name, err))
+		panic(err)
 	}
+	Logger.Out(LOG_DEBUG, fmt.Sprintf("ServerInstance: %+v\n", ServerInstance))
 
 	wg.Wait()
 
@@ -241,18 +223,26 @@ func main() {
 
 }
 
-func debugConfigGET(ctx *fasthttp.RequestCtx) {
-	ctx.SetStatusCode(200)
-	ctx.SetContentType("application/json")
-	ctx.SetBodyString(fmt.Sprintf("%+v\n", Config))
+// region: debug endpoint
+
+func debugSupersetGET(ctx *fasthttp.RequestCtx) {
+	type superset struct {
+		Config *cfg.Config
+		Org    *fabric.OrgSetup
+		Server *http.ServerSetup
+		Router *http.RouterSetup
+	}
+	response := &http.Response{
+		Message: &superset{
+			Config: &Config,
+			Org:    &OrgInstance,
+			Server: &ServerInstance,
+			Router: &RouterInstance,
+		},
+		Logger: &Logger,
+		CTX:    ctx,
+	}
+	response.SendJSON(nil)
 }
-func debugOrgConfigGET(ctx *fasthttp.RequestCtx) {
-	ctx.SetStatusCode(200)
-	ctx.SetContentType("application/json")
-	ctx.SetBodyString(fmt.Sprintf("%+v\n", OrgConfig))
-}
-func debugOrgSetupGET(ctx *fasthttp.RequestCtx) {
-	ctx.SetStatusCode(200)
-	ctx.SetContentType("application/json")
-	ctx.SetBodyString(fmt.Sprintf("%+v\n", OrgSetup))
-}
+
+// endregion: debug endpoint

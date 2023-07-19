@@ -10,7 +10,7 @@
 
 # region: passwords
 
-# region: tls ca
+# region: common1 - tls ca
 
 export TC_COMMON1_C1_ADMINPW=TC_COMMON1_C1_ADMINPW
 
@@ -70,10 +70,30 @@ export TC_ORG2_P3_TLS_PW=TC_ORG2_P3_TLS_PW
 export TC_ORG2_P3_CA_PW=TC_ORG2_P3_CA_PW
 
 # endregion: org2 ca
-# region: common
+# region: org3 ca
+
+export TC_ORG3_ADMINPW=TC_ORG3_ADMINPW
+export TC_ORG3_CLIENTPW=TC_ORG3_CLIENT1PW
+
+export TC_ORG3_C1_ADMINPW=TC_ORG3_C1_ADMINPW
+
+export TC_ORG3_D1_USERPW=TC_ORG3_D1_USERPW
+export TC_ORG3_D2_USERPW=TC_ORG3_D2_USERPW
+export TC_ORG3_D3_USERPW=TC_ORG3_D3_USERPW
+
+export TC_ORG3_P1_TLS_PW=TC_ORG3_P1_TLS_PW
+export TC_ORG3_P1_CA_PW=TC_ORG3_P1_CA_PW
+export TC_ORG3_P2_TLS_PW=TC_ORG3_P2_TLS_PW
+export TC_ORG3_P2_CA_PW=TC_ORG3_P2_CA_PW
+export TC_ORG3_P3_TLS_PW=TC_ORG3_P3_TLS_PW
+export TC_ORG3_P3_CA_PW=TC_ORG3_P3_CA_PW
+
+# endregion: org23ca
+# region: common2, common2 - metrics, mgmt
 
 export TC_COMMON2_S3_PW=TC_COMMON2_S3_PW
 export TC_COMMON2_S6_PW=TC_COMMON2_S6_PW
+
 export TC_COMMON3_S4_PW=TC_COMMON3_S4_PW
 
 # endregion: common
@@ -81,6 +101,7 @@ export TC_COMMON3_S4_PW=TC_COMMON3_S4_PW
 # endregion: passwords
 # region: init
 
+export CGO_ENABLED=0 
 export TC_PATH_BASE=/srv/TrustChain
 export TC_PATH_RC=${TC_PATH_BASE}/scripts/tcConf.sh
 export COMMON_FUNCS=${TC_PATH_BASE}/scripts/commonFuncs.sh
@@ -88,7 +109,7 @@ export COMMON_FUNCS=${TC_PATH_BASE}/scripts/commonFuncs.sh
 source $TC_PATH_RC
 
 # endregion: init
-# region: HTTPS cert and key.
+# region: HTTPS
 
 export TC_RAWAPI_TTPS_CERT="-----BEGIN CERTIFICATE-----
 MIIFkDCCA3igAwIBAgIJAOzUPD/vVqBxMA0GCSqGSIb3DQEBCwUAMF0xCzAJBgNV
