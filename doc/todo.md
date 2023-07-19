@@ -3,7 +3,6 @@
 * chaincode + api
   * chaincode
   * swagger
-  * api
 
 * SASC leftover (doc/legacy_to_port)
 * tls ca checklist [https://hyperledger-fabric-ca.readthedocs.io/en/latest/deployguide/ca-config.html]

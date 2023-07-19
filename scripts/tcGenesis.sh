@@ -136,7 +136,7 @@ _SwarmLeave() {
 
 	local force=$COMMON_FORCE
 	COMMON_FORCE=$TC_EXEC_SURE
-	commonYN "Removing the last manager erases all current state of the swarm. Are you sure?" _leave
+	commonYN "removing the last manager erases all current state of the swarm, are you sure?" _leave
 	COMMON_FORCE=$force
 }
 
@@ -173,7 +173,7 @@ _SwarmPrune() {
 
 	local force=$COMMON_FORCE
 	COMMON_FORCE=$TC_EXEC_SURE
-	commonYN "This will remove all local stuff not used by at least one container. Are you sure?" _prune
+	commonYN "this will remove all local stuff not used by at least one container, are you sure?" _prune
 	COMMON_FORCE=$force
 
 	unset status
@@ -1462,6 +1462,30 @@ _Org3() {
 [[ "$TC_EXEC_DRY" == false ]] && commonYN "bootstrap ${TC_ORG3_STACK}, register and enroll identities?" _Org3
 
 # endregion: org3
+# region: common services
+
+	# region: bootstrap COMMON2
+
+	_bootstrapCOMMON3() {
+		commonPrintf "bootstrapping >>>${TC_COMMON2_STACK}<<<"
+		${TC_PATH_SCRIPTS}/tcBootstrap.sh -m up -s ${TC_COMMON2_STACK}
+		commonVerify $? "failed!"
+	}
+	commonYN "bootstrap ${TC_COMMON2_STACK}?" _bootstrapCOMMON3
+
+	# endregion: bootstrap COMMON2
+	# region: bootstrap COMMON3
+
+	_bootstrapCOMMON3() {
+		commonPrintf "bootstrapping >>>${TC_COMMON3_STACK}<<<"
+		${TC_PATH_SCRIPTS}/tcBootstrap.sh -m up -s ${TC_COMMON3_STACK}
+		commonVerify $? "failed!"
+	}
+	commonYN "bootstrap ${TC_COMMON3_STACK}?" _bootstrapCOMMON3
+
+	# endregion: bootstrap COMMON2
+
+# endregion: common services
 # region: channels
 
 _channels() {
@@ -1673,30 +1697,6 @@ _channels() {
 [[ "$TC_EXEC_DRY" == false ]] && commonYN "create channels?" _channels
 
 # endregion: channels
-# region: common services
-
-	# region: bootstrap COMMON2
-
-	_bootstrapCOMMON3() {
-		commonPrintf "bootstrapping >>>${TC_COMMON2_STACK}<<<"
-		${TC_PATH_SCRIPTS}/tcBootstrap.sh -m up -s ${TC_COMMON2_STACK}
-		commonVerify $? "failed!"
-	}
-	commonYN "bootstrap ${TC_COMMON2_STACK}?" _bootstrapCOMMON3
-
-	# endregion: bootstrap COMMON2
-	# region: bootstrap COMMON3
-
-	_bootstrapCOMMON3() {
-		commonPrintf "bootstrapping >>>${TC_COMMON3_STACK}<<<"
-		${TC_PATH_SCRIPTS}/tcBootstrap.sh -m up -s ${TC_COMMON3_STACK}
-		commonVerify $? "failed!"
-	}
-	commonYN "bootstrap ${TC_COMMON3_STACK}?" _bootstrapCOMMON3
-
-	# endregion: bootstrap COMMON2
-
-# endregion: common services
 # region: deploy chaincode
 
 [[ "$TC_EXEC_DRY" == false ]] && commonYN "deploay basic chaincode on ${TC_CHANNEL1_NAME}?" ${TC_PATH_SCRIPTS}/tcChaincodeInit.sh "basic" "$TC_CHANNEL1_NAME"
