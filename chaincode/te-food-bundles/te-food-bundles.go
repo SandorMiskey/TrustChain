@@ -89,6 +89,35 @@ type PaginatedQueryResult struct {
 // endregion: types anc consts
 // region: functions
 
+// region: helpers
+
+func constructQueryResponseFromIterator(resultsIterator shim.StateQueryIteratorInterface) ([]*Bundle, error) {
+
+	// constructQueryResponseFromIterator constructs a slice of bundles from the resultsIterator
+	Logger.Out(log.LOG_DEBUG, "constructQueryResponseFromIterator helper in action")
+
+	var bundles []*Bundle
+	for resultsIterator.HasNext() {
+		queryResult, err := resultsIterator.Next()
+		if err != nil {
+			msg := fmt.Errorf("error in constructQueryResponseFromIterator when resultsIterator.Next(): %s", err)
+			Logger.Out(log.LOG_ERR, msg)
+			return nil, msg
+		}
+		var bundle Bundle
+		err = json.Unmarshal(queryResult.Value, &bundle)
+		if err != nil {
+			msg := fmt.Errorf("error in constructQueryResponseFromIterator when json.Unmarshal(queryResult.Value, &bundle): %s", err)
+			Logger.Out(log.LOG_ERR, msg)
+			return nil, msg
+		}
+		bundles = append(bundles, &bundle)
+	}
+
+	return bundles, nil
+}
+
+// endregion: helpers
 // region: queries
 
 func (t *Chaincode) BundleExists(ctx contractapi.TransactionContextInterface, bundleID string) (bool, error) {
@@ -186,6 +215,22 @@ func (t *Chaincode) BundleGet(ctx contractapi.TransactionContextInterface, bundl
 	}
 
 	return &bundle, nil
+}
+
+func (t *Chaincode) BundleGetRange(ctx contractapi.TransactionContextInterface, startKey, endKey string) ([]*Bundle, error) {
+
+	// BundleGet retrieves a bundle from the ledger
+	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.BundleGetRange queried with %s -> %s", startKey, endKey))
+
+	resultsIterator, err := ctx.GetStub().GetStateByRange(startKey, endKey)
+	if err != nil {
+		msg := fmt.Errorf("error in t.BundleGetRange while ctx.GetStub().GetStateByRange(%s, %s): %v", startKey, endKey, err)
+		Logger.Out(log.LOG_ERR, msg)
+		return nil, msg
+	}
+	defer resultsIterator.Close()
+
+	return constructQueryResponseFromIterator(resultsIterator)
 }
 
 // endregion: queries
