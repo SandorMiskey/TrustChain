@@ -7,6 +7,7 @@
     * validate data_base64 vs data_hash
   * queries
 * copy api and chaincode -> templates
+* update postman collection
 * remote peers
 
 * UpdateBundleByTxId

@@ -294,6 +294,8 @@ func (t *Chaincode) UpdateBundleById(ctx contractapi.TransactionContextInterface
 	}
 	Logger.Out(log.LOG_DEBUG, "world state updated with no errors")
 
+	return nil
+
 	// endregion: bundle out
 
 }
