@@ -132,7 +132,7 @@ _deploy() {
 		export CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG1_DATA}/msp/tlscacerts/ca-cert.pem
 		export CORE_PEER_MSPCONFIGPATH=$TC_ORG1_ADMINMSP
 		export CORE_PEER_ADDRESS=localhost:${TC_ORG1_P1_PORT}
-		peer lifecycle chaincode approveformyorg -o localhost:${TC_ORDERER1_O1_PORT} --ordererTLSHostnameOverride $TC_ORDERER1_O1_NAME --channelID ${channel} --name ${chaincode} --version 1.0 --package-id $packageId --sequence $version --tls --cafile "$certOrderer" 2>&1 
+		peer lifecycle chaincode approveformyorg -o localhost:${TC_ORDERER1_O1_PORT} --ordererTLSHostnameOverride $TC_ORDERER1_O1_NAME --channelID ${channel} --name ${chaincode} --version ${version}.0  --package-id $packageId --sequence $version --tls --cafile "$certOrderer" 2>&1 
 	)
 	commonVerify $? "failed: $out" "$out"
 
@@ -144,7 +144,7 @@ _deploy() {
 		export CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG2_DATA}/msp/tlscacerts/ca-cert.pem
 		export CORE_PEER_MSPCONFIGPATH=$TC_ORG2_ADMINMSP
 		export CORE_PEER_ADDRESS=localhost:${TC_ORG2_P1_PORT}
-		peer lifecycle chaincode approveformyorg -o localhost:${TC_ORDERER1_O1_PORT} --ordererTLSHostnameOverride $TC_ORDERER1_O1_NAME --channelID ${channel} --name ${chaincode} --version 1.0 --package-id $packageId --sequence $version --tls --cafile "$certOrderer" 2>&1 
+		peer lifecycle chaincode approveformyorg -o localhost:${TC_ORDERER1_O1_PORT} --ordererTLSHostnameOverride $TC_ORDERER1_O1_NAME --channelID ${channel} --name ${chaincode} --version ${version}.0 --package-id $packageId --sequence $version --tls --cafile "$certOrderer" 2>&1 
 	)
 	commonVerify $? "failed: $out" "$out"
 
@@ -156,7 +156,7 @@ _deploy() {
 		export CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG3_DATA}/msp/tlscacerts/ca-cert.pem
 		export CORE_PEER_MSPCONFIGPATH=$TC_ORG3_ADMINMSP
 		export CORE_PEER_ADDRESS=localhost:${TC_ORG3_P1_PORT}
-		peer lifecycle chaincode approveformyorg -o localhost:${TC_ORDERER1_O1_PORT} --ordererTLSHostnameOverride $TC_ORDERER1_O1_NAME --channelID ${channel} --name ${chaincode} --version 1.0 --package-id $packageId --sequence $version --tls --cafile "$certOrderer" 2>&1 
+		peer lifecycle chaincode approveformyorg -o localhost:${TC_ORDERER1_O1_PORT} --ordererTLSHostnameOverride $TC_ORDERER1_O1_NAME --channelID ${channel} --name ${chaincode} --version ${version}.0 --package-id $packageId --sequence $version --tls --cafile "$certOrderer" 2>&1 
 	)
 	commonVerify $? "failed: $out" "$out"
 
