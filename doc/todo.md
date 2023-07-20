@@ -1,8 +1,7 @@
 # todo
 
 * chaincode + api
-  * ReadBundle
-  * DeleteBundle
+  * DeleteBundle - check
   * UpdateBundle
   * CreateBundle
     * validate data_base64 vs data_hash

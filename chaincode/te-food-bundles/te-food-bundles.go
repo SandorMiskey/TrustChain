@@ -8,7 +8,6 @@ peer chaincode invoke -C myc1 -n asset_transfer -c '{"Args":["TransferAssetByCol
 peer chaincode invoke -C myc1 -n asset_transfer -c '{"Args":["DeleteAsset","asset1"]}'
 
 ==== Query assets ====
-peer chaincode query -C myc1 -n asset_transfer -c '{"Args":["ReadAsset","asset1"]}'
 peer chaincode query -C myc1 -n asset_transfer -c '{"Args":["GetAssetsByRange","asset1","asset3"]}'
 peer chaincode query -C myc1 -n asset_transfer -c '{"Args":["GetAssetHistory","asset1"]}'
 
@@ -73,7 +72,7 @@ type Bundle struct {
 	DataBase64         string      `json:"data_base64"`
 	DataHash           string      `json:"data_hash"`
 	TxID               string      `json:"tx_id"`
-	TxTimestamp        string      `jsoin:"tx_timestamp"`
+	TxTimestamp        string      `json:"tx_timestamp"`
 	UpdateTxID         interface{} `json:"update_tx_id"`
 	UpdateTimestamp    interface{} `json:"update_timestamp"`
 }
@@ -173,25 +172,21 @@ func (t *Chaincode) CreateBundle(ctx contractapi.TransactionContextInterface, bu
 }
 
 // DeleteBundle removes an asset key-value pair from the ledger
-// func (t *haincode) DeleteBundle(ctx contractapi.TransactionContextInterface, bundleID string) error {
-// 	asset, err := t.ReadAsset(ctx, assetID)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	err = ctx.GetStub().DelState(assetID)
-// 	if err != nil {
-// 		return fmt.Errorf("failed to delete asset %s: %v", assetID, err)
-// 	}
-
-// 	colorNameIndexKey, err := ctx.GetStub().CreateCompositeKey(index, []string{asset.Color, asset.ID})
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	// Delete index entry
-// 	return ctx.GetStub().DelState(colorNameIndexKey)
-// }
+func (t *Chaincode) DeleteBundle(ctx contractapi.TransactionContextInterface, bundleID string) error {
+	_, err := t.ReadBundle(ctx, bundleID)
+	if err != nil {
+		msg := fmt.Errorf("failed to get bundle %s: %v", bundleID, err)
+		Logger.Out(log.LOG_ERR, msg)
+		return msg
+	}
+	err = ctx.GetStub().DelState(bundleID)
+	if err != nil {
+		msg := fmt.Errorf("failed to delete bundle %s: %v", bundleID, err)
+		Logger.Out(log.LOG_ERR, msg)
+		return msg
+	}
+	return nil
+}
 
 // ReadBundle retrieves a bundle from the ledger
 func (t *Chaincode) ReadBundle(ctx contractapi.TransactionContextInterface, bundleID string) (*Bundle, error) {
