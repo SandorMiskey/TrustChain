@@ -1,9 +1,6 @@
-backend/samples
 bin
-doc/email
+chaincode/asset_transfer_ledger_chaincode.go
 doc/fabric-samples
-env.sh
-storage
 workbench
 
 # Created by https://www.toptal.com/developers/gitignore/api/go,vim,web,macos,linux,visualstudiocode,node
