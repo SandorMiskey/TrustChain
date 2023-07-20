@@ -194,23 +194,29 @@ func (t *Chaincode) CreateBundle(ctx contractapi.TransactionContextInterface, bu
 // }
 
 // ReadBundle retrieves a bundle from the ledger
-// func (t *SimpleChaincode) ReadAsset(ctx contractapi.TransactionContextInterface, assetID string) (*Asset, error) {
-// 	assetBytes, err := ctx.GetStub().GetState(assetID)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("failed to get asset %s: %v", assetID, err)
-// 	}
-// 	if assetBytes == nil {
-// 		return nil, fmt.Errorf("asset %s does not exist", assetID)
-// 	}
+func (t *Chaincode) ReadBundle(ctx contractapi.TransactionContextInterface, bundleID string) (*Bundle, error) {
+	bundleBytes, err := ctx.GetStub().GetState(bundleID)
+	if err != nil {
+		msg := fmt.Errorf("failed to get bundle %s: %v", bundleID, err)
+		Logger.Out(log.LOG_ERR, msg)
+		return nil, msg
+	}
+	if bundleBytes == nil {
+		msg := fmt.Errorf("bundle %s does not exist", bundleID)
+		Logger.Out(log.LOG_INFO, msg)
+		return nil, msg
+	}
 
-// 	var asset Asset
-// 	err = json.Unmarshal(assetBytes, &asset)
-// 	if err != nil {
-// 		return nil, err
-// 	}
+	var bundle Bundle
+	err = json.Unmarshal(bundleBytes, &bundle)
+	if err != nil {
+		msg := fmt.Errorf("failed to json unmarshal bundle %s: %v ", bundleID, err)
+		Logger.Out(log.LOG_ERR, msg)
+		return nil, msg
+	}
 
-// 	return &asset, nil
-// }
+	return &bundle, nil
+}
 
 func main() {
 
