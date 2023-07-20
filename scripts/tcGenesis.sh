@@ -1471,7 +1471,7 @@ _Org3() {
 		${TC_PATH_SCRIPTS}/tcBootstrap.sh -m up -s ${TC_COMMON2_STACK}
 		commonVerify $? "failed!"
 	}
-	commonYN "bootstrap ${TC_COMMON2_STACK}?" _bootstrapCOMMON3
+	# commonYN "bootstrap ${TC_COMMON2_STACK}?" _bootstrapCOMMON3
 
 	# endregion: bootstrap COMMON2
 	# region: bootstrap COMMON3
@@ -1481,7 +1481,7 @@ _Org3() {
 		${TC_PATH_SCRIPTS}/tcBootstrap.sh -m up -s ${TC_COMMON3_STACK}
 		commonVerify $? "failed!"
 	}
-	commonYN "bootstrap ${TC_COMMON3_STACK}?" _bootstrapCOMMON3
+	# commonYN "bootstrap ${TC_COMMON3_STACK}?" _bootstrapCOMMON3
 
 	# endregion: bootstrap COMMON2
 
@@ -1699,7 +1699,7 @@ _channels() {
 # endregion: channels
 # region: deploy chaincode
 
-[[ "$TC_EXEC_DRY" == false ]] && commonYN "deploay basic chaincode on ${TC_CHANNEL1_NAME}?" ${TC_PATH_SCRIPTS}/tcChaincodeInit.sh "basic" "$TC_CHANNEL1_NAME"
+# [[ "$TC_EXEC_DRY" == false ]] && commonYN "deploay basic chaincode on ${TC_CHANNEL1_NAME}?" ${TC_PATH_SCRIPTS}/tcChaincodeInit.sh "basic" "$TC_CHANNEL1_NAME"
 [[ "$TC_EXEC_DRY" == false ]] && commonYN "deploay te-food-bundles chaincode on ${TC_CHANNEL1_NAME}?" ${TC_PATH_SCRIPTS}/tcChaincodeInit.sh "te-food-bundles" "$TC_CHANNEL1_NAME"
 
 # endregion: deploy chaincode
@@ -1731,9 +1731,9 @@ commonYN "build raw api?" _buildRaw
 
 _prefix=$COMMON_PREFIX
 COMMON_PREFIX="===>>> "
-commonPrintfBold ""
+commonPrintfBold " "
 commonPrintfBold "ALL DONE! IF THIS IS FINAL, ISSUE THE FOLLOWING COMMAND: sudo chmod a-x ${TC_PATH_SCRIPTS}/_tcGenesis.sh"
-commonPrintfBold ""
+commonPrintfBold " "
 COMMON_PREFIX=_prefix
 unset _prefix
 

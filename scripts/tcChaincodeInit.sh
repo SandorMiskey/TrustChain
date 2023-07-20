@@ -29,6 +29,10 @@ export version=$3
 [[ -d "${TC_PATH_CHANNELS}/${channel}" ]] || commonVerify 1 "${channel}: no such directory under $TC_PATH_CHANNELS"
 [[ -z "$version" ]] && export version="1" 
 
+commonPrintfBold "chaincode: $chaincode"
+commonPrintfBold "channel: $channel"
+commonPrintfBold "version: $version"
+
 # endregion: check params
 
 _deploy() {
@@ -58,7 +62,8 @@ _deploy() {
 	# region: installing
 
 	commonPrintf "install chaincode on $TC_ORG1_STACK peers"
-	for port in $TC_ORG1_P1_PORT $TC_ORG1_P2_PORT $TC_ORG1_P3_PORT
+	# for port in $TC_ORG1_P1_PORT $TC_ORG1_P2_PORT $TC_ORG1_P3_PORT
+	for port in $TC_ORG1_P1_PORT
 	do
 		commonPrintf "targeting localhost:${port}"
 		out=$(
@@ -74,7 +79,8 @@ _deploy() {
 	done
 
 	commonPrintf "install chaincode on $TC_ORG2_STACK peers"
-	for port in $TC_ORG2_P1_PORT $TC_ORG2_P2_PORT $TC_ORG2_P3_PORT
+	# for port in $TC_ORG2_P1_PORT $TC_ORG2_P2_PORT $TC_ORG2_P3_PORT
+	for port in $TC_ORG2_P1_PORT
 	do
 		commonPrintf "targeting localhost:${port}"
 		out=$(
@@ -90,7 +96,8 @@ _deploy() {
 	done
 
 	commonPrintf "install chaincode on $TC_ORG3_STACK peers"
-	for port in $TC_ORG3_P1_PORT $TC_ORG3_P2_PORT $TC_ORG3_P3_PORT
+	# for port in $TC_ORG3_P1_PORT $TC_ORG3_P2_PORT $TC_ORG3_P3_PORT
+	for port in $TC_ORG3_P1_PORT
 	do
 		commonPrintf "targeting localhost:${port}"
 		out=$(

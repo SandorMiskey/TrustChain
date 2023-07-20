@@ -37,8 +37,8 @@ import (
 	"time"
 
 	"github.com/SandorMiskey/TEx-kit/log"
+	"github.com/golang/protobuf/ptypes"
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
-	// "github.com/SandorMiskey/TEx-kit/log"
 	// "github.com/golang/protobuf/ptypes"
 	// "github.com/hyperledger/fabric-chaincode-go/shim"
 	// "github.com/hyperledger/fabric-contract-api-go/contractapi"
@@ -75,7 +75,7 @@ type Bundle struct {
 // HistoryQueryResult structure used for returning result of history query
 type HistoryQueryResult struct {
 	Record    *Bundle   `json:"record"`
-	TxId      string    `json:"tx_id"`
+	TxID      string    `json:"tx_id"`
 	Timestamp time.Time `json:"timestamp"`
 	IsDelete  bool      `json:"isDelete"`
 }
@@ -102,6 +102,61 @@ func (t *Chaincode) BundleExists(ctx contractapi.TransactionContextInterface, bu
 		return false, msg
 	}
 	return bundleBytes != nil, nil
+}
+
+func (t *Chaincode) BundleHistory(ctx contractapi.TransactionContextInterface, bundleID string) ([]HistoryQueryResult, error) {
+
+	// BundleHistory returns the chain of custody for a bundle since issuance
+	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.BundleHistory queried with -> %s", bundleID))
+
+	resultsIterator, err := ctx.GetStub().GetHistoryForKey(bundleID)
+	if err != nil {
+		msg := fmt.Errorf("error in t.BundleHistory when ctx.GetStub().GetHistoryForKey(%s): %s", bundleID, err)
+		Logger.Out(log.LOG_ERR, msg)
+		return nil, msg
+	}
+	defer resultsIterator.Close()
+
+	var records []HistoryQueryResult
+	for resultsIterator.HasNext() {
+		response, err := resultsIterator.Next()
+		if err != nil {
+			msg := fmt.Errorf("error in t.BundleHistory when resultsIterator.Next(): %s", err)
+			Logger.Out(log.LOG_ERR, msg)
+			return nil, msg
+		}
+
+		var bundle Bundle
+		if len(response.Value) > 0 {
+			err = json.Unmarshal(response.Value, &bundle)
+			if err != nil {
+				msg := fmt.Errorf("unable to unmarshal bundle (%s) in t.BundleHistory: %s", response.Value, err)
+				Logger.Out(log.LOG_ERR, msg)
+				return nil, msg
+			}
+		} else {
+			bundle = Bundle{
+				BundleID: bundleID,
+			}
+		}
+
+		timestamp, err := ptypes.Timestamp(response.Timestamp)
+		if err != nil {
+			msg := fmt.Errorf("unable to parse timestamp (%s) in t.BundleHistory: %s", response.Timestamp, err)
+			Logger.Out(log.LOG_ERR, msg)
+			return nil, msg
+		}
+
+		record := HistoryQueryResult{
+			TxID:      response.TxId,
+			Timestamp: timestamp,
+			Record:    &bundle,
+			IsDelete:  response.IsDelete,
+		}
+		records = append(records, record)
+	}
+
+	return records, nil
 }
 
 func (t *Chaincode) CreateBundle(ctx contractapi.TransactionContextInterface, bundleStr string) error {
@@ -269,7 +324,7 @@ func (t *Chaincode) UpdateBundle(ctx contractapi.TransactionContextInterface, bu
 	bundleOut := bundleIn
 	bundleOut.DocType = "bundle"
 	bundleOut.TxID = bundleOrig.TxID
-	bundleOut.TxTimestamp = bundleOrig.TxID
+	bundleOut.TxTimestamp = bundleOrig.TxTimestamp
 	bundleOut.UpdateTxID = ctx.GetStub().GetTxID()
 	bundleOut.UpdateTimestamp = now.Format(time.RFC3339)
 	bundleBytes, err := json.Marshal(bundleOut)

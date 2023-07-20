@@ -1,14 +1,16 @@
 # todo
 
 * chaincode + api
-  * UpdateBundleById
+  * queries
+  * UpdateBundle
     * validate data_base64 vs data_hash
   * CreateBundle
     * validate data_base64 vs data_hash
-  * queries
 * copy api and chaincode -> templates
-* update postman collection
+* update postman collection -> doc
 * remote peers
+* put p2s and p3s back in tcChaincodeInit.sh
+* put mgmt and metrics (and basic?) back in tcGenesis.sh
 
 * UpdateBundleByTxId
 * swagger
