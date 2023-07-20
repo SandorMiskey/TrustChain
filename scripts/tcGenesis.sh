@@ -1700,6 +1700,7 @@ _channels() {
 # region: deploy chaincode
 
 [[ "$TC_EXEC_DRY" == false ]] && commonYN "deploay basic chaincode on ${TC_CHANNEL1_NAME}?" ${TC_PATH_SCRIPTS}/tcChaincodeInit.sh "basic" "$TC_CHANNEL1_NAME"
+[[ "$TC_EXEC_DRY" == false ]] && commonYN "deploay te-food-bundles chaincode on ${TC_CHANNEL1_NAME}?" ${TC_PATH_SCRIPTS}/tcChaincodeInit.sh "te-food-bundles" "$TC_CHANNEL1_NAME"
 
 # endregion: deploy chaincode
 # region: raw api

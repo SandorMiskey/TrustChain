@@ -8,7 +8,12 @@ import (
 
 	"github.com/SandorMiskey/TEx-kit/log"
 	"github.com/SandorMiskey/TrustChain/rawapi/http"
+
 	"github.com/valyala/fasthttp"
+	// "google.golang.org/protobuf/proto"
+	// pb "github.com/hyperledger/fabric-protos-go/peer"
+	// "github.com/golang/protobuf/dynamic"
+	// "github.com/golang/protobuf/proto"
 	// "github.com/hyperledger/fabric-gateway/pkg/client"
 )
 
@@ -70,7 +75,9 @@ func (setup *OrgSetup) Query(ctx *fasthttp.RequestCtx) {
 		request.error(err)
 		return
 	}
+	logger(log.LOG_DEBUG, fmt.Sprintf("%v: result type -> %T", ctx.ID, []byte(resultByte)))
 	logger(log.LOG_DEBUG, fmt.Sprintf("%v: result -> %s", ctx.ID, []byte(resultByte)))
+	logger(log.LOG_DEBUG, fmt.Sprintf("%v: result -> %s", ctx.ID, string(resultByte)))
 
 	// endregion: fetch result
 	// region: deconstruct result

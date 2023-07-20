@@ -2,8 +2,13 @@
 
 * chaincode + api
   * chaincode
+    * validate data_base64 vs data_hash
+    * store tx_id
   * swagger
+  * copy api and chaincode -> templates
+* remote peers
 
+* get details by tx_id, block#
 * SASC leftover (doc/legacy_to_port)
 * tls ca checklist [https://hyperledger-fabric-ca.readthedocs.io/en/latest/deployguide/ca-config.html]
 * operations:

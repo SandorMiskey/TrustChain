@@ -23,9 +23,11 @@ commonPP $TC_PATH_SCRIPTS
 
 export chaincode=$1
 export channel=$2
+export version=$3
 
 [[ -d "${TC_PATH_CHAINCODE}/${chaincode}" ]] || commonVerify 1 "${chaincode}: no such directory under $TC_PATH_CHAINCODE"
 [[ -d "${TC_PATH_CHANNELS}/${channel}" ]] || commonVerify 1 "${channel}: no such directory under $TC_PATH_CHANNELS"
+[[ -z "$version" ]] && export version="1" 
 
 # endregion: check params
 
@@ -48,7 +50,7 @@ _deploy() {
 	commonPrintf "packaging chaincode"
 	out=$(
 		export FABRIC_CFG_PATH="${TC_PATH_CHANNELS}/${channel}"
-		peer lifecycle chaincode package ${chaincode}.tar.gz --path $path --lang golang --label ${chaincode}_1.0 2>&1
+		peer lifecycle chaincode package ${chaincode}.tar.gz --path $path --lang golang --label "${chaincode}_${version}.0" 2>&1
 	)
 	commonVerify $? "failed: $out"
 
@@ -117,8 +119,10 @@ _deploy() {
 		peer lifecycle chaincode queryinstalled -O json  2>&1
 	)
 	commonVerify $? "failed: $out" "$out"
-	local packageId=$( echo $out | jq ".installed_chaincodes[-1].package_id" | sed s/\"//g  2>&1 )
+	# local packageId=$( echo $out | jq ".installed_chaincodes[-1].package_id" | sed s/\"//g  2>&1 )
+	local packageId=$( echo $out | jq -r ".installed_chaincodes[].package_id" | while read -r pkgid; do [[ "$pkgid" == "${chaincode}_${version}"* ]] && echo $pkgid ; done )
 	commonVerify $? "failed: $packageId" "package id: $packageId"
+	unset pkgid
 
 	commonPrintf "approving chaincode definition for $TC_ORG1_STACK"
 	out=$(
@@ -128,7 +132,7 @@ _deploy() {
 		export CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG1_DATA}/msp/tlscacerts/ca-cert.pem
 		export CORE_PEER_MSPCONFIGPATH=$TC_ORG1_ADMINMSP
 		export CORE_PEER_ADDRESS=localhost:${TC_ORG1_P1_PORT}
-		peer lifecycle chaincode approveformyorg -o localhost:${TC_ORDERER1_O1_PORT} --ordererTLSHostnameOverride $TC_ORDERER1_O1_NAME --channelID ${channel} --name ${chaincode} --version 1.0 --package-id $packageId --sequence 1 --tls --cafile "$certOrderer" 2>&1 
+		peer lifecycle chaincode approveformyorg -o localhost:${TC_ORDERER1_O1_PORT} --ordererTLSHostnameOverride $TC_ORDERER1_O1_NAME --channelID ${channel} --name ${chaincode} --version 1.0 --package-id $packageId --sequence $version --tls --cafile "$certOrderer" 2>&1 
 	)
 	commonVerify $? "failed: $out" "$out"
 
@@ -140,7 +144,7 @@ _deploy() {
 		export CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG2_DATA}/msp/tlscacerts/ca-cert.pem
 		export CORE_PEER_MSPCONFIGPATH=$TC_ORG2_ADMINMSP
 		export CORE_PEER_ADDRESS=localhost:${TC_ORG2_P1_PORT}
-		peer lifecycle chaincode approveformyorg -o localhost:${TC_ORDERER1_O1_PORT} --ordererTLSHostnameOverride $TC_ORDERER1_O1_NAME --channelID ${channel} --name ${chaincode} --version 1.0 --package-id $packageId --sequence 1 --tls --cafile "$certOrderer" 2>&1 
+		peer lifecycle chaincode approveformyorg -o localhost:${TC_ORDERER1_O1_PORT} --ordererTLSHostnameOverride $TC_ORDERER1_O1_NAME --channelID ${channel} --name ${chaincode} --version 1.0 --package-id $packageId --sequence $version --tls --cafile "$certOrderer" 2>&1 
 	)
 	commonVerify $? "failed: $out" "$out"
 
@@ -152,7 +156,7 @@ _deploy() {
 		export CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG3_DATA}/msp/tlscacerts/ca-cert.pem
 		export CORE_PEER_MSPCONFIGPATH=$TC_ORG3_ADMINMSP
 		export CORE_PEER_ADDRESS=localhost:${TC_ORG3_P1_PORT}
-		peer lifecycle chaincode approveformyorg -o localhost:${TC_ORDERER1_O1_PORT} --ordererTLSHostnameOverride $TC_ORDERER1_O1_NAME --channelID ${channel} --name ${chaincode} --version 1.0 --package-id $packageId --sequence 1 --tls --cafile "$certOrderer" 2>&1 
+		peer lifecycle chaincode approveformyorg -o localhost:${TC_ORDERER1_O1_PORT} --ordererTLSHostnameOverride $TC_ORDERER1_O1_NAME --channelID ${channel} --name ${chaincode} --version 1.0 --package-id $packageId --sequence $version --tls --cafile "$certOrderer" 2>&1 
 	)
 	commonVerify $? "failed: $out" "$out"
 
@@ -167,7 +171,7 @@ _deploy() {
 		export CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG1_DATA}/msp/tlscacerts/ca-cert.pem
 		export CORE_PEER_MSPCONFIGPATH=$TC_ORG1_ADMINMSP
 		export CORE_PEER_ADDRESS=localhost:${TC_ORG1_P1_PORT}
-		peer lifecycle chaincode checkcommitreadiness --channelID $channel --name ${chaincode} --version 1.0 --sequence 1 --tls --cafile "$certOrderer" --output json 2>&1 
+		peer lifecycle chaincode checkcommitreadiness --channelID $channel --name ${chaincode} --version ${version}.0 --sequence $version --tls --cafile "$certOrderer" --output json 2>&1 
 	)
 	commonVerify $? "failed: $out" "status: $out"
 
@@ -179,7 +183,7 @@ _deploy() {
 		export CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG1_DATA}/msp/tlscacerts/ca-cert.pem
 		export CORE_PEER_MSPCONFIGPATH=$TC_ORG1_ADMINMSP
 		export CORE_PEER_ADDRESS=localhost:${TC_ORG1_P1_PORT}
-		peer lifecycle chaincode commit -o localhost:${TC_ORDERER1_O1_PORT} --ordererTLSHostnameOverride $TC_ORDERER1_O1_NAME --channelID $channel --name ${chaincode} --version 1.0 --sequence 1 --tls --cafile "$certOrderer" --peerAddresses localhost:${TC_ORG1_P1_PORT} --tlsRootCertFiles "${TC_ORG1_P1_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_COMMON1_C1_PORT}.pem" --peerAddresses localhost:${TC_ORG2_P1_PORT} --tlsRootCertFiles "${TC_ORG2_P1_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_COMMON1_C1_PORT}.pem" 2>&1 
+		peer lifecycle chaincode commit -o localhost:${TC_ORDERER1_O1_PORT} --ordererTLSHostnameOverride $TC_ORDERER1_O1_NAME --channelID $channel --name ${chaincode} --version ${version}.0 --sequence $version --tls --cafile "$certOrderer" --peerAddresses localhost:${TC_ORG1_P1_PORT} --tlsRootCertFiles "${TC_ORG1_P1_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_COMMON1_C1_PORT}.pem" --peerAddresses localhost:${TC_ORG2_P1_PORT} --tlsRootCertFiles "${TC_ORG2_P1_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_COMMON1_C1_PORT}.pem" 2>&1 
 	)
 	commonVerify $? "failed: $out" "status: $out"
 
@@ -199,5 +203,3 @@ _deploy() {
 
 }
 [[ "$TC_EXEC_DRY" == false ]] && _deploy
-
-# endregion: demo chaincode ch1
