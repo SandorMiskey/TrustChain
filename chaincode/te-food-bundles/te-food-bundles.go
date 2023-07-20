@@ -53,8 +53,6 @@ import (
 // endregion: packages
 // region: types, globals anc consts
 
-// const index = "color~name"
-
 var (
 	Logger log.Logger
 )
@@ -64,17 +62,20 @@ type Chaincode struct {
 }
 
 type Bundle struct {
-	DocType            string `json:"doc_type"` //docType is used to distinguish the various types of objects in state database
-	BundleID           string `json:"bundle_id"`
-	SystemID           string `json:"system_id"`
-	ExternalFlag       string `json:"external_flag"`
-	ConfidentialFlag   string `json:"confidential_flag"`
-	LegacyFlag         string `json:"legacy_flag"`
-	NumberOfOperations int    `json:"number_of_operations"`
-	TransactionTypeID  string `json:"transaction_type_id"`
-	DataBase64         string `json:"data_base64"`
-	DataHash           string `json:"data_hash"`
-	TxID               string `json:"tx_ID"`
+	DocType            string      `json:"doc_type"` //docType is used to distinguish the various types of objects in state database
+	BundleID           string      `json:"bundle_id"`
+	SystemID           string      `json:"system_id"`
+	ExternalFlag       string      `json:"external_flag"`
+	ConfidentialFlag   string      `json:"confidential_flag"`
+	LegacyFlag         string      `json:"legacy_flag"`
+	NumberOfOperations int         `json:"number_of_operations"`
+	TransactionTypeID  string      `json:"transaction_type_id"`
+	DataBase64         string      `json:"data_base64"`
+	DataHash           string      `json:"data_hash"`
+	TxID               string      `json:"tx_id"`
+	TxTimestamp        string      `jsoin:"tx_timestamp"`
+	UpdateTxID         interface{} `json:"update_tx_id"`
+	UpdateTimestamp    interface{} `json:"update_timestamp"`
 }
 
 // HistoryQueryResult structure used for returning result of history query
@@ -141,8 +142,14 @@ func (t *Chaincode) CreateBundle(ctx contractapi.TransactionContextInterface, bu
 	// endregion: check if exists
 	// region: bundle out
 
+	now := time.Now()
+
 	bundleOut := bundleIn
 	bundleOut.DocType = "bundle"
+	bundleOut.TxID = ctx.GetStub().GetTxID()
+	bundleOut.TxTimestamp = now.Format(time.RFC3339)
+	bundleOut.UpdateTxID = nil
+	bundleOut.UpdateTimestamp = nil
 	bundleBytes, err := json.Marshal(bundleOut)
 	if err != nil {
 		msg := fmt.Errorf("failed to marshal bundle: %s", err)
@@ -160,27 +167,50 @@ func (t *Chaincode) CreateBundle(ctx contractapi.TransactionContextInterface, bu
 	Logger.Out(log.LOG_DEBUG, "world state updated with no errors")
 
 	// endregion: bundle out
-	// region: index w/ composite key
-
-	//  Create an index to enable color-based range queries, e.g. return all blue assets.
-	//  An 'index' is a normal key-value entry in the ledger.
-	//  The key is a composite key, with the elements that you want to range query on listed first.
-	//  In our case, the composite key is based on indexName~color~name.
-	//  This will enable very efficient state range queries based on composite keys matching indexName~color~*
-	// colorNameIndexKey, err := ctx.GetStub().CreateCompositeKey(index, []string{asset.Color, asset.ID})
-	// if err != nil {
-	// 	return err
-	// }
-	//  Save index entry to world state. Only the key name is needed, no need to store a duplicate copy of the asset.
-	//  Note - passing a 'nil' value will effectively delete the key from state, therefore we pass null character as value
-	// value := []byte{0x00}
-	// return ctx.GetStub().PutState(colorNameIndexKey, value)
-
-	// endregion: index w/ composite key
 
 	return nil
 
 }
+
+// DeleteBundle removes an asset key-value pair from the ledger
+// func (t *haincode) DeleteBundle(ctx contractapi.TransactionContextInterface, bundleID string) error {
+// 	asset, err := t.ReadAsset(ctx, assetID)
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	err = ctx.GetStub().DelState(assetID)
+// 	if err != nil {
+// 		return fmt.Errorf("failed to delete asset %s: %v", assetID, err)
+// 	}
+
+// 	colorNameIndexKey, err := ctx.GetStub().CreateCompositeKey(index, []string{asset.Color, asset.ID})
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	// Delete index entry
+// 	return ctx.GetStub().DelState(colorNameIndexKey)
+// }
+
+// ReadBundle retrieves a bundle from the ledger
+// func (t *SimpleChaincode) ReadAsset(ctx contractapi.TransactionContextInterface, assetID string) (*Asset, error) {
+// 	assetBytes, err := ctx.GetStub().GetState(assetID)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("failed to get asset %s: %v", assetID, err)
+// 	}
+// 	if assetBytes == nil {
+// 		return nil, fmt.Errorf("asset %s does not exist", assetID)
+// 	}
+
+// 	var asset Asset
+// 	err = json.Unmarshal(assetBytes, &asset)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+
+// 	return &asset, nil
+// }
 
 func main() {
 

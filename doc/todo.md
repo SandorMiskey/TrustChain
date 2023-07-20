@@ -1,14 +1,18 @@
 # todo
 
 * chaincode + api
-  * chaincode
+  * ReadBundle
+  * DeleteBundle
+  * UpdateBundle
+  * CreateBundle
     * validate data_base64 vs data_hash
     * store tx_id
-  * swagger
-  * copy api and chaincode -> templates
+  * queries
+* copy api and chaincode -> templates
 * remote peers
 
-* get details by tx_id, block#
+* swagger
+* get by tx_id, block# [https://stackoverflow.com/questions/67263579/retrieve-block-number-and-transaction-id-from-query-to-hyperledger-fabric]
 * SASC leftover (doc/legacy_to_port)
 * tls ca checklist [https://hyperledger-fabric-ca.readthedocs.io/en/latest/deployguide/ca-config.html]
 * operations:
@@ -16,10 +20,9 @@
   * set mutual tls authentication
   * operations org ca?
   * operationscerts in localMSP dirs
-* SASC leftover -> TrustChain
 * CSR in fabric-ca-server config (and in -client config?)
 * what if orderer1-admin not admin @tls-ca
-* renames
+* renames?
   * Cn -> CAn
   * Dn -> DBn
   * Pn -> PEERn
