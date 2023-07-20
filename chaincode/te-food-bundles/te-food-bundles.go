@@ -1,9 +1,6 @@
 // region: docs
 
 /*
-==== Invoke assets ====
-
-peer chaincode invoke -C myc1 -n asset_transfer -c '{"Args":["TransferAsset","asset2","jerry"]}'
 
 ==== Query assets ====
 peer chaincode query -C myc1 -n asset_transfer -c '{"Args":["GetAssetsByRange","asset1","asset3"]}'
@@ -221,7 +218,7 @@ func (t *Chaincode) ReadBundle(ctx contractapi.TransactionContextInterface, bund
 	return &bundle, nil
 }
 
-func (t *Chaincode) UpdateBundleById(ctx contractapi.TransactionContextInterface, bundleStr string) error {
+func (t *Chaincode) UpdateBundle(ctx contractapi.TransactionContextInterface, bundleStr string) error {
 
 	// UpdateBundle reset bundle except tx_id's and timestamps
 	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.UpdateBundleById invoked with -> %s", bundleStr))

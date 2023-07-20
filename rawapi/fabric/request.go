@@ -24,10 +24,10 @@ import (
 // endregion: packages
 
 type form struct {
-	Chaincode string         `json:"Chaincode"`
-	Channel   string         `json:"Channel"`
-	Function  string         `json:"Function"`
-	Args      []string       `json:"Args"`
+	Chaincode string         `json:"chaincode"`
+	Channel   string         `json:"channel"`
+	Function  string         `json:"function"`
+	Args      []string       `json:"args"`
 	raw       *fasthttp.Args `json:"-"`
 }
 
@@ -43,10 +43,10 @@ type request struct {
 }
 
 type message struct {
-	ID     string      `json:"ID"`
-	Status string      `json:"Status"`
-	Result interface{} `json:"Result"`
-	Form   *form       `json:"Form"`
+	ID     string      `json:"tx_id"`
+	Status string      `json:"status"`
+	Result interface{} `json:"result"`
+	Form   *form       `json:"form"`
 }
 
 type messageError struct {
