@@ -3,8 +3,6 @@
 /*
 
 ==== Query assets ====
-peer chaincode query -C myc1 -n asset_transfer -c '{"Args":["GetAssetsByRange","asset1","asset3"]}'
-
 Rich Query (Only supported if CouchDB is used as state database):
 peer chaincode query -C myc1 -n asset_transfer -c '{"Args":["QueryAssetsByOwner","tom"]}'
 peer chaincode query -C myc1 -n asset_transfer -c '{"Args":["QueryAssets","{\"selector\":{\"owner\":\"tom\"}}"]}'
@@ -37,10 +35,8 @@ import (
 
 	"github.com/SandorMiskey/TEx-kit/log"
 	"github.com/golang/protobuf/ptypes"
+	"github.com/hyperledger/fabric-chaincode-go/shim"
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
-	// "github.com/golang/protobuf/ptypes"
-	// "github.com/hyperledger/fabric-chaincode-go/shim"
-	// "github.com/hyperledger/fabric-contract-api-go/contractapi"
 )
 
 // endregion: packages
