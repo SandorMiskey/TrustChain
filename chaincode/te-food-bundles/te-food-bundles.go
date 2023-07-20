@@ -31,6 +31,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/syslog"
+	"strconv"
 	"time"
 
 	"github.com/SandorMiskey/TEx-kit/log"
@@ -217,6 +218,15 @@ func (t *Chaincode) BundleGetRange(ctx contractapi.TransactionContextInterface, 
 
 	// BundleGet retrieves a bundle from the ledger
 	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.BundleGetRange queried with %s -> %s", startKey, endKey))
+
+	endKeyInt, err := strconv.Atoi(endKey)
+	if err != nil {
+		msg := fmt.Errorf("error in t.BundleGetRange while strconv.Atoi(%s): %v", endKey, err)
+		Logger.Out(log.LOG_ERR, msg)
+		return nil, msg
+	}
+	endKeyInt++
+	endKey = strconv.Itoa(endKeyInt)
 
 	resultsIterator, err := ctx.GetStub().GetStateByRange(startKey, endKey)
 	if err != nil {
