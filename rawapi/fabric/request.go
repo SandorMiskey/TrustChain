@@ -84,28 +84,32 @@ func (r *request) error(err error) {
 
 	switch err := r.err.(type) {
 	case *client.EndorseError:
+		r.response.Status = 400
 		msg.message.ID = err.TransactionID
 		msg.message.Status = fmt.Sprintf("%s", status.Code(err))
 		msg.message.Result = fmt.Sprintf("%v: endorse error for transaction %s with gRPC status %v: %s", r.response.CTX.ID, msg.message.ID, msg.message.Status, err)
 	case *client.SubmitError:
+		r.response.Status = 400
 		msg.message.ID = err.TransactionID
 		msg.message.Status = fmt.Sprintf("%s", status.Code(r.err))
 		msg.message.Result = fmt.Sprintf("%v: submit error for transaction %s with gRPC status %v: %s", r.response.CTX.ID, msg.message.ID, msg.message.Status, err)
 	case *client.CommitStatusError:
+		r.response.Status = 400
+		msg.message.ID = err.TransactionID
 		if errors.Is(err, context.DeadlineExceeded) {
-			msg.message.ID = err.TransactionID
 			msg.message.Status = fmt.Sprintf("%s", err)
 			msg.message.Result = fmt.Sprintf("%v: timeout waiting for transaction %s commit status: %s", r.response.CTX.ID, msg.message.ID, err)
 		} else {
-			msg.message.ID = err.TransactionID
 			msg.message.Status = fmt.Sprintf("%s", status.Code(err))
 			msg.message.Result = fmt.Sprintf("%v: error obtaining commit status for transaction %s commit status %s: %s", r.response.CTX.ID, msg.message.ID, msg.message.Status, err)
 		}
 	case *client.CommitError:
+		r.response.Status = 400
 		msg.message.ID = err.TransactionID
 		msg.message.Status = fmt.Sprintf("%s", int32(err.Code))
 		msg.message.Result = fmt.Sprintf("%v: transaction %s failed to commit with status %d: %s", r.response.CTX.ID, err.TransactionID, int32(err.Code), err)
 	default:
+		r.response.Status = 500
 		msg.message.ID = "-"
 		msg.message.Status = fmt.Sprintf("%s", status.Code(r.err))
 		msg.message.Result = fmt.Sprintf("%v: unexpected error type %T: %s", r.response.CTX.ID, err, err)
@@ -130,7 +134,6 @@ func (r *request) error(err error) {
 	// region: closing
 
 	msg.Type = fmt.Sprintf("%T", r.err)
-	r.response.Status = 400
 	r.response.Message = msg
 
 	logger(log.LOG_ERR, msg.message.Result)

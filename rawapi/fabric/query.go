@@ -80,26 +80,36 @@ func (setup *OrgSetup) Query(ctx *fasthttp.RequestCtx) {
 	logger(log.LOG_DEBUG, fmt.Sprintf("%v: result -> %s", ctx.ID, string(resultByte)))
 
 	// endregion: fetch result
+	// region: prepare message
+
+	resultMsg := &message{
+		ID:     "-",
+		Status: "OK",
+		Form:   request.form,
+		// Result: resultMap,
+	}
+
+	// endregion: prepare message
 	// region: deconstruct result
 
 	var resultMap map[string]interface{}
 
 	err = json.Unmarshal([]byte(resultByte), &resultMap)
 	if err != nil {
-		request.error(err)
-		return
+		// resultMap = make(map[string]interface{})
+		// resultMap["flat"] = fmt.Sprintf("%s", resultByte)
+		// request.error(err)
+		// return
+		resultMsg.Result = string(resultByte)
+	} else {
+		resultMsg.Result = resultMap
 	}
 	logger(log.LOG_DEBUG, fmt.Sprintf("%v: result -> %#v", ctx.ID, resultMap))
 
 	// endregion: deconstruct
 	// region: closing
 
-	response.Message = &message{
-		ID:     "-",
-		Status: "OK",
-		Form:   request.form,
-		Result: resultMap,
-	}
+	response.Message = resultMsg
 	response.SendJSON(nil)
 
 	// endregion: closing
