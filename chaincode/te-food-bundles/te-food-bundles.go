@@ -4,8 +4,6 @@
 ==== Invoke assets ====
 
 peer chaincode invoke -C myc1 -n asset_transfer -c '{"Args":["TransferAsset","asset2","jerry"]}'
-peer chaincode invoke -C myc1 -n asset_transfer -c '{"Args":["TransferAssetByColor","blue","jerry"]}'
-peer chaincode invoke -C myc1 -n asset_transfer -c '{"Args":["DeleteAsset","asset1"]}'
 
 ==== Query assets ====
 peer chaincode query -C myc1 -n asset_transfer -c '{"Args":["GetAssetsByRange","asset1","asset3"]}'
@@ -93,9 +91,13 @@ type PaginatedQueryResult struct {
 }
 
 // endregion: types anc consts
+// region: functions
 
-// returns true when bundle with given ID exists in the ledger.
 func (t *Chaincode) BundleExists(ctx contractapi.TransactionContextInterface, bundleID string) (bool, error) {
+
+	// returns true when bundle with given ID exists in the ledger.
+	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.BundleExists queried with -> %s", bundleID))
+
 	bundleBytes, err := ctx.GetStub().GetState(bundleID)
 	if err != nil {
 		msg := fmt.Errorf("failed to read bundle %s from world state. %v", bundleID, err)
@@ -105,9 +107,9 @@ func (t *Chaincode) BundleExists(ctx contractapi.TransactionContextInterface, bu
 	return bundleBytes != nil, nil
 }
 
-// CreateBundle initializes a new bundle in the ledger
 func (t *Chaincode) CreateBundle(ctx contractapi.TransactionContextInterface, bundleStr string) error {
 
+	// CreateBundle initializes a new bundle in the ledger
 	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.CreateBundle invoked with -> %s", bundleStr))
 
 	// region: parse json
@@ -120,7 +122,7 @@ func (t *Chaincode) CreateBundle(ctx contractapi.TransactionContextInterface, bu
 		Logger.Out(log.LOG_ERR, msg)
 		return msg
 	}
-	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("bundleStr unmarshaled -> %#v"))
+	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.CreateBundle bundleStr unmarshaled -> %#v"))
 
 	// endregion: parse json
 	// region: check if exists
@@ -171,8 +173,11 @@ func (t *Chaincode) CreateBundle(ctx contractapi.TransactionContextInterface, bu
 
 }
 
-// DeleteBundle removes an asset key-value pair from the ledger
 func (t *Chaincode) DeleteBundle(ctx contractapi.TransactionContextInterface, bundleID string) error {
+
+	// DeleteBundle removes an asset key-value pair from the ledger
+	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.DeleteBundle invoked with -> %s", bundleID))
+
 	_, err := t.ReadBundle(ctx, bundleID)
 	if err != nil {
 		msg := fmt.Errorf("failed to get bundle %s: %v", bundleID, err)
@@ -188,8 +193,11 @@ func (t *Chaincode) DeleteBundle(ctx contractapi.TransactionContextInterface, bu
 	return nil
 }
 
-// ReadBundle retrieves a bundle from the ledger
 func (t *Chaincode) ReadBundle(ctx contractapi.TransactionContextInterface, bundleID string) (*Bundle, error) {
+
+	// ReadBundle retrieves a bundle from the ledger
+	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.ReadBundle queried with -> %s", bundleID))
+
 	bundleBytes, err := ctx.GetStub().GetState(bundleID)
 	if err != nil {
 		msg := fmt.Errorf("failed to get bundle %s: %v", bundleID, err)
@@ -212,6 +220,85 @@ func (t *Chaincode) ReadBundle(ctx contractapi.TransactionContextInterface, bund
 
 	return &bundle, nil
 }
+
+func (t *Chaincode) UpdateBundleById(ctx contractapi.TransactionContextInterface, bundleStr string) error {
+
+	// UpdateBundle reset bundle except tx_id's and timestamps
+	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.UpdateBundleById invoked with -> %s", bundleStr))
+
+	// region: parse json
+
+	var bundleIn Bundle
+
+	err := json.Unmarshal([]byte(bundleStr), &bundleIn)
+	if err != nil {
+		msg := fmt.Errorf("error parsing bundle: %s (%s)", err, bundleStr)
+		Logger.Out(log.LOG_ERR, msg)
+		return msg
+	}
+	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.CreateBundle bundleStr unmarshaled -> %#v"))
+
+	// endregion: parse json
+	// region: check if exists
+
+	exists, err := t.BundleExists(ctx, bundleIn.BundleID)
+	if err != nil {
+		msg := fmt.Errorf("failed to get bundle: %v", err)
+		Logger.Out(log.LOG_ERR, msg)
+		return msg
+	}
+	if !exists {
+		msg := fmt.Errorf("bundle does not exists: %s", bundleIn.BundleID)
+		Logger.Out(log.LOG_ERR, msg)
+		return msg
+	}
+	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("ledger chacked, bundle does exist -> %s", bundleIn.BundleID))
+
+	// endregion: check if exists
+	// region: get original
+
+	bundleOrig, err := t.ReadBundle(ctx, bundleIn.BundleID)
+	if err != nil {
+		msg := fmt.Errorf("failed to get bundle %s: %v", bundleIn.BundleID, err)
+		Logger.Out(log.LOG_ERR, msg)
+		return msg
+	}
+
+	// endregion: get original
+	// region: updated bundle
+
+	now := time.Now()
+
+	bundleOut := bundleIn
+	bundleOut.DocType = "bundle"
+	bundleOut.TxID = bundleOrig.TxID
+	bundleOut.TxTimestamp = bundleOrig.TxID
+	bundleOut.UpdateTxID = ctx.GetStub().GetTxID()
+	bundleOut.UpdateTimestamp = now.Format(time.RFC3339)
+	bundleBytes, err := json.Marshal(bundleOut)
+	if err != nil {
+		msg := fmt.Errorf("failed to marshal bundle: %s", err)
+		Logger.Out(log.LOG_ERR, msg)
+		return msg
+	}
+	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("bundle marshaled -> %#v", bundleOut))
+
+	// endregion: updated bundle
+	// region: bundle out
+
+	err = ctx.GetStub().PutState(bundleOut.BundleID, bundleBytes)
+	if err != nil {
+		msg := fmt.Errorf("failed to put bundle: %s", err)
+		Logger.Out(log.LOG_ERR, msg)
+		return msg
+	}
+	Logger.Out(log.LOG_DEBUG, "world state updated with no errors")
+
+	// endregion: bundle out
+
+}
+
+// endregion: functions
 
 func main() {
 

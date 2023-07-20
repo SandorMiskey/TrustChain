@@ -1,15 +1,15 @@
 # todo
 
 * chaincode + api
-  * DeleteBundle - check
-  * UpdateBundle
+  * UpdateBundleById
+    * validate data_base64 vs data_hash
   * CreateBundle
     * validate data_base64 vs data_hash
-    * store tx_id
   * queries
 * copy api and chaincode -> templates
 * remote peers
 
+* UpdateBundleByTxId
 * swagger
 * get by tx_id, block# [https://stackoverflow.com/questions/67263579/retrieve-block-number-and-transaction-id-from-query-to-hyperledger-fabric]
 * SASC leftover (doc/legacy_to_port)
