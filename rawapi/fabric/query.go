@@ -92,19 +92,35 @@ func (setup *OrgSetup) Query(ctx *fasthttp.RequestCtx) {
 	// endregion: prepare message
 	// region: deconstruct result
 
-	var resultMap map[string]interface{}
+	// var resultMap map[string]interface{}
+	// err = json.Unmarshal([]byte(resultByte), &resultMap)
+	// if err != nil {
+	// 	var rawData json.RawMessage
+	// 	err := json.Unmarshal([]byte(resultByte), &rawData)
+	// 	if err != nil {
+	// 		logger(log.LOG_ERR, "error unmarshalling into even json.RawMessage -> %s -> %s", resultByte, err)
+	// 		resultMsg.Result = nil
+	// 		return
+	// 	} else {
+	// 		resultMsg.Result = rawData
+	// 	}
+	// } else {
+	// 	resultMsg.Result = resultMap
+	// }
+	// logger(log.LOG_DEBUG, fmt.Sprintf("%v: result -> %#v", ctx.ID, resultMap))
 
-	err = json.Unmarshal([]byte(resultByte), &resultMap)
+	var rawData json.RawMessage
+
+	err = json.Unmarshal([]byte(resultByte), &rawData)
 	if err != nil {
-		// resultMap = make(map[string]interface{})
-		// resultMap["flat"] = fmt.Sprintf("%s", resultByte)
-		// request.error(err)
-		// return
-		resultMsg.Result = string(resultByte)
+		logger(log.LOG_ERR, "error unmarshalling into even json.RawMessage -> %s -> %s", resultByte, err)
+		resultMsg.Result = nil
+		return
 	} else {
-		resultMsg.Result = resultMap
+		resultMsg.Result = rawData
 	}
-	logger(log.LOG_DEBUG, fmt.Sprintf("%v: result -> %#v", ctx.ID, resultMap))
+
+	logger(log.LOG_DEBUG, fmt.Sprintf("%v: result -> %s", ctx.ID, rawData))
 
 	// endregion: deconstruct
 	// region: closing
