@@ -2,7 +2,6 @@
 
 /*
 
-==== Query assets ====
 Rich Query (Only supported if CouchDB is used as state database):
 peer chaincode query -C myc1 -n asset_transfer -c '{"Args":["QueryAssetsByOwner","tom"]}'
 peer chaincode query -C myc1 -n asset_transfer -c '{"Args":["QueryAssets","{\"selector\":{\"owner\":\"tom\"}}"]}'
@@ -10,10 +9,6 @@ peer chaincode query -C myc1 -n asset_transfer -c '{"Args":["QueryAssets","{\"se
 Rich Query with Pagination (Only supported if CouchDB is used as state database):
 peer chaincode query -C myc1 -n asset_transfer -c '{"Args":["QueryAssetsWithPagination","{\"selector\":{\"owner\":\"tom\"}}","3",""]}'
 
-...
-
-Example curl command line to define index in the CouchDB channel_chaincode database:
-curl -i -X POST -H "Content-Type: application/json" -d "{\"index\":{\"fields\":[{\"size\":\"desc\"},{\"docType\":\"desc\"},{\"owner\":\"desc\"}]},\"ddoc\":\"indexSizeSortDoc\", \"name\":\"indexSizeSortDesc\",\"type\":\"json\"}" http://hostname:port/myc1_assets/_index
 
 Rich Query with index design doc and index name specified (Only supported if CouchDB is used as state database):
 peer chaincode query -C myc1 -n asset_transfer -c '{"Args":["QueryAssets","{\"selector\":{\"docType\":\"asset\",\"owner\":\"tom\"}, \"use_index\":[\"_design/indexOwnerDoc\", \"indexOwner\"]}"]}'
@@ -227,6 +222,7 @@ func (t *Chaincode) BundleGetRange(ctx contractapi.TransactionContextInterface, 
 	}
 	endKeyInt++
 	endKey = strconv.Itoa(endKeyInt)
+	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.BundleGetRange new range %s -> %s", startKey, endKey))
 
 	resultsIterator, err := ctx.GetStub().GetStateByRange(startKey, endKey)
 	if err != nil {
