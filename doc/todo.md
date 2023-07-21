@@ -6,6 +6,8 @@
     * validate data_base64 vs data_hash
   * CreateBundle
     * validate data_base64 vs data_hash
+  * create, update result  -> bundle.json
+  * query tx_id -> null
 * copy api and chaincode -> templates
 * update postman collection -> doc
 * remote peers

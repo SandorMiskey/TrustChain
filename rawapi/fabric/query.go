@@ -113,9 +113,10 @@ func (setup *OrgSetup) Query(ctx *fasthttp.RequestCtx) {
 
 	err = json.Unmarshal([]byte(resultByte), &rawData)
 	if err != nil {
-		logger(log.LOG_ERR, "error unmarshalling into even json.RawMessage -> %s -> %s", resultByte, err)
+		logger(log.LOG_ERR, fmt.Sprintf("error unmarshalling into even json.RawMessage -> %s -> %s", resultByte, err))
 		resultMsg.Result = nil
-		return
+		// request.error(err)
+		// return
 	} else {
 		resultMsg.Result = rawData
 	}
