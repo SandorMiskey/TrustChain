@@ -3,11 +3,7 @@
 /*
 
 Rich Query (Only supported if CouchDB is used as state database):
-peer chaincode query -C myc1 -n asset_transfer -c '{"Args":["QueryAssetsByOwner","tom"]}'
 peer chaincode query -C myc1 -n asset_transfer -c '{"Args":["QueryAssets","{\"selector\":{\"owner\":\"tom\"}}"]}'
-
-Rich Query with Pagination (Only supported if CouchDB is used as state database):
-peer chaincode query -C myc1 -n asset_transfer -c '{"Args":["QueryAssetsWithPagination","{\"selector\":{\"owner\":\"tom\"}}","3",""]}'
 
 
 Rich Query with index design doc and index name specified (Only supported if CouchDB is used as state database):
@@ -15,6 +11,10 @@ peer chaincode query -C myc1 -n asset_transfer -c '{"Args":["QueryAssets","{\"se
 
 Rich Query with index design doc specified only (Only supported if CouchDB is used as state database):
 peer chaincode query -C myc1 -n asset_transfer -c '{"Args":["QueryAssets","{\"selector\":{\"docType\":{\"$eq\":\"asset\"},\"owner\":{\"$eq\":\"tom\"},\"size\":{\"$gt\":0}},\"fields\":[\"docType\",\"owner\",\"size\"],\"sort\":[{\"size\":\"desc\"}],\"use_index\":\"_design/indexSizeSortDoc\"}"]}'
+
+
+Rich Query with Pagination (Only supported if CouchDB is used as state database):
+peer chaincode query -C myc1 -n asset_transfer -c '{"Args":["QueryAssetsWithPagination","{\"selector\":{\"owner\":\"tom\"}}","3",""]}'
 */
 
 // endregion: docs
@@ -109,6 +109,23 @@ func constructQueryResponseFromIterator(resultsIterator shim.StateQueryIteratorI
 	return bundles, nil
 }
 
+func getQueryResultForQueryString(ctx contractapi.TransactionContextInterface, queryString string) ([]*Bundle, error) {
+
+	// getQueryResultForQueryString executes the passed in query string. The
+	// result set is built and returned as a byte array containing the JSON results.
+	Logger.Out(log.LOG_DEBUG, "getQueryResultForQueryString helper in action")
+
+	resultsIterator, err := ctx.GetStub().GetQueryResult(queryString)
+	if err != nil {
+		msg := fmt.Errorf("error in getQueryResultForQueryString when ctx.GetStub().GetQueryResult(queryString: %s): %s", queryString, err)
+		Logger.Out(log.LOG_ERR, msg)
+		return nil, msg
+	}
+	defer resultsIterator.Close()
+
+	return constructQueryResponseFromIterator(resultsIterator)
+}
+
 // endregion: helpers
 // region: queries
 
@@ -161,6 +178,20 @@ func (t *Chaincode) BundleHistory(ctx contractapi.TransactionContextInterface, b
 				BundleID: bundleID,
 			}
 		}
+
+		// Create a new types.Timestamp value representing the current time
+		// ts := ptypes.TimestampNow()
+
+		// Use AsTime to convert the types.Timestamp to a time.Time value
+		// timeValue := ptypes.TimestampString(ts)
+		// fmt.Println("Timestamp as time.Time:", timeValue)
+
+		// Check if the Timestamp is valid
+		// if ts.CheckValid() {
+		// 	fmt.Println("Timestamp is valid.")
+		// } else {
+		// 	fmt.Println("Timestamp is invalid.")
+		// }
 
 		timestamp, err := ptypes.Timestamp(response.Timestamp)
 		if err != nil {
@@ -245,6 +276,16 @@ func (t *Chaincode) BundleGetRange(ctx contractapi.TransactionContextInterface, 
 	return constructQueryResponseFromIterator(resultsIterator)
 }
 
+func (t *Chaincode) BundleQuery(ctx contractapi.TransactionContextInterface, queryString string) ([]*Bundle, error) {
+
+	// BundleQuery uses a query string to perform a query for bundles. Query
+	// string matching state database syntax is passed in and executed as is.
+	// Supports ad hoc queries that can be defined at runtime by the client.
+
+	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.BundleQuery queried with %s", queryString))
+	return getQueryResultForQueryString(ctx, queryString)
+}
+
 // endregion: queries
 // region: invokes
 
@@ -263,7 +304,7 @@ func (t *Chaincode) CreateBundle(ctx contractapi.TransactionContextInterface, bu
 		Logger.Out(log.LOG_ERR, msg)
 		return msg
 	}
-	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.CreateBundle bundleStr unmarshaled -> %#v"))
+	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.CreateBundle bundleStr unmarshaled -> %#v", bundleIn))
 
 	// endregion: parse json
 	// region: check if exists
@@ -349,7 +390,7 @@ func (t *Chaincode) UpdateBundle(ctx contractapi.TransactionContextInterface, bu
 		Logger.Out(log.LOG_ERR, msg)
 		return msg
 	}
-	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.CreateBundle bundleStr unmarshaled -> %#v"))
+	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.CreateBundle bundleStr unmarshaled -> %#v", bundleIn))
 
 	// endregion: parse json
 	// region: check if exists
