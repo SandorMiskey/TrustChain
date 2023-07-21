@@ -2,6 +2,8 @@ bin
 chaincode/asset_transfer_ledger_chaincode.go
 doc/fabric-samples
 workbench
+rawapi/vendor
+chaincode/te-food-bundles/vendor
 
 # Created by https://www.toptal.com/developers/gitignore/api/go,vim,web,macos,linux,visualstudiocode,node
 # Edit at https://www.toptal.com/developers/gitignore?templates=go,vim,web,macos,linux,visualstudiocode,node
