@@ -33,12 +33,12 @@ type Chaincode struct {
 
 type Bundle struct {
 	DocType            string      `json:"doc_type"` //docType is used to distinguish the various types of objects in state database
-	BundleID           string      `json:"bundle_id"`
+	BundleID           uint64      `json:"bundle_id"`
 	SystemID           string      `json:"system_id"`
 	ExternalFlag       string      `json:"external_flag"`
 	ConfidentialFlag   string      `json:"confidential_flag"`
 	LegacyFlag         string      `json:"legacy_flag"`
-	NumberOfOperations int         `json:"number_of_operations"`
+	NumberOfOperations int16       `json:"number_of_operations"`
 	TransactionTypeID  string      `json:"transaction_type_id"`
 	DataBase64         string      `json:"data_base64"`
 	DataHash           string      `json:"data_hash"`
@@ -156,15 +156,15 @@ func (t *Chaincode) BundleExists(ctx contractapi.TransactionContextInterface, bu
 	return bundleBytes != nil, nil
 }
 
-func (t *Chaincode) BundleHistory(ctx contractapi.TransactionContextInterface, bundleID string) ([]HistoryQueryResult, error) {
+func (t *Chaincode) BundleHistory(ctx contractapi.TransactionContextInterface, bundleID uint64) ([]HistoryQueryResult, error) {
 
 	// BundleHistory returns the chain of custody for a bundle since issuance
-	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.BundleHistory queried with -> %s", bundleID))
+	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.BundleHistory queried with -> %v", bundleID))
 
 	// iterator
-	resultsIterator, err := ctx.GetStub().GetHistoryForKey(bundleID)
+	resultsIterator, err := ctx.GetStub().GetHistoryForKey(strconv.FormatUint(bundleID, 10))
 	if err != nil {
-		msg := fmt.Errorf("error in t.BundleHistory when ctx.GetStub().GetHistoryForKey(%s): %s", bundleID, err)
+		msg := fmt.Errorf("error in t.BundleHistory when ctx.GetStub().GetHistoryForKey(%v): %s", bundleID, err)
 		Logger.Out(log.LOG_ERR, msg)
 		return nil, msg
 	}
@@ -257,26 +257,6 @@ func (t *Chaincode) BundleGetRange(ctx contractapi.TransactionContextInterface, 
 	// BundleGet retrieves a bundle from the ledger
 	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.BundleGetRange queried with %s -> %s", startKey, endKey))
 
-	startKeyInt, err := strconv.Atoi(startKey)
-	if err != nil {
-		msg := fmt.Errorf("error in t.BundleGetRange while strconv.Atoi(startKey: %s): %v", startKey, err)
-		Logger.Out(log.LOG_ERR, msg)
-		return nil, msg
-	}
-	endKeyInt, err := strconv.Atoi(endKey)
-	if err != nil {
-		msg := fmt.Errorf("error in t.BundleGetRange while strconv.Atoi(endKey: %s): %v", endKey, err)
-		Logger.Out(log.LOG_ERR, msg)
-		return nil, msg
-	}
-	if startKeyInt > endKeyInt {
-		startKeyInt, endKeyInt = endKeyInt, startKeyInt
-	}
-	startKey = strconv.Itoa(startKeyInt)
-	endKeyInt++
-	endKey = strconv.Itoa(endKeyInt)
-	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.BundleGetRange new range %s -> %s", startKey, endKey))
-
 	resultsIterator, err := ctx.GetStub().GetStateByRange(startKey, endKey)
 	if err != nil {
 		msg := fmt.Errorf("error in t.BundleGetRange while ctx.GetStub().GetStateByRange(%s, %s): %v", startKey, endKey, err)
@@ -364,18 +344,18 @@ func (t *Chaincode) CreateBundle(ctx contractapi.TransactionContextInterface, bu
 	// endregion: parse json
 	// region: check if exists
 
-	exists, err := t.BundleExists(ctx, bundleIn.BundleID)
+	exists, err := t.BundleExists(ctx, strconv.FormatUint(bundleIn.BundleID, 10))
 	if err != nil {
 		msg := fmt.Errorf("failed to get bundle: %v", err)
 		Logger.Out(log.LOG_ERR, msg)
 		return msg
 	}
 	if exists {
-		msg := fmt.Errorf("bundle already exists: %s", bundleIn.BundleID)
+		msg := fmt.Errorf("bundle already exists: %v", bundleIn.BundleID)
 		Logger.Out(log.LOG_ERR, msg)
 		return msg
 	}
-	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("ledger chacked, bundle does not exist yet -> %s", bundleIn.BundleID))
+	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("ledger chacked, bundle does not exist yet -> %v", bundleIn.BundleID))
 
 	// endregion: check if exists
 	// region: bundle out
@@ -396,7 +376,7 @@ func (t *Chaincode) CreateBundle(ctx contractapi.TransactionContextInterface, bu
 	}
 	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("bundle marshaled -> %#v", bundleOut))
 
-	err = ctx.GetStub().PutState(bundleOut.BundleID, bundleBytes)
+	err = ctx.GetStub().PutState(strconv.FormatUint(bundleOut.BundleID, 10), bundleBytes)
 	if err != nil {
 		msg := fmt.Errorf("failed to put bundle: %s", err)
 		Logger.Out(log.LOG_ERR, msg)
@@ -450,25 +430,25 @@ func (t *Chaincode) UpdateBundle(ctx contractapi.TransactionContextInterface, bu
 	// endregion: parse json
 	// region: check if exists
 
-	exists, err := t.BundleExists(ctx, bundleIn.BundleID)
+	exists, err := t.BundleExists(ctx, strconv.FormatUint(bundleIn.BundleID, 10))
 	if err != nil {
 		msg := fmt.Errorf("failed to get bundle: %v", err)
 		Logger.Out(log.LOG_ERR, msg)
 		return msg
 	}
 	if !exists {
-		msg := fmt.Errorf("bundle does not exists: %s", bundleIn.BundleID)
+		msg := fmt.Errorf("bundle does not exists: %v", bundleIn.BundleID)
 		Logger.Out(log.LOG_ERR, msg)
 		return msg
 	}
-	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("ledger chacked, bundle does exist -> %s", bundleIn.BundleID))
+	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("ledger chacked, bundle does exist -> %v", bundleIn.BundleID))
 
 	// endregion: check if exists
 	// region: get original
 
-	bundleOrig, err := t.BundleGet(ctx, bundleIn.BundleID)
+	bundleOrig, err := t.BundleGet(ctx, strconv.FormatUint(bundleIn.BundleID, 10))
 	if err != nil {
-		msg := fmt.Errorf("failed to get bundle %s: %v", bundleIn.BundleID, err)
+		msg := fmt.Errorf("failed to get bundle %v: %v", bundleIn.BundleID, err)
 		Logger.Out(log.LOG_ERR, msg)
 		return msg
 	}
@@ -495,7 +475,7 @@ func (t *Chaincode) UpdateBundle(ctx contractapi.TransactionContextInterface, bu
 	// endregion: updated bundle
 	// region: bundle out
 
-	err = ctx.GetStub().PutState(bundleOut.BundleID, bundleBytes)
+	err = ctx.GetStub().PutState(strconv.FormatUint(bundleOut.BundleID, 10), bundleBytes)
 	if err != nil {
 		msg := fmt.Errorf("failed to put bundle: %s", err)
 		Logger.Out(log.LOG_ERR, msg)
