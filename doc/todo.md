@@ -1,12 +1,10 @@
 # todo
 
 * chaincode + api
-  * bundle id -> int
   * UpdateBundle
     * validate data_base64 vs data_hash
   * CreateBundle
     * validate data_base64 vs data_hash
-  * create, update result  -> bundle.json
   * query tx_id -> null
 * copy api and chaincode -> templates
 * update postman collection -> doc
@@ -24,7 +22,7 @@
   * (tls)ca "Operation Server Listening on 127.0.0.1:9443"
   * set mutual tls authentication
   * operations org ca?
-  * operationscerts in localMSP dirs
+  * operations certs in localMSP dirs
 * CSR in fabric-ca-server config (and in -client config?)
 * what if orderer1-admin not admin @tls-ca
 * renames?

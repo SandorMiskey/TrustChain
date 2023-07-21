@@ -320,7 +320,7 @@ func (t *Chaincode) BundleQueryWithPagination(ctx contractapi.TransactionContext
 // endregion: queries
 // region: invokes
 
-func (t *Chaincode) CreateBundle(ctx contractapi.TransactionContextInterface, bundleStr string) error {
+func (t *Chaincode) CreateBundle(ctx contractapi.TransactionContextInterface, bundleStr string) (*Bundle, error) {
 
 	// CreateBundle initializes a new bundle in the ledger
 	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.CreateBundle invoked with -> %s", bundleStr))
@@ -333,7 +333,7 @@ func (t *Chaincode) CreateBundle(ctx contractapi.TransactionContextInterface, bu
 	if err != nil {
 		msg := fmt.Errorf("error parsing bundle: %s (%s)", err, bundleStr)
 		Logger.Out(log.LOG_ERR, msg)
-		return msg
+		return nil, msg
 	}
 	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.CreateBundle bundleStr unmarshal -> %#v", bundleIn))
 
@@ -344,12 +344,12 @@ func (t *Chaincode) CreateBundle(ctx contractapi.TransactionContextInterface, bu
 	if err != nil {
 		msg := fmt.Errorf("failed to get bundle: %v", err)
 		Logger.Out(log.LOG_ERR, msg)
-		return msg
+		return nil, msg
 	}
 	if exists {
 		msg := fmt.Errorf("bundle already exists: %v", bundleIn.BundleID)
 		Logger.Out(log.LOG_ERR, msg)
-		return msg
+		return nil, msg
 	}
 	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("ledger checked, bundle does not exist yet -> %v", bundleIn.BundleID))
 
@@ -368,7 +368,7 @@ func (t *Chaincode) CreateBundle(ctx contractapi.TransactionContextInterface, bu
 	if err != nil {
 		msg := fmt.Errorf("failed to marshal bundle: %s", err)
 		Logger.Out(log.LOG_ERR, msg)
-		return msg
+		return nil, msg
 	}
 	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("bundle marshaled -> %#v", bundleOut))
 
@@ -376,13 +376,13 @@ func (t *Chaincode) CreateBundle(ctx contractapi.TransactionContextInterface, bu
 	if err != nil {
 		msg := fmt.Errorf("failed to put bundle: %s", err)
 		Logger.Out(log.LOG_ERR, msg)
-		return msg
+		return nil, msg
 	}
 	Logger.Out(log.LOG_DEBUG, "world state updated with no errors")
 
 	// endregion: bundle out
 
-	return nil
+	return &bundleOut, nil
 
 }
 
@@ -406,7 +406,7 @@ func (t *Chaincode) DeleteBundle(ctx contractapi.TransactionContextInterface, bu
 	return nil
 }
 
-func (t *Chaincode) UpdateBundle(ctx contractapi.TransactionContextInterface, bundleStr string) error {
+func (t *Chaincode) UpdateBundle(ctx contractapi.TransactionContextInterface, bundleStr string) (*Bundle, error) {
 
 	// UpdateBundle reset bundle except tx_id's and timestamps
 	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.UpdateBundleById invoked with -> %s", bundleStr))
@@ -419,7 +419,7 @@ func (t *Chaincode) UpdateBundle(ctx contractapi.TransactionContextInterface, bu
 	if err != nil {
 		msg := fmt.Errorf("error parsing bundle: %s (%s)", err, bundleStr)
 		Logger.Out(log.LOG_ERR, msg)
-		return msg
+		return nil, msg
 	}
 	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.CreateBundle bundleStr unmarshal -> %#v", bundleIn))
 
@@ -430,12 +430,12 @@ func (t *Chaincode) UpdateBundle(ctx contractapi.TransactionContextInterface, bu
 	if err != nil {
 		msg := fmt.Errorf("failed to get bundle: %v", err)
 		Logger.Out(log.LOG_ERR, msg)
-		return msg
+		return nil, msg
 	}
 	if !exists {
 		msg := fmt.Errorf("bundle does not exists: %v", bundleIn.BundleID)
 		Logger.Out(log.LOG_ERR, msg)
-		return msg
+		return nil, msg
 	}
 	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("ledger checked, bundle does exist -> %v", bundleIn.BundleID))
 
@@ -446,7 +446,7 @@ func (t *Chaincode) UpdateBundle(ctx contractapi.TransactionContextInterface, bu
 	if err != nil {
 		msg := fmt.Errorf("failed to get bundle %v: %v", bundleIn.BundleID, err)
 		Logger.Out(log.LOG_ERR, msg)
-		return msg
+		return nil, msg
 	}
 
 	// endregion: get original
@@ -464,7 +464,7 @@ func (t *Chaincode) UpdateBundle(ctx contractapi.TransactionContextInterface, bu
 	if err != nil {
 		msg := fmt.Errorf("failed to marshal bundle: %s", err)
 		Logger.Out(log.LOG_ERR, msg)
-		return msg
+		return nil, msg
 	}
 	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("bundle marshaled -> %#v", bundleOut))
 
@@ -475,11 +475,11 @@ func (t *Chaincode) UpdateBundle(ctx contractapi.TransactionContextInterface, bu
 	if err != nil {
 		msg := fmt.Errorf("failed to put bundle: %s", err)
 		Logger.Out(log.LOG_ERR, msg)
-		return msg
+		return nil, msg
 	}
 	Logger.Out(log.LOG_DEBUG, "world state updated with no errors")
 
-	return nil
+	return &bundleOut, nil
 
 	// endregion: bundle out
 
