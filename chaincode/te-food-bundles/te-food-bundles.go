@@ -214,12 +214,22 @@ func (t *Chaincode) BundleGetRange(ctx contractapi.TransactionContextInterface, 
 	// BundleGet retrieves a bundle from the ledger
 	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.BundleGetRange queried with %s -> %s", startKey, endKey))
 
-	endKeyInt, err := strconv.Atoi(endKey)
+	startKeyInt, err := strconv.Atoi(startKey)
 	if err != nil {
-		msg := fmt.Errorf("error in t.BundleGetRange while strconv.Atoi(%s): %v", endKey, err)
+		msg := fmt.Errorf("error in t.BundleGetRange while strconv.Atoi(startKey: %s): %v", startKey, err)
 		Logger.Out(log.LOG_ERR, msg)
 		return nil, msg
 	}
+	endKeyInt, err := strconv.Atoi(endKey)
+	if err != nil {
+		msg := fmt.Errorf("error in t.BundleGetRange while strconv.Atoi(endKey: %s): %v", endKey, err)
+		Logger.Out(log.LOG_ERR, msg)
+		return nil, msg
+	}
+	if startKeyInt > endKeyInt {
+		startKeyInt, endKeyInt = endKeyInt, startKeyInt
+	}
+	startKey = strconv.Itoa(startKeyInt)
 	endKeyInt++
 	endKey = strconv.Itoa(endKeyInt)
 	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.BundleGetRange new range %s -> %s", startKey, endKey))
