@@ -121,37 +121,32 @@ func getQueryResultForQueryString(ctx contractapi.TransactionContextInterface, q
 	return constructQueryResponseFromIterator(resultsIterator)
 }
 
-func (t *Chaincode) SetLogger(ctx contractapi.TransactionContextInterface, prefix, logLevel string) {
+func getQueryResultForQueryStringWithPagination(ctx contractapi.TransactionContextInterface, queryString string, pageSize int32, bookmark string) (*PaginatedQueryResult, error) {
 
-	// reset logger params
-	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.SetLogger queried with prefix -> %s, loglevel -> %s", prefix, logLevel))
+	// getQueryResultForQueryStringWithPagination executes the passed in query string with
+	// pagination info. The result set is built and returned as a byte array containing the JSON results.
+	Logger.Out(log.LOG_DEBUG, "getQueryResultForQueryStringWithPagination helper in action")
 
-	priority := syslog.LOG_INFO
-	logLevel = strings.ToLower(logLevel)
-	switch logLevel {
-	case "emergency", "emerg":
-		priority = syslog.LOG_EMERG
-	case "alert":
-		priority = syslog.LOG_ALERT
-	case "critical", "crit":
-		priority = syslog.LOG_CRIT
-	case "error", "err":
-		priority = syslog.LOG_ERR
-	case "warning", "warn":
-		priority = syslog.LOG_WARNING
-	case "notice":
-		priority = syslog.LOG_NOTICE
-	case "debug":
-		priority = syslog.LOG_DEBUG
-	default:
-		Logger.Out(log.LOG_ERR, fmt.Sprintf("t.SetLogger could not match %s to syslog priority", logLevel))
+	resultsIterator, responseMetadata, err := ctx.GetStub().GetQueryResultWithPagination(queryString, pageSize, bookmark)
+	if err != nil {
+		msg := fmt.Errorf("error in getQueryResultForQueryStringWithPagination while ctx.GetStub().GetQueryResultWithPagination(queryString: %s, pageSize %v, bookmark: %s): %s", queryString, pageSize, bookmark, err)
+		Logger.Out(log.LOG_ERR, msg)
+		return nil, msg
 	}
-	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.SetLogger new prefix -> %s priority -> %v", prefix, priority))
+	defer resultsIterator.Close()
 
-	// Logger.Close()
-	Logger = *log.NewLogger()
-	_, _ = Logger.NewCh(log.ChConfig{Severity: &priority, Prefix: &prefix})
+	bundles, err := constructQueryResponseFromIterator(resultsIterator)
+	if err != nil {
+		msg := fmt.Errorf("error in getQueryResultForQueryStringWithPagination while constructQueryResponseFromIterator(): %s", err)
+		Logger.Out(log.LOG_ERR, msg)
+		return nil, msg
+	}
 
+	return &PaginatedQueryResult{
+		Records:             bundles,
+		FetchedRecordsCount: responseMetadata.FetchedRecordsCount,
+		Bookmark:            responseMetadata.Bookmark,
+	}, nil
 }
 
 // endregion: helpers
@@ -311,6 +306,19 @@ func (t *Chaincode) BundleQuery(ctx contractapi.TransactionContextInterface, que
 
 	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.BundleQuery queried with %s", queryString))
 	return getQueryResultForQueryString(ctx, queryString)
+}
+
+func (t *Chaincode) BundleQueryWithPagination(ctx contractapi.TransactionContextInterface, queryString string, pageSize int, bookmark string) (*PaginatedQueryResult, error) {
+
+	// BundleQueryWithPagination uses a query string, page size and a bookmark to perform a query
+	// for bundles. Query string matching state database syntax is passed in and executed as is.
+	// The number of fetched records would be equal to or lesser than the specified page size.
+	// Supports ad hoc queries that can be defined at runtime by the client. Only available on
+	// state databases that support rich query (e.g. CouchDB). Paginated queries are only valid
+	// for read only transactions.
+
+	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.BundleQueryWithPagination queried with queryString -> %s, pageSize -> %v, bookmark -> %s", queryString, pageSize, bookmark))
+	return getQueryResultForQueryStringWithPagination(ctx, queryString, int32(pageSize), bookmark)
 }
 
 // endregion: queries
@@ -481,6 +489,39 @@ func (t *Chaincode) UpdateBundle(ctx contractapi.TransactionContextInterface, bu
 
 }
 
+func (t *Chaincode) SetLogger(ctx contractapi.TransactionContextInterface, prefix, logLevel string) {
+
+	// reset logger params
+	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.SetLogger queried with prefix -> %s, loglevel -> %s", prefix, logLevel))
+
+	priority := syslog.LOG_INFO
+	logLevel = strings.ToLower(logLevel)
+	switch logLevel {
+	case "emergency", "emerg":
+		priority = syslog.LOG_EMERG
+	case "alert":
+		priority = syslog.LOG_ALERT
+	case "critical", "crit":
+		priority = syslog.LOG_CRIT
+	case "error", "err":
+		priority = syslog.LOG_ERR
+	case "warning", "warn":
+		priority = syslog.LOG_WARNING
+	case "notice":
+		priority = syslog.LOG_NOTICE
+	case "debug":
+		priority = syslog.LOG_DEBUG
+	default:
+		Logger.Out(log.LOG_ERR, fmt.Sprintf("t.SetLogger could not match %s to syslog priority", logLevel))
+	}
+	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.SetLogger new prefix -> %s priority -> %v", prefix, priority))
+
+	// Logger.Close()
+	Logger = *log.NewLogger()
+	_, _ = Logger.NewCh(log.ChConfig{Severity: &priority, Prefix: &prefix})
+
+}
+
 // endregion: invokes
 
 // endregion: functions
@@ -489,7 +530,7 @@ func main() {
 
 	// region: init logger
 
-	logLevel := syslog.LOG_DEBUG
+	logLevel := syslog.LOG_INFO
 	prefix := "==> te-food-bundles ==> "
 
 	Logger = *log.NewLogger()
