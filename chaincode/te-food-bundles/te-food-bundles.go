@@ -22,8 +22,12 @@ import (
 
 	"github.com/SandorMiskey/TEx-kit/log"
 	"github.com/golang/protobuf/ptypes"
+	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/hyperledger/fabric-chaincode-go/shim"
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
+
+	// "github.com/golang/protobuf/ptypes"
+	// "github.com/golang/protobuf/ptypes/timestamp"
 )
 
 // endregion: packages
@@ -142,11 +146,10 @@ func (t *Chaincode) SetLogger(ctx contractapi.TransactionContextInterface, prefi
 	default:
 		Logger.Out(log.LOG_ERR, fmt.Sprintf("t.SetLogger could not match %s to syslog priority", logLevel))
 	}
-	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.SetLogger new prefix -> %s priority -> %s", prefix, priority))
+	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.SetLogger new prefix -> %s priority -> %v", prefix, priority))
 
 	Logger.Close()
 	Logger = *log.NewLogger()
-	defer Logger.Close()
 	_, _ = Logger.NewCh(log.ChConfig{Severity: &priority, Prefix: &prefix})
 
 }
@@ -213,6 +216,26 @@ func (t *Chaincode) BundleHistory(ctx contractapi.TransactionContextInterface, b
 
 		// Check if the Timestamp is valid
 		// if ts.CheckValid() {
+		// 	fmt.Println("Timestamp is valid.")
+		// } else {
+		// 	fmt.Println("Timestamp is invalid.")
+		// }
+
+
+		// Create a new types.Timestamp value representing the current time
+		// ts := ptypes.TimestampNow()
+
+		// Use AsTime to convert the types.Timestamp to a time.Time value
+		// timeValue, err := ptypes.Timestamp(ts)
+		// if err != nil {
+		// 	fmt.Println("Error converting timestamp:", err)
+		// 	return
+		// }
+
+		// fmt.Println("Timestamp as time.Time:", timeValue)
+
+		// Check if the Timestamp is valid
+		// if ts.GetSeconds() != 0 || ts.GetNanos() != 0 {
 		// 	fmt.Println("Timestamp is valid.")
 		// } else {
 		// 	fmt.Println("Timestamp is invalid.")
@@ -487,7 +510,7 @@ func main() {
 
 	// region: init logger
 
-	logLevel := syslog.LOG_INFO
+	logLevel := syslog.LOG_DEBUG
 	prefix := "==> te-food-bundles ==> "
 
 	Logger = *log.NewLogger()
