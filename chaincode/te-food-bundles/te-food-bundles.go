@@ -14,10 +14,6 @@ import (
 
 	"github.com/hyperledger/fabric-chaincode-go/shim"
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
-	// "github.com/golang/protobuf/ptypes/timestamp"
-	// "google.golang.org/protobuf/types/known/timestamppb"
-	// "github.com/golang/protobuf/ptypes"
-	// "github.com/golang/protobuf/ptypes/timestamp"
 )
 
 // endregion: packages
@@ -339,7 +335,7 @@ func (t *Chaincode) CreateBundle(ctx contractapi.TransactionContextInterface, bu
 		Logger.Out(log.LOG_ERR, msg)
 		return msg
 	}
-	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.CreateBundle bundleStr unmarshaled -> %#v", bundleIn))
+	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.CreateBundle bundleStr unmarshal -> %#v", bundleIn))
 
 	// endregion: parse json
 	// region: check if exists
@@ -355,7 +351,7 @@ func (t *Chaincode) CreateBundle(ctx contractapi.TransactionContextInterface, bu
 		Logger.Out(log.LOG_ERR, msg)
 		return msg
 	}
-	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("ledger chacked, bundle does not exist yet -> %v", bundleIn.BundleID))
+	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("ledger checked, bundle does not exist yet -> %v", bundleIn.BundleID))
 
 	// endregion: check if exists
 	// region: bundle out
@@ -425,7 +421,7 @@ func (t *Chaincode) UpdateBundle(ctx contractapi.TransactionContextInterface, bu
 		Logger.Out(log.LOG_ERR, msg)
 		return msg
 	}
-	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.CreateBundle bundleStr unmarshaled -> %#v", bundleIn))
+	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.CreateBundle bundleStr unmarshal -> %#v", bundleIn))
 
 	// endregion: parse json
 	// region: check if exists
@@ -441,7 +437,7 @@ func (t *Chaincode) UpdateBundle(ctx contractapi.TransactionContextInterface, bu
 		Logger.Out(log.LOG_ERR, msg)
 		return msg
 	}
-	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("ledger chacked, bundle does exist -> %v", bundleIn.BundleID))
+	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("ledger checked, bundle does exist -> %v", bundleIn.BundleID))
 
 	// endregion: check if exists
 	// region: get original

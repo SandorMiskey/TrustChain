@@ -181,7 +181,7 @@ func main() {
 			CTX:     ctx,
 			Logger:  &Logger,
 			Status:  200,
-			Message: fmt.Errorf("dummytext"),
+			Message: fmt.Errorf("dummy text"),
 		}
 		r.Send(nil)
 	})
