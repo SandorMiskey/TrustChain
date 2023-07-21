@@ -2,6 +2,7 @@
 
 * chaincode + api
   * queries
+  * bundle id -> int
   * UpdateBundle
     * validate data_base64 vs data_hash
   * CreateBundle
