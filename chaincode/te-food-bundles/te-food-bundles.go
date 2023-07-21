@@ -2,9 +2,6 @@
 
 /*
 
-Rich Query with index design doc specified only (Only supported if CouchDB is used as state database):
-peer chaincode query -C myc1 -n asset_transfer -c '{"Args":["QueryAssets","{\"selector\":{\"docType\":{\"$eq\":\"asset\"},\"owner\":{\"$eq\":\"tom\"},\"size\":{\"$gt\":0}},\"fields\":[\"docType\",\"owner\",\"size\"],\"sort\":[{\"size\":\"desc\"}],\"use_index\":\"_design/indexSizeSortDoc\"}"]}'
-
 
 Rich Query with Pagination (Only supported if CouchDB is used as state database):
 peer chaincode query -C myc1 -n asset_transfer -c '{"Args":["QueryAssetsWithPagination","{\"selector\":{\"owner\":\"tom\"}}","3",""]}'
@@ -20,6 +17,7 @@ import (
 	"fmt"
 	"log/syslog"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/SandorMiskey/TEx-kit/log"
@@ -29,7 +27,7 @@ import (
 )
 
 // endregion: packages
-// region: types, globals anc consts
+// region: types and globals
 
 var (
 	Logger log.Logger
@@ -71,7 +69,7 @@ type PaginatedQueryResult struct {
 	Bookmark            string    `json:"bookmark"`
 }
 
-// endregion: types anc consts
+// endregion: types and globals
 // region: functions
 
 // region: helpers
@@ -119,12 +117,46 @@ func getQueryResultForQueryString(ctx contractapi.TransactionContextInterface, q
 	return constructQueryResponseFromIterator(resultsIterator)
 }
 
+func (t *Chaincode) SetLogger(ctx contractapi.TransactionContextInterface, prefix, logLevel string) {
+
+	// reset logger params
+	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.SetLogger queried with prefix -> %s, loglevel -> %s", prefix, logLevel))
+
+	priority := syslog.LOG_INFO
+	logLevel = strings.ToLower(logLevel)
+	switch logLevel {
+	case "emergency", "emerg":
+		priority = syslog.LOG_EMERG
+	case "alert":
+		priority = syslog.LOG_ALERT
+	case "critical", "crit":
+		priority = syslog.LOG_CRIT
+	case "error", "err":
+		priority = syslog.LOG_ERR
+	case "warning", "warn":
+		priority = syslog.LOG_WARNING
+	case "notice":
+		priority = syslog.LOG_NOTICE
+	case "debug":
+		priority = syslog.LOG_DEBUG
+	default:
+		Logger.Out(log.LOG_ERR, fmt.Sprintf("t.SetLogger could not match %s to syslog priority", logLevel))
+	}
+	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.SetLogger new prefix -> %s priority -> %s", prefix, priority))
+
+	Logger.Close()
+	Logger = *log.NewLogger()
+	defer Logger.Close()
+	_, _ = Logger.NewCh(log.ChConfig{Severity: &priority, Prefix: &prefix})
+
+}
+
 // endregion: helpers
 // region: queries
 
 func (t *Chaincode) BundleExists(ctx contractapi.TransactionContextInterface, bundleID string) (bool, error) {
 
-	// returns true when bundle with given ID exists in the ledger.
+	// returns true when bundle with given ID exists in the ledger
 	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.BundleExists queried with -> %s", bundleID))
 
 	bundleBytes, err := ctx.GetStub().GetState(bundleID)
@@ -455,7 +487,7 @@ func main() {
 
 	// region: init logger
 
-	logLevel := syslog.LOG_DEBUG
+	logLevel := syslog.LOG_INFO
 	prefix := "==> te-food-bundles ==> "
 
 	Logger = *log.NewLogger()
