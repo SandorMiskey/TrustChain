@@ -3,7 +3,8 @@
 		"_postman_id": "98c88a64-8dec-4787-a088-2ab1b6f0ab68",
 		"name": "Raw API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "12083801"
+		"_exporter_id": "12083801",
+		"_collection_link": "https://te-food.postman.co/workspace/TrustChain~043e5534-fcad-475e-82d9-779492236604/collection/12083801-98c88a64-8dec-4787-a088-2ab1b6f0ab68?action=share&creator=12083801&source=collection_link"
 	},
 	"item": [
 		{
@@ -91,12 +92,96 @@
 								},
 								{
 									"key": "function",
-									"value": "createBundle",
+									"value": "CreateBundle",
 									"type": "text"
 								},
 								{
 									"key": "args",
-									"value": "{\n\t\"system_id\": \"7\",\n\t\"external_flag\": \"2\",\n\t\"confidential_flag\": \"2\",\n\t\"legacy_flag\": \"1\",\n\t\"number_of_operations\": 10,\n\t\"transaction_type_id\": \"29\",\n\t\"bundle_id\": \"1\",\n\t\"data_base64\": \"eyJzbGF1Z2h0ZXJfZGF0YSI6eyJjcmVhdGVfZGF0ZSI6IjIwMjMtMDEtMDcgMDA6NTc6MzkiLCJzbGF1Z2h0ZXJob3VzZV9uYW1lIjoiQ1NHTSBUaOG7pyBDw7RuZyBDw7RuZyB0eSBj4buVIHBo4bqnbiBjaOG6vyBiaeG6v24gdGjhu7FjIHBo4bqpbSBIw7NjIE3DtG4gLSBUcuG6p24gVGjDoWkgTmhpIiwicXJfc2VyaWFsIjoiMjExMTEtOC01MDMtMTUyMSJ9LCJ0cmFuc2FjdGlvbl90eXBlX2lkIjoiMjYifQ==\",\n\t\"data_hash\": \"39596853113905cf11dde34ef32671eabff7638e7234c25758c4aa126fb2d5bd\"\n}",
+									"value": "{\n\t\"system_id\": \"7\",\n\t\"external_flag\": \"2\",\n\t\"confidential_flag\": \"2\",\n\t\"legacy_flag\": \"2\",\n\t\"number_of_operations\": 10,\n\t\"transaction_type_id\": \"29\",\n\t\"bundle_id\": \"2\",\n\t\"data_base64\": \"eyJzbGF1Z2h0ZXJfZGF0YSI6eyJjcmVhdGVfZGF0ZSI6IjIwMjMtMDEtMDcgMDA6NTc6MzkiLCJzbGF1Z2h0ZXJob3VzZV9uYW1lIjoiQ1NHTSBUaOG7pyBDw7RuZyBDw7RuZyB0eSBj4buVIHBo4bqnbiBjaOG6vyBiaeG6v24gdGjhu7FjIHBo4bqpbSBIw7NjIE3DtG4gLSBUcuG6p24gVGjDoWkgTmhpIiwicXJfc2VyaWFsIjoiMjExMTEtOC01MDMtMTUyMSJ9LCJ0cmFuc2FjdGlvbl90eXBlX2lkIjoiMjYifQ==\",\n\t\"data_hash\": \"39596853113905cf11dde34ef32671eabff7638e7234c25758c4aa126fb2d5bd\"\n}",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseURL}}/invoke",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"invoke"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "invoke te-food-bundles.DeleteBundle",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "chaincode",
+									"value": "te-food-bundles",
+									"type": "text"
+								},
+								{
+									"key": "channel",
+									"value": "trustchain-test",
+									"type": "text"
+								},
+								{
+									"key": "function",
+									"value": "DeleteBundle",
+									"type": "text"
+								},
+								{
+									"key": "args",
+									"value": "3",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseURL}}/invoke",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"invoke"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "invoke te-food-bundles.UpdateBundle",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "chaincode",
+									"value": "te-food-bundles",
+									"type": "text"
+								},
+								{
+									"key": "channel",
+									"value": "trustchain-test",
+									"type": "text"
+								},
+								{
+									"key": "function",
+									"value": "UpdateBundle",
+									"type": "text"
+								},
+								{
+									"key": "args",
+									"value": "{\n\t\"system_id\": \"7\",\n\t\"external_flag\": \"2\",\n\t\"confidential_flag\": \"2\",\n\t\"legacy_flag\": \"2\",\n\t\"number_of_operations\": 10,\n\t\"transaction_type_id\": \"29\",\n\t\"bundle_id\": \"2\",\n\t\"data_base64\": \"blahblah\",\n\t\"data_hash\": \"39596853113905cf11dde34ef32671eabff7638e7234c25758c4aa126fb2d5bd\"\n}",
 									"type": "text"
 								}
 							]
@@ -183,6 +268,125 @@
 								{
 									"key": "function",
 									"value": "BundleExists"
+								},
+								{
+									"key": "args",
+									"value": "2"
+								},
+								{
+									"key": "args",
+									"value": "10",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "query te-food-bundles.BundleGet",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/query?channel=trustchain-test&chaincode=te-food-bundles&function=BundleGet&args=2",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"query"
+							],
+							"query": [
+								{
+									"key": "channel",
+									"value": "trustchain-test"
+								},
+								{
+									"key": "chaincode",
+									"value": "te-food-bundles"
+								},
+								{
+									"key": "function",
+									"value": "BundleGet"
+								},
+								{
+									"key": "args",
+									"value": "2"
+								},
+								{
+									"key": "args",
+									"value": "10",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "query te-food-bundles.BundleGet",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/query?channel=trustchain-test&chaincode=te-food-bundles&function=BundleGetRange&args=1&args=2",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"query"
+							],
+							"query": [
+								{
+									"key": "channel",
+									"value": "trustchain-test"
+								},
+								{
+									"key": "chaincode",
+									"value": "te-food-bundles"
+								},
+								{
+									"key": "function",
+									"value": "BundleGetRange"
+								},
+								{
+									"key": "args",
+									"value": "1"
+								},
+								{
+									"key": "args",
+									"value": "2"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "query te-food-bundles.BundleHistory",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/query?channel=trustchain-test&chaincode=te-food-bundles&function=BundleHistory&args=2",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"query"
+							],
+							"query": [
+								{
+									"key": "channel",
+									"value": "trustchain-test"
+								},
+								{
+									"key": "chaincode",
+									"value": "te-food-bundles"
+								},
+								{
+									"key": "function",
+									"value": "BundleHistory"
 								},
 								{
 									"key": "args",
