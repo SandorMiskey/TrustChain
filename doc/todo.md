@@ -1,7 +1,6 @@
 # todo
 
 * chaincode + api
-  * static check
   * queries
   * bundle id -> int
   * UpdateBundle

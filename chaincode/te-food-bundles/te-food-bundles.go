@@ -21,11 +21,11 @@ import (
 	"time"
 
 	"github.com/SandorMiskey/TEx-kit/log"
-	"github.com/golang/protobuf/ptypes"
 
-	// "github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/hyperledger/fabric-chaincode-go/shim"
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
+	// "github.com/golang/protobuf/ptypes/timestamp"
+	// "google.golang.org/protobuf/types/known/timestamppb"
 	// "github.com/golang/protobuf/ptypes"
 	// "github.com/golang/protobuf/ptypes/timestamp"
 )
@@ -176,6 +176,7 @@ func (t *Chaincode) BundleHistory(ctx contractapi.TransactionContextInterface, b
 	// BundleHistory returns the chain of custody for a bundle since issuance
 	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.BundleHistory queried with -> %s", bundleID))
 
+	// iterator
 	resultsIterator, err := ctx.GetStub().GetHistoryForKey(bundleID)
 	if err != nil {
 		msg := fmt.Errorf("error in t.BundleHistory when ctx.GetStub().GetHistoryForKey(%s): %s", bundleID, err)
@@ -183,16 +184,22 @@ func (t *Chaincode) BundleHistory(ctx contractapi.TransactionContextInterface, b
 		return nil, msg
 	}
 	defer resultsIterator.Close()
+	Logger.Out(log.LOG_DEBUG, "t.BundleHistory got iterator")
 
+	// iterate on history
 	var records []HistoryQueryResult
 	for resultsIterator.HasNext() {
+
+		// read record
 		response, err := resultsIterator.Next()
 		if err != nil {
 			msg := fmt.Errorf("error in t.BundleHistory when resultsIterator.Next(): %s", err)
 			Logger.Out(log.LOG_ERR, msg)
 			return nil, msg
 		}
+		Logger.Out(log.LOG_DEBUG, "t.BundleHistory new record read")
 
+		// validate record
 		var bundle Bundle
 		if len(response.Value) > 0 {
 			err = json.Unmarshal(response.Value, &bundle)
@@ -206,54 +213,27 @@ func (t *Chaincode) BundleHistory(ctx contractapi.TransactionContextInterface, b
 				BundleID: bundleID,
 			}
 		}
+		Logger.Out(log.LOG_DEBUG, "t.BundleHistory valid record")
 
-		// Create a new types.Timestamp value representing the current time
-		// ts := ptypes.TimestampNow()
-
-		// Use AsTime to convert the types.Timestamp to a time.Time value
-		// timeValue := ptypes.TimestampString(ts)
-		// fmt.Println("Timestamp as time.Time:", timeValue)
-
-		// Check if the Timestamp is valid
-		// if ts.CheckValid() {
-		// 	fmt.Println("Timestamp is valid.")
-		// } else {
-		// 	fmt.Println("Timestamp is invalid.")
-		// }
-
-		// Create a new types.Timestamp value representing the current time
-		// ts := ptypes.TimestampNow()
-
-		// Use AsTime to convert the types.Timestamp to a time.Time value
-		// timeValue, err := ptypes.Timestamp(ts)
-		// if err != nil {
-		// 	fmt.Println("Error converting timestamp:", err)
-		// 	return
-		// }
-
-		// fmt.Println("Timestamp as time.Time:", timeValue)
-
-		// Check if the Timestamp is valid
-		// if ts.GetSeconds() != 0 || ts.GetNanos() != 0 {
-		// 	fmt.Println("Timestamp is valid.")
-		// } else {
-		// 	fmt.Println("Timestamp is invalid.")
-		// }
-
-		timestamp, err := ptypes.Timestamp(response.Timestamp)
+		// check timestamp
+		err = response.Timestamp.CheckValid()
 		if err != nil {
 			msg := fmt.Errorf("unable to parse timestamp (%s) in t.BundleHistory: %s", response.Timestamp, err)
 			Logger.Out(log.LOG_ERR, msg)
 			return nil, msg
 		}
+		Logger.Out(log.LOG_DEBUG, "t.BundleHistory valid timestamp")
 
+		// set record
 		record := HistoryQueryResult{
 			TxID:      response.TxId,
-			Timestamp: timestamp,
+			Timestamp: response.Timestamp.AsTime(),
 			Record:    &bundle,
 			IsDelete:  response.IsDelete,
 		}
 		records = append(records, record)
+		Logger.Out(log.LOG_DEBUG, "t.BundleHistory new record")
+
 	}
 
 	return records, nil
