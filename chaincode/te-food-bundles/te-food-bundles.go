@@ -22,10 +22,10 @@ import (
 
 	"github.com/SandorMiskey/TEx-kit/log"
 	"github.com/golang/protobuf/ptypes"
-	"github.com/golang/protobuf/ptypes/timestamp"
+
+	// "github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/hyperledger/fabric-chaincode-go/shim"
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
-
 	// "github.com/golang/protobuf/ptypes"
 	// "github.com/golang/protobuf/ptypes/timestamp"
 )
@@ -148,7 +148,7 @@ func (t *Chaincode) SetLogger(ctx contractapi.TransactionContextInterface, prefi
 	}
 	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.SetLogger new prefix -> %s priority -> %v", prefix, priority))
 
-	Logger.Close()
+	// Logger.Close()
 	Logger = *log.NewLogger()
 	_, _ = Logger.NewCh(log.ChConfig{Severity: &priority, Prefix: &prefix})
 
@@ -220,7 +220,6 @@ func (t *Chaincode) BundleHistory(ctx contractapi.TransactionContextInterface, b
 		// } else {
 		// 	fmt.Println("Timestamp is invalid.")
 		// }
-
 
 		// Create a new types.Timestamp value representing the current time
 		// ts := ptypes.TimestampNow()

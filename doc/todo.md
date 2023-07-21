@@ -1,7 +1,6 @@
 # todo
 
 * chaincode + api
-  * SetLogger
   * static check
   * queries
   * bundle id -> int
