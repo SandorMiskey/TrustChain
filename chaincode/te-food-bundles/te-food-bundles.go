@@ -1,13 +1,3 @@
-// region: docs
-
-/*
-
-
-Rich Query with Pagination (Only supported if CouchDB is used as state database):
-peer chaincode query -C myc1 -n asset_transfer -c '{"Args":["QueryAssetsWithPagination","{\"selector\":{\"owner\":\"tom\"}}","3",""]}'
-*/
-
-// endregion: docs
 // region: packages
 
 package main
@@ -296,6 +286,36 @@ func (t *Chaincode) BundleGetRange(ctx contractapi.TransactionContextInterface, 
 	defer resultsIterator.Close()
 
 	return constructQueryResponseFromIterator(resultsIterator)
+}
+
+func (t *Chaincode) BundleGetRangeWithPagination(ctx contractapi.TransactionContextInterface, startKey string, endKey string, pageSize int, bookmark string) (*PaginatedQueryResult, error) {
+
+	// BundleGetRangeWithPagination performs a range query based on the start and end key,
+	// page size and a bookmark. The number of fetched records will be equal to or lesser
+	// than the page size. Paginated range queries are only valid for read only transactions.
+
+	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.BundleGetRangeWithPagination queried with startKey -> %s, endKey -> %s, pageSize -> %v, bookmark -> %s", startKey, endKey, pageSize, bookmark))
+
+	resultsIterator, responseMetadata, err := ctx.GetStub().GetStateByRangeWithPagination(startKey, endKey, int32(pageSize), bookmark)
+	if err != nil {
+		msg := fmt.Errorf("error in t.BundleGetRangeWithPagination while ctx.GetStub().GetStateByRangeWithPagination(%s, %s, %v, %s): %s", startKey, endKey, pageSize, bookmark, err)
+		Logger.Out(log.LOG_ERR, msg)
+		return nil, msg
+	}
+	defer resultsIterator.Close()
+
+	bundles, err := constructQueryResponseFromIterator(resultsIterator)
+	if err != nil {
+		msg := fmt.Errorf("error in t.BundleGetRangeWithPagination while constructQueryResponseFromIterator(): %s", err)
+		Logger.Out(log.LOG_ERR, msg)
+		return nil, msg
+	}
+
+	return &PaginatedQueryResult{
+		Records:             bundles,
+		FetchedRecordsCount: responseMetadata.FetchedRecordsCount,
+		Bookmark:            responseMetadata.Bookmark,
+	}, nil
 }
 
 func (t *Chaincode) BundleQuery(ctx contractapi.TransactionContextInterface, queryString string) ([]*Bundle, error) {
