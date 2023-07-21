@@ -232,7 +232,7 @@ func (t *Chaincode) BundleGet(ctx contractapi.TransactionContextInterface, bundl
 		return nil, msg
 	}
 	if bundleBytes == nil {
-		msg := fmt.Errorf("bundle %s does not exist", bundleID)
+		msg := fmt.Errorf("t.BundleGet says bundle %s does not exist", bundleID)
 		Logger.Out(log.LOG_INFO, msg)
 		return nil, msg
 	}
@@ -380,9 +380,9 @@ func (t *Chaincode) CreateBundle(ctx contractapi.TransactionContextInterface, bu
 	}
 	Logger.Out(log.LOG_DEBUG, "world state updated with no errors")
 
-	// endregion: bundle out
-
 	return &bundleOut, nil
+
+	// endregion: bundle out
 
 }
 
@@ -393,7 +393,7 @@ func (t *Chaincode) DeleteBundle(ctx contractapi.TransactionContextInterface, bu
 
 	_, err := t.BundleGet(ctx, bundleID)
 	if err != nil {
-		msg := fmt.Errorf("failed to get bundle %s: %v", bundleID, err)
+		msg := fmt.Errorf("failed to get bundle %s in t.DeleteBundle: %v", bundleID, err)
 		Logger.Out(log.LOG_ERR, msg)
 		return msg
 	}

@@ -35,7 +35,7 @@ func (setup *OrgSetup) Init() (*OrgSetup, error) {
 	// region: check for logger
 
 	if setup.Logger == nil {
-		return setup, errors.New("OrgSetup.Init() needs a logger!")
+		return setup, errors.New("OrgSetup.Init() needs a logger")
 	}
 	logger := setup.Logger.Out
 
@@ -75,10 +75,10 @@ func (setup *OrgSetup) Init() (*OrgSetup, error) {
 
 func (setup *OrgSetup) validate(response *http.Response) error {
 	if setup.Logger == nil || setup.gateway == nil {
-		return errors.New("fabric.OrgSetup.Invoke() needs a logger and a gateway, fabric.OrgSetup.Init() first!")
+		return errors.New("fabric.OrgSetup.Invoke() needs a logger and a gateway, fabric.OrgSetup.Init() first")
 
 		response.Status = 500
-		response.Message = "fabric.OrgSetup.Invoke() needs a logger and a gateway, fabric.OrgSetup.Init() first!"
+		response.Message = "fabric.OrgSetup.Invoke() needs a logger and a gateway, fabric.OrgSetup.Init() first"
 		response.Send(nil)
 		return errors.New(response.Message.(string))
 	}

@@ -85,11 +85,12 @@ func (r *request) error(err error) {
 	switch err := r.err.(type) {
 	case *client.EndorseError:
 		msg.message.ID = err.TransactionID
-		msg.message.Status = fmt.Sprintf("%s", status.Code(err))
+		msg.message.Status = fmt.Sprintf("%v", status.Code(err))
 		msg.message.Result = fmt.Sprintf("%v: endorse error for transaction %s with gRPC status %v: %s", r.response.CTX.ID, msg.message.ID, msg.message.Status, err)
 	case *client.SubmitError:
 		msg.message.ID = err.TransactionID
-		msg.message.Status = fmt.Sprintf("%s", status.Code(r.err))
+		// msg.message.Status = fmt.Sprintf("%s", status.Code(r.err))
+		msg.message.Status = status.Code(r.err).String()
 		msg.message.Result = fmt.Sprintf("%v: submit error for transaction %s with gRPC status %v: %s", r.response.CTX.ID, msg.message.ID, msg.message.Status, err)
 	case *client.CommitStatusError:
 		msg.message.ID = err.TransactionID
@@ -97,16 +98,16 @@ func (r *request) error(err error) {
 			msg.message.Status = fmt.Sprintf("%s", err)
 			msg.message.Result = fmt.Sprintf("%v: timeout waiting for transaction %s commit status: %s", r.response.CTX.ID, msg.message.ID, err)
 		} else {
-			msg.message.Status = fmt.Sprintf("%s", status.Code(err))
+			msg.message.Status = status.Code(err).String()
 			msg.message.Result = fmt.Sprintf("%v: error obtaining commit status for transaction %s commit status %s: %s", r.response.CTX.ID, msg.message.ID, msg.message.Status, err)
 		}
 	case *client.CommitError:
 		msg.message.ID = err.TransactionID
-		msg.message.Status = fmt.Sprintf("%s", int32(err.Code))
+		msg.message.Status = fmt.Sprintf("%v", int32(err.Code))
 		msg.message.Result = fmt.Sprintf("%v: transaction %s failed to commit with status %d: %s", r.response.CTX.ID, err.TransactionID, int32(err.Code), err)
 	default:
 		msg.message.ID = "-"
-		msg.message.Status = fmt.Sprintf("%s", status.Code(r.err))
+		msg.message.Status = status.Code(r.err).String()
 		msg.message.Result = fmt.Sprintf("%v: unexpected error type %T: %s", r.response.CTX.ID, err, err)
 	}
 

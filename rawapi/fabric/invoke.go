@@ -3,6 +3,7 @@
 package fabric
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/SandorMiskey/TEx-kit/log"
@@ -90,18 +91,32 @@ func (setup *OrgSetup) Invoke(ctx *fasthttp.RequestCtx) {
 		request.error(nil)
 		return
 	}
-	logger(log.LOG_INFO, fmt.Sprintf("%v: invoke request commited, transaction ID: %s, response: %s", ctx.ID, request.commit.TransactionID(), request.transaction.Result()))
+	logger(log.LOG_INFO, fmt.Sprintf("%v: invoke request committed, transaction ID: %s, response: %s", ctx.ID, request.commit.TransactionID(), request.transaction.Result()))
 	logger(log.LOG_DEBUG, fmt.Sprintf("%v: committed: request -> %#v", ctx.ID, request))
 
 	// endregion: commit
 	// region: closing
 
-	response.Message = message{
+	out := message{
 		ID:     request.commit.TransactionID(),
 		Form:   request.form,
 		Status: "OK",
-		Result: request.transaction.Result(),
+		// Result: request.transaction.Result(),
 	}
+
+	var rawData json.RawMessage
+	request.err = json.Unmarshal([]byte(request.transaction.Result()), &rawData)
+	if request.err != nil {
+		logger(log.LOG_ERR, fmt.Sprintf("error processing json.RawMessage in Invoke() request -> %s -> %s", request.transaction.Result(), request.err))
+		out.Result = nil
+		// request.error(err)
+		// return
+	} else {
+		out.Result = rawData
+	}
+	logger(log.LOG_DEBUG, fmt.Sprintf("%v: result -> %s", ctx.ID, rawData))
+
+	response.Message = out
 	response.SendJSON(nil)
 
 	// endregion: closing

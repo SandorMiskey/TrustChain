@@ -98,7 +98,7 @@ func (setup *OrgSetup) Query(ctx *fasthttp.RequestCtx) {
 	// 	var rawData json.RawMessage
 	// 	err := json.Unmarshal([]byte(resultByte), &rawData)
 	// 	if err != nil {
-	// 		logger(log.LOG_ERR, "error unmarshalling into even json.RawMessage -> %s -> %s", resultByte, err)
+	// 		logger(log.LOG_ERR, "error processing result into even json.RawMessage -> %s -> %s", resultByte, err)
 	// 		resultMsg.Result = nil
 	// 		return
 	// 	} else {
@@ -113,7 +113,7 @@ func (setup *OrgSetup) Query(ctx *fasthttp.RequestCtx) {
 
 	err = json.Unmarshal([]byte(resultByte), &rawData)
 	if err != nil {
-		logger(log.LOG_ERR, fmt.Sprintf("error unmarshalling into even json.RawMessage -> %s -> %s", resultByte, err))
+		logger(log.LOG_ERR, fmt.Sprintf("error processing result into even json.RawMessage -> %s -> %s", resultByte, err))
 		resultMsg.Result = nil
 		// request.error(err)
 		// return
