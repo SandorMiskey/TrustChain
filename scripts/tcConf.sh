@@ -38,9 +38,9 @@ export PATH=${TC_PATH_BIN}:${TC_PATH_SCRIPTS}:$PATH
 # region: exec control
 
 export TC_EXEC_DRY=false
-export TC_EXEC_FORCE=true
+export TC_EXEC_FORCE=false
 export TC_EXEC_PANIC=true
-export TC_EXEC_SURE=true
+export TC_EXEC_SURE=false
 export TC_EXEC_SILENT=false
 export TC_EXEC_VERBOSE=true
 
@@ -66,11 +66,17 @@ export TC_CHANNEL2_NAME=trustchain
 # region: swarm
 
 export TC_SWARM_PATH=$TC_PATH_SWARM
-export TC_SWARM_INIT="--advertise-addr 35.158.186.93:2377 --listen-addr 0.0.0.0:2377 --cert-expiry 1000000h0m0s"
-export TC_SWARM_MANAGER=ip-10-97-85-63
+export TC_SWARM_PUBLIC="35.158.186.93"
+export TC_SWARM_INIT="--advertise-addr ${TC_SWARM_PUBLIC}:2377 --listen-addr 0.0.0.0:2377 --cert-expiry 1000000h0m0s"
+export TC_SWARM_MANAGER=tc2t-manager
 export TC_SWARM_NETNAME=$TC_NETWORK_NAME
 export TC_SWARM_NETINIT="--attachable --driver overlay --subnet 10.96.0.0/24 $TC_SWARM_NETNAME"
 export TC_SWARM_DELAY=5
+
+export TC_SWARM_WORKER1_SSH="tc2tw1"
+export TC_SWARM_WORKER1_NODE="tc2t-worker1"
+export TC_SWARM_WORKER2_SSH="tc2tw2"
+export TC_SWARM_WORKER2_NODE="tc2t-worker2"
 
 # endregion: swarm
 # region: tls ca
@@ -208,7 +214,7 @@ export TC_COMMON1_C1_DEBUG=false
 
 		# region: org1 all stack
 
-		export TC_ORG1_STACK=te-food-endorsers
+		export TC_ORG1_STACK=te-food-backbone
 		export TC_ORG1_DATA=${TC_PATH_ORGS}/peerOrganizations/${TC_ORG1_STACK}
 		export TC_ORG1_DOMAIN=${TC_ORG1_STACK}.${TC_NETWORK_DOMAIN}
 		export TC_ORG1_LOGLEVEL=info

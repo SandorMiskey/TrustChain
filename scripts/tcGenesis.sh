@@ -122,38 +122,49 @@ _templates() {
 }
 
 [[ "$TC_EXEC_DRY" == false ]] && commonYN "process templates?" _templates 
-pwd
 
 # endregion: process templates
 # region: swarm init
 
 _SwarmLeave() {
+	local status
+
 	_leave() {
+		local worker=$1
+		local status
+		status=$( ssh $worker "docker swarm leave" 2>&1 )
+		commonVerify $? "$status" "swarm status: $status"
+	}
+		
+	_leaveManager() {
 		local status
 		status=$( docker swarm leave --force 2>&1 )
 		commonVerify $? "$status" "swarm status: $status"
+
 	}
 
 	local force=$COMMON_FORCE
 	COMMON_FORCE=$TC_EXEC_SURE
-	commonYN "removing the last manager erases all current state of the swarm, are you sure?" _leave
+	commonYN "remove ${TC_SWARM_WORKER1_NODE}?" _leave $TC_SWARM_WORKER1_SSH
+	commonYN "remove ${TC_SWARM_WORKER2_NODE}?" _leave $TC_SWARM_WORKER2_SSH
+	commonVerify $? "$status" "swarm nodes: $status"
+	commonYN "removing the last manager erases all current state of the swarm, are you sure?" _leaveManager
 	COMMON_FORCE=$force
 }
 
+token=""
 _SwarmInit() {
-	local token
 	local status
 	token=$( docker swarm init ${TC_SWARM_INIT} 2>&1 )
 	status=$?
 	commonVerify $status "$token"
 	if [ $status -eq 0 ]; then
-		local token=$( printf "$token" | tr -d '\n' | sed "s/.*--token //" | sed "s/ .*$//" )
+		token=$( printf "$token" | tr -d '\n' | sed "s/.*--token //" | sed "s/ .*$//" )
 		local file=${TC_SWARM_PATH}/swarm-worker-token
 		commonPrintf "swarm worker token is $token"
 		echo $token > $file
-		commonVerify $? "unable to write worker token to $file" "worken token is writen to $file"
+		commonVerify $? "unable to write worker token to $file" "worker token is writen to $file"
 	fi
-	unset token
 	unset status
 	unset file
 }
@@ -161,14 +172,25 @@ _SwarmInit() {
 _SwarmPrune() {
 	_prune() {
 		local status
-		status=$( docker network prune -f 2>&1 )
+
+		# workers
+
+		status=$( ssh $TC_SWARM_WORKER1_SSH "docker system prune --all -f" 2>&1 )
+		commonVerify $? "$status" "swarm status: $status"
+		status=$( ssh $TC_SWARM_WORKER2_SSH "docker system prune --all -f" 2>&1 )
+		commonVerify $? "$status" "swarm status: $status"
+
+		# manager
+		status=$( docker network prune --all -f 2>&1 )
 		commonVerify $? "$status" "network prune: `echo $status`"
-		status=$( docker volume prune -f 2>&1 )
-		commonVerify $? "$status" "volume prune: `echo $status`"
-		status=$( docker container prune -f 2>&1 )
-		commonVerify $? "$status" "container prune: `echo $status`"
-		status=$( docker image prune -f 2>&1 )
-		commonVerify $? "$status" "image prune: `echo $status`"
+		# status=$( docker network prune -f 2>&1 )
+		# commonVerify $? "$status" "network prune: `echo $status`"
+		# status=$( docker volume prune -f 2>&1 )
+		# commonVerify $? "$status" "volume prune: `echo $status`"
+		# status=$( docker container prune -f 2>&1 )
+		# commonVerify $? "$status" "container prune: `echo $status`"
+		# status=$( docker image prune -f 2>&1 )
+		# commonVerify $? "$status" "image prune: `echo $status`"
 	}
 
 	local force=$COMMON_FORCE
@@ -180,11 +202,29 @@ _SwarmPrune() {
 	unset force
 }
 
+_SwarmJoin() {
+	local cmd="docker swarm join --token $token ${TC_SWARM_PUBLIC}:2377"
+	_join() {
+		local status
+		local worker=$1
+		commonPrintf "$cmd will be issued on $worker"
+		status=$( ssh $worker $cmd 2>&1 )
+		commonVerify $? "$status" "swarm status: $status"
+		status=$( docker node ls 2>&1 )
+		commonVerify $? "$status" "swarm nodes: $status"
+	}
+	commonYN "join ${TC_SWARM_WORKER1_NODE}?" _join $TC_SWARM_WORKER1_SSH
+	commonYN "join ${TC_SWARM_WORKER2_NODE}?" _join $TC_SWARM_WORKER2_SSH
+}
+
 if [ "$TC_EXEC_DRY" == false ]; then
 	commonYN "leave docker swarm?" _SwarmLeave
 	commonYN "init docker swarm?" _SwarmInit
-	commonYN "prune networks/volumes/containers/images?" _SwarmPrune
+	# commonYN "prune networks/volumes/containers/images?" _SwarmPrune
+	commonYN "join $TC_SWARM_WORKER1_NODE and $TC_SWARM_WORKER1_NODE to swarm?" _SwarmJoin
 fi
+unset token
+exit
 
 # endregion: swarm init
 # region: tls ca
@@ -1681,7 +1721,7 @@ _channels() {
 		out=$(
 			export FABRIC_CFG_PATH="${TC_PATH_WORKBENCH}/channels/${TC_CHANNEL1_NAME}"
 			export CORE_PEER_TLS_ENABLED=true
-			export CORE_PEER_LOCALMSPID="te-food-endorsersMSP"
+			export CORE_PEER_LOCALMSPID="${TC_ORG1_STACK}MSP"
 			export CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG1_DATA}/msp/tlscacerts/ca-cert.pem
 			export CORE_PEER_MSPCONFIGPATH=$TC_ORG1_ADMINMSP
 			export CORE_PEER_ADDRESS=localhost:${TC_ORG1_P1_PORT}
