@@ -1,9 +1,10 @@
 bin
-chaincode/asset_transfer_ledger_chaincode.go
-doc/fabric-samples
-workbench
-rawapi/vendor
 chaincode/te-food-bundles/vendor
+doc/fabric-samples
+doc/fabric-samples.tgz
+doc/legacy_to_port/SASC.tgz
+rawapi/vendor
+workbench
 
 # Created by https://www.toptal.com/developers/gitignore/api/go,vim,web,macos,linux,visualstudiocode,node
 # Edit at https://www.toptal.com/developers/gitignore?templates=go,vim,web,macos,linux,visualstudiocode,node
@@ -141,7 +142,7 @@ typings/
 .node_repl_history
 
 # Output of 'npm pack'
-*.tgz
+# *.tgz
 
 # Yarn Integrity file
 .yarn-integrity

@@ -119,8 +119,23 @@
 								},
 								{
 									"key": "args",
-									"value": "{\n\t\"system_id\": \"7\",\n\t\"external_flag\": \"2\",\n\t\"confidential_flag\": \"2\",\n\t\"legacy_flag\": \"2\",\n\t\"number_of_operations\": 50,\n\t\"transaction_type_id\": \"29\",\n\t\"bundle_id\": \"{{bundleID}}\",\n\t\"data_base64\": \"eyJzbGF1Z2h0ZXJfZGF0YSI6eyJjcmVhdGVfZGF0ZSI6IjIwMjMtMDEtMDcgMDA6NTc6MzkiLCJzbGF1Z2h0ZXJob3VzZV9uYW1lIjoiQ1NHTSBUaOG7pyBDw7RuZyBDw7RuZyB0eSBj4buVIHBo4bqnbiBjaOG6vyBiaeG6v24gdGjhu7FjIHBo4bqpbSBIw7NjIE3DtG4gLSBUcuG6p24gVGjDoWkgTmhpIiwicXJfc2VyaWFsIjoiMjExMTEtOC01MDMtMTUyMSJ9LCJ0cmFuc2FjdGlvbl90eXBlX2lkIjoiMjYifQ==\",\n\t\"data_hash\": \"39596853113905cf11dde34ef32671eabff7638e7234c25758c4aa126fb2d5bd\"\n}",
+									"value": "{\n\t\"system_id\": \"7\",\n\t\"external_flag\": \"2\",\n\t\"confidential_flag\": \"2\",\n\t\"legacy_flag\": \"2\",\n\t\"number_of_operations\": 50,\n\t\"transaction_type_id\": \"29\",\n\t\"bundle_id\": {{bundleID}},\n\t\"data_base64\": \"ewoJImZvbyI6IDEKfQ==\",\n\t\"data_hash\": \"5936fee60e0930c8a8e47fadf8bec5b5868642ad179003fec555fa81203cbc52\"\n}",
+									"description": "valid",
 									"type": "text"
+								},
+								{
+									"key": "args",
+									"value": "{\n\t\"data_base64\": \"ewoJImZvbyI6IDEKfQ==\",\n\t\"data_hash\": \"8c49eb427b66fa82b4549d66fbe486702ec3726e7be1cde3f76341ce10877f27\"\n}",
+									"description": "invalid",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "args",
+									"value": "{\n\t\"data_base64\": \"---\",\n\t\"data_hash\": \"5936fee60e0930c8a8e47fadf8bec5b5868642ad179003fec555fa81203cbc52\"\n}",
+									"description": "invalid base64",
+									"type": "text",
+									"disabled": true
 								}
 							]
 						},
@@ -203,7 +218,69 @@
 								},
 								{
 									"key": "args",
-									"value": "{\n\t\"system_id\": \"7\",\n\t\"external_flag\": \"2\",\n\t\"confidential_flag\": \"2\",\n\t\"legacy_flag\": \"2\",\n\t\"number_of_operations\": 10,\n\t\"transaction_type_id\": \"29\",\n\t\"bundle_id\": \"2\",\n\t\"data_base64\": \"blahblah\",\n\t\"data_hash\": \"39596853113905cf11dde34ef32671eabff7638e7234c25758c4aa126fb2d5bd\"\n}",
+									"value": "{\n\t\"system_id\": \"7\",\n\t\"external_flag\": \"2\",\n\t\"confidential_flag\": \"2\",\n\t\"legacy_flag\": \"2\",\n\t\"number_of_operations\": 10,\n\t\"transaction_type_id\": \"29\",\n\t\"bundle_id\": 60,\n\t\"data_base64\": \"ewoJImZvbyI6IDEKfQ==\",\n\t\"data_hash\": \"5936fee60e0930c8a8e47fadf8bec5b5868642ad179003fec555fa81203cbc52\"\n}",
+									"description": "valid",
+									"type": "text"
+								},
+								{
+									"key": "args",
+									"value": "{\n\t\"data_base64\": \"ewoJImZvbyI6IDEKfQ==\",\n\t\"data_hash\": \"8c49eb427b66fa82b4549d66fbe486702ec3726e7be1cde3f76341ce10877f27\"\n}",
+									"description": "invalid",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "args",
+									"value": "{\n\t\"data_base64\": \"---\",\n\t\"data_hash\": \"5936fee60e0930c8a8e47fadf8bec5b5868642ad179003fec555fa81203cbc52\"\n}",
+									"description": "illegal base64",
+									"type": "text",
+									"disabled": true
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseURL}}/invoke",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"invoke"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "te-food-bundles.SetLogger",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "chaincode",
+									"value": "te-food-bundles",
+									"type": "text"
+								},
+								{
+									"key": "channel",
+									"value": "trustchain-test",
+									"type": "text"
+								},
+								{
+									"key": "function",
+									"value": "SetLogger",
+									"type": "text"
+								},
+								{
+									"key": "args",
+									"value": "--> TE-FOOD-BUNDLES LOG --> --> --> --> --> ",
+									"type": "text"
+								},
+								{
+									"key": "args",
+									"value": "debug",
 									"type": "text"
 								}
 							]
@@ -271,7 +348,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseURL}}/query?channel=trustchain-test&chaincode=te-food-bundles&function=BundleExists&args=2",
+							"raw": "{{baseURL}}/query?channel=trustchain-test&chaincode=te-food-bundles&function=BundleExists&args=7",
 							"host": [
 								"{{baseURL}}"
 							],
@@ -293,7 +370,7 @@
 								},
 								{
 									"key": "args",
-									"value": "2"
+									"value": "7"
 								},
 								{
 									"key": "args",
@@ -311,7 +388,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseURL}}/query?channel=trustchain-test&chaincode=te-food-bundles&function=BundleGet&args=1",
+							"raw": "{{baseURL}}/query?channel=trustchain-test&chaincode=te-food-bundles&function=BundleGet&args=59",
 							"host": [
 								"{{baseURL}}"
 							],
@@ -333,7 +410,7 @@
 								},
 								{
 									"key": "args",
-									"value": "1"
+									"value": "59"
 								},
 								{
 									"key": "args",
@@ -351,7 +428,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseURL}}/query?channel=trustchain-test&chaincode=te-food-bundles&function=BundleGetRange&args=1&args=9",
+							"raw": "{{baseURL}}/query?channel=trustchain-test&chaincode=te-food-bundles&function=BundleGetRange&args=3&args=7",
 							"host": [
 								"{{baseURL}}"
 							],
@@ -373,11 +450,63 @@
 								},
 								{
 									"key": "args",
+									"value": "3"
+								},
+								{
+									"key": "args",
+									"value": "7"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "te-food-bundles.BundleGetRangeWithPagination",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/query?channel=trustchain-test&chaincode=te-food-bundles&function=BundleGetRangeWithPagination&args=1&args=2&args=3&args",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"query"
+							],
+							"query": [
+								{
+									"key": "channel",
+									"value": "trustchain-test"
+								},
+								{
+									"key": "chaincode",
+									"value": "te-food-bundles"
+								},
+								{
+									"key": "function",
+									"value": "BundleGetRangeWithPagination"
+								},
+								{
+									"key": "args",
 									"value": "1"
 								},
 								{
 									"key": "args",
-									"value": "9"
+									"value": "2"
+								},
+								{
+									"key": "args",
+									"value": "3"
+								},
+								{
+									"key": "args",
+									"value": null
+								},
+								{
+									"key": "args",
+									"value": "13",
+									"disabled": true
 								}
 							]
 						}
@@ -390,7 +519,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseURL}}/query?channel=trustchain-test&chaincode=te-food-bundles&function=BundleHistory&args=2",
+							"raw": "{{baseURL}}/query?channel=trustchain-test&chaincode=te-food-bundles&function=BundleHistory&args=7",
 							"host": [
 								"{{baseURL}}"
 							],
@@ -412,7 +541,7 @@
 								},
 								{
 									"key": "args",
-									"value": "2"
+									"value": "7"
 								},
 								{
 									"key": "args",
@@ -426,11 +555,18 @@
 				},
 				{
 					"name": "te-food-bundles.BundleQuery",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
 						"method": "GET",
 						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
 						"url": {
-							"raw": "{{baseURL}}/query?channel=trustchain-test&chaincode=te-food-bundles&function=BundleQuery&args={\n\"selector\": {\n\t\"doc_type\": \"bundle\",\n\t\"tx_timestamp\": {\n\t\t\"$gt\": \"2023-07-21T00:00:00Z\"\n\t}\n},\n\"fields\": [\"doc_type\", \"tx_timestamp\"],\n\"sort\": [{\n\t\"tx_timestamp\": \"desc\"\n}],\n\"use_index\": \"_design/indexTxTimestampDoc\"\n}",
+							"raw": "{{baseURL}}/query?channel=trustchain-test&chaincode=te-food-bundles&function=BundleQuery&args={\n\t\"selector\": {\n\t\t\"doc_type\": \"bundle\",\n\t\t\"$and\": [{\n\t\t\t\t\"bundle_id\": {\n\t\t\t\t\t\"$gt\": 7\n\t\t\t\t}\n\t\t\t},\n\t\t\t{\n\t\t\t\t\"bundle_id\": {\n\t\t\t\t\t\"$lt\": 21\n\t\t\t\t}\n\t\t\t}\n\t\t]\n\n\n\t},\n\t\"sort\": [{\n\t\t\"bundle_id\": \"desc\"\n\t}],\n\t\"use_index\": \"_design/indexBundleIDDoc\"\n}",
 							"host": [
 								"{{baseURL}}"
 							],
@@ -476,8 +612,139 @@
 								},
 								{
 									"key": "args",
-									"value": "{\n\"selector\": {\n\t\"doc_type\": \"bundle\",\n\t\"tx_timestamp\": {\n\t\t\"$gt\": \"2023-07-21T00:00:00Z\"\n\t}\n},\n\"fields\": [\"doc_type\", \"tx_timestamp\"],\n\"sort\": [{\n\t\"tx_timestamp\": \"desc\"\n}],\n\"use_index\": \"_design/indexTxTimestampDoc\"\n}",
-									"description": "condition, sort, index"
+									"value": "{\n\"selector\": {\n\t\"doc_type\": \"bundle\",\n\t\"tx_timestamp\": {\n\t\t\"$gt\": \"2023-07-21T00:00:00Z\"\n\t}\n},\n\"fields\": [\"doc_type\", \"bundle_id\", \"tx_timestamp\"],\n\"sort\": [{\n\t\"tx_timestamp\": \"desc\"\n}],\n\"use_index\": \"_design/indexTxTimestampDoc\"\n}",
+									"description": "condition, sort, index",
+									"disabled": true
+								},
+								{
+									"key": "args",
+									"value": "{\n\t\"selector\": {\n\t\t\"doc_type\": \"bundle\",\n\t\t\"$and\": [{\n\t\t\t\t\"bundle_id\": {\n\t\t\t\t\t\"$gt\": 7\n\t\t\t\t}\n\t\t\t},\n\t\t\t{\n\t\t\t\t\"bundle_id\": {\n\t\t\t\t\t\"$lt\": 21\n\t\t\t\t}\n\t\t\t}\n\t\t]\n\n\n\t},\n\t\"sort\": [{\n\t\t\"bundle_id\": \"desc\"\n\t}],\n\t\"use_index\": \"_design/indexBundleIDDoc\"\n}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "te-food-bundles.BundleQueryWithPagination",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/query?channel=trustchain-test&chaincode=te-food-bundles&function=BundleQueryWithPagination&args={\n\t\"selector\": {\n\t\t\"doc_type\": \"bundle\",\n\t\t\"$and\": [{\n\t\t\t\t\"bundle_id\": {\n\t\t\t\t\t\"$gt\": 7\n\t\t\t\t}\n\t\t\t},\n\t\t\t{\n\t\t\t\t\"bundle_id\": {\n\t\t\t\t\t\"$lt\": 21\n\t\t\t\t}\n\t\t\t}\n\t\t]\n\t},\n\t\"sort\": [{\n\t\t\"bundle_id\": \"desc\"\n\t}],\n\t\"use_index\": \"_design/indexBundleIDDoc\"\n}&args=4&args=",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"query"
+							],
+							"query": [
+								{
+									"key": "channel",
+									"value": "trustchain-test"
+								},
+								{
+									"key": "chaincode",
+									"value": "te-food-bundles"
+								},
+								{
+									"key": "function",
+									"value": "BundleQueryWithPagination"
+								},
+								{
+									"key": "args",
+									"value": "{\"selector\": { \"system_id\": \"7\" }}",
+									"description": "no index",
+									"disabled": true
+								},
+								{
+									"key": "args",
+									"value": "{\"selector\": {\"doc_type\": \"bundle\", \"system_id\": \"7\"}}",
+									"description": "auto index",
+									"disabled": true
+								},
+								{
+									"key": "args",
+									"value": "{\n\"selector\": {\"doc_type\": \"bundle\", \"system_id\": \"7\"},\n\"use_index\": \"_design/indexSystemIDDoc\"\n}",
+									"description": "spec index",
+									"disabled": true
+								},
+								{
+									"key": "args",
+									"value": "{\n\"selector\": {\"doc_type\": \"bundle\", \"system_id\": \"7\"},\n\"use_index\": [\"_design/indexSystemIDDoc\", \"indexSystemID\"]\n}",
+									"description": "spec index",
+									"disabled": true
+								},
+								{
+									"key": "args",
+									"value": "{\n\"selector\": {\n\t\"doc_type\": \"bundle\",\n\t\"tx_timestamp\": {\n\t\t\"$gt\": \"2023-07-21T00:00:00Z\"\n\t}\n},\n\"fields\": [\"doc_type\", \"bundle_id\", \"tx_timestamp\"],\n\"sort\": [{\n\t\"tx_timestamp\": \"desc\"\n}],\n\"use_index\": \"_design/indexTxTimestampDoc\"\n}",
+									"description": "condition, sort, index",
+									"disabled": true
+								},
+								{
+									"key": "args",
+									"value": "{\n\t\"selector\": {\n\t\t\"doc_type\": \"bundle\",\n\t\t\"$and\": [{\n\t\t\t\t\"bundle_id\": {\n\t\t\t\t\t\"$gt\": 7\n\t\t\t\t}\n\t\t\t},\n\t\t\t{\n\t\t\t\t\"bundle_id\": {\n\t\t\t\t\t\"$lt\": 21\n\t\t\t\t}\n\t\t\t}\n\t\t]\n\t},\n\t\"sort\": [{\n\t\t\"bundle_id\": \"desc\"\n\t}],\n\t\"use_index\": \"_design/indexBundleIDDoc\"\n}"
+								},
+								{
+									"key": "args",
+									"value": "4"
+								},
+								{
+									"key": "args",
+									"value": ""
+								},
+								{
+									"key": "args",
+									"value": "g1AAAABXeJzLYWBgYMpgSmHgKy5JLCrJTq2MT8lPzkzJBYkbGYNkOGAyOSAxkARbUmleSk4qiCliZGBkrGtgrmtkGGJoamVqZGVoHJWVBQC9TRUz",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "te-food-bundles.BundleValidate",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/query?channel=trustchain-test&chaincode=te-food-bundles&function=BundleValidate&args={\n\t\"data_base64\": \"ewoJImZvbyI6IDEKfQ==\",\n\t\"data_hash\": \"5936fee60e0930c8a8e47fadf8bec5b5868642ad179003fec555fa81203cbc52\"\n}",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"query"
+							],
+							"query": [
+								{
+									"key": "channel",
+									"value": "trustchain-test"
+								},
+								{
+									"key": "chaincode",
+									"value": "te-food-bundles"
+								},
+								{
+									"key": "function",
+									"value": "BundleValidate"
+								},
+								{
+									"key": "args",
+									"value": "{\n\t\"data_base64\": \"ewoJImZvbyI6IDEKfQ==\",\n\t\"data_hash\": \"5936fee60e0930c8a8e47fadf8bec5b5868642ad179003fec555fa81203cbc52\"\n}",
+									"description": "valid"
+								},
+								{
+									"key": "args",
+									"value": "{\n\t\"data_base64\": \"ewoJImZvbyI6IDEKfQ==\",\n\t\"data_hash\": \"8c49eb427b66fa82b4549d66fbe486702ec3726e7be1cde3f76341ce10877f27\"\n}",
+									"description": "invalid",
+									"disabled": true
+								},
+								{
+									"key": "args",
+									"value": "{\n\t\"data_base64\": \"---\",\n\t\"data_hash\": \"5936fee60e0930c8a8e47fadf8bec5b5868642ad179003fec555fa81203cbc52\"\n}",
+									"description": "wrong base64",
+									"disabled": true
 								}
 							]
 						}
