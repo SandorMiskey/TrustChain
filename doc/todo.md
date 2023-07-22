@@ -1,10 +1,15 @@
 # todo
 
 * remote peers
+  * ssh conf
+  * join swarm
+  * nfs
+  * move workers
 * put p2s and p3s back in tcChaincodeInit.sh
 * put mgmt and metrics (and basic?) back in tcGenesis.sh
 * orderer restart? stress test
-* The enrollment certificate will expire on 2024-07-19 21:43:00
+* ca enrollment certificate will expire on 2024-07-19 21:43:00
+* set swarm cert expire date
 
 * swagger
 * get by tx_id, block# via qscc [https://stackoverflow.com/questions/67263579/retrieve-block-number-and-transaction-id-from-query-to-hyperledger-fabric]
