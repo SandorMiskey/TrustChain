@@ -21,6 +21,7 @@
     "ORGNAME",
     "PEERENDPOINT",
     "protobuf",
+    "qscc",
     "Rasa",
     "rasaexec",
     "rasainit",

@@ -1,11 +1,5 @@
 # todo
 
-* chaincode + api
-  * UpdateBundle
-    * validate data_base64 vs data_hash
-  * CreateBundle
-    * validate data_base64 vs data_hash
-  * query tx_id -> null
 * copy api and chaincode -> templates
 * update postman collection -> doc
 * remote peers
@@ -15,7 +9,7 @@
 * The enrollment certificate will expire on 2024-07-19 21:43:00
 
 * swagger
-* get by tx_id, block# [https://stackoverflow.com/questions/67263579/retrieve-block-number-and-transaction-id-from-query-to-hyperledger-fabric]
+* get by tx_id, block# via qscc [https://stackoverflow.com/questions/67263579/retrieve-block-number-and-transaction-id-from-query-to-hyperledger-fabric]
 * SASC leftover (doc/legacy_to_port)
 * tls ca checklist [https://hyperledger-fabric-ca.readthedocs.io/en/latest/deployguide/ca-config.html]
 * operations:

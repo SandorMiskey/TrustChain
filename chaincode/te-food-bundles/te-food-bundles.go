@@ -3,6 +3,9 @@
 package main
 
 import (
+	"crypto/sha256"
+	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"log/syslog"
@@ -317,6 +320,51 @@ func (t *Chaincode) BundleQueryWithPagination(ctx contractapi.TransactionContext
 	return getQueryResultForQueryStringWithPagination(ctx, queryString, int32(pageSize), bookmark)
 }
 
+func (t *Chaincode) BundleValidate(ctx contractapi.TransactionContextInterface, bundleStr string) (bool, error) {
+
+	// BundleValidate validates bundle.DataHash against computed from bundle.DataBase64
+	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.BundleValidate invoked with -> %s", bundleStr))
+
+	// region: parse json
+
+	var bundleIn Bundle
+
+	err := json.Unmarshal([]byte(bundleStr), &bundleIn)
+	if err != nil {
+		msg := fmt.Errorf("t.CreateBundle: error parsing bundle: %s (%s)", err, bundleStr)
+		Logger.Out(log.LOG_ERR, msg)
+		return false, msg
+	}
+	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.CreateBundle: bundleStr unmarshal -> %#v", bundleIn))
+
+	// endregion: parse json
+	// region: decode the base64 encoded string
+
+	decodedBytes, err := base64.StdEncoding.DecodeString(bundleIn.DataBase64)
+	if err != nil {
+		msg := fmt.Errorf("t.CreateBundle: unable to decode bundleIn.DataBase64: %s (%s)", err, bundleIn.DataBase64)
+		Logger.Out(log.LOG_ERR, msg)
+		return false, msg
+	}
+
+	// endregion: decode
+	// region: compute the SHA256 hash
+
+	hashBytes := sha256.Sum256(decodedBytes)
+	hashString := hex.EncodeToString(hashBytes[:])
+
+	// compare
+	if bundleIn.DataHash != hashString {
+		Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.CreateBundle: bundleIn.DataHash != hashString: %s != %s)", bundleIn.DataHash, hashString))
+		return false, nil
+	}
+	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.CreateBundle: bundleIn.DataHash == hashString: %s != %s)", bundleIn.DataHash, hashString))
+	return true, nil
+
+	// endregion: compute
+
+}
+
 // endregion: queries
 // region: invokes
 
@@ -325,17 +373,32 @@ func (t *Chaincode) CreateBundle(ctx contractapi.TransactionContextInterface, bu
 	// CreateBundle initializes a new bundle in the ledger
 	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.CreateBundle invoked with -> %s", bundleStr))
 
+	// region: validate
+
+	isValid, err := t.BundleValidate(ctx, bundleStr)
+	if err != nil {
+		msg := fmt.Errorf("t.CreateBundle: unable to validate bundleIn: %s", err)
+		Logger.Out(log.LOG_ERR, msg)
+		return nil, msg
+	}
+	if !isValid {
+		msg := fmt.Errorf("t.CreateBundle: bundleIn.DataBase64 vs. bundleIn.DataHash validation failed")
+		Logger.Out(log.LOG_ERR, msg)
+		return nil, msg
+	}
+
+	// endregion: validate
 	// region: parse json
 
 	var bundleIn Bundle
 
-	err := json.Unmarshal([]byte(bundleStr), &bundleIn)
+	err = json.Unmarshal([]byte(bundleStr), &bundleIn)
 	if err != nil {
-		msg := fmt.Errorf("error parsing bundle: %s (%s)", err, bundleStr)
+		msg := fmt.Errorf("t.CreateBundle: error parsing bundle: %s (%s)", err, bundleStr)
 		Logger.Out(log.LOG_ERR, msg)
 		return nil, msg
 	}
-	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.CreateBundle bundleStr unmarshal -> %#v", bundleIn))
+	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.CreateBundle: bundleStr unmarshal -> %#v", bundleIn))
 
 	// endregion: parse json
 	// region: check if exists
@@ -411,11 +474,26 @@ func (t *Chaincode) UpdateBundle(ctx contractapi.TransactionContextInterface, bu
 	// UpdateBundle reset bundle except tx_id's and timestamps
 	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.UpdateBundleById invoked with -> %s", bundleStr))
 
+	// region: validate
+
+	isValid, err := t.BundleValidate(ctx, bundleStr)
+	if err != nil {
+		msg := fmt.Errorf("t.CreateBundle: unable to validate bundleIn: %s", err)
+		Logger.Out(log.LOG_ERR, msg)
+		return nil, msg
+	}
+	if !isValid {
+		msg := fmt.Errorf("t.CreateBundle: bundleIn.DataBase64 vs. bundleIn.DataHash validation failed")
+		Logger.Out(log.LOG_ERR, msg)
+		return nil, msg
+	}
+
+	// endregion: validate
 	// region: parse json
 
 	var bundleIn Bundle
 
-	err := json.Unmarshal([]byte(bundleStr), &bundleIn)
+	err = json.Unmarshal([]byte(bundleStr), &bundleIn)
 	if err != nil {
 		msg := fmt.Errorf("error parsing bundle: %s (%s)", err, bundleStr)
 		Logger.Out(log.LOG_ERR, msg)
