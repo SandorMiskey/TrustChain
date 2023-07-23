@@ -35,105 +35,25 @@ commonPrintfBold "version: $version"
 
 # endregion: check params
 
-_deploy() {
+_aprove() {
 	local out
 	local path=${TC_PATH_CHAINCODE}/${chaincode}
 	local certOrderer="${TC_ORDERER1_O1_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_COMMON1_C1_PORT}.pem" 
 
 	commonPP $path
 
-	# region: vendoring
-
-	commonPrintf "vendoring modules"
-	out=$( GO111MODULE=on go mod vendor  2>&1 )
-	commonVerify $? "failed: $out"
-
-	# endregion: vendoring
-	# region: packing
-
-	commonPrintf "packaging chaincode"
-	out=$(
-		export FABRIC_CFG_PATH="${TC_PATH_CHANNELS}/${channel}"
-		peer lifecycle chaincode package ${chaincode}.tar.gz --path $path --lang golang --label "${chaincode}_${version}.0" 2>&1
-	)
-	commonVerify $? "failed: $out"
-
-	# endregion: packing
-	# region: installing
-
-	commonPrintf "install chaincode on $TC_ORG1_STACK peers"
-	# for port in $TC_ORG1_P1_PORT $TC_ORG1_P2_PORT $TC_ORG1_P3_PORT
-	for port in $TC_ORG1_P1_PORT
-	do
-		commonPrintf "targeting localhost:${port}"
-		out=$(
-			export FABRIC_CFG_PATH="${TC_PATH_CHANNELS}/${channel}"
-			export CORE_PEER_TLS_ENABLED=true
-			export CORE_PEER_LOCALMSPID="${TC_ORG1_STACK}MSP"
-			export CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG1_DATA}/msp/tlscacerts/ca-cert.pem
-			export CORE_PEER_MSPCONFIGPATH=$TC_ORG1_ADMINMSP
-			export CORE_PEER_ADDRESS=localhost:${port}
-			peer lifecycle chaincode install ${chaincode}.tar.gz 2>&1
-		)
-		commonVerify $? "failed: $out" "$out"
-	done
-
-	commonPrintf "install chaincode on $TC_ORG2_STACK peers"
-	# for port in $TC_ORG2_P1_PORT $TC_ORG2_P2_PORT $TC_ORG2_P3_PORT
-	for port in $TC_ORG2_P1_PORT
-	do
-		commonPrintf "targeting localhost:${port}"
-		out=$(
-			export FABRIC_CFG_PATH="${TC_PATH_CHANNELS}/${channel}"
-			export CORE_PEER_TLS_ENABLED=true
-			export CORE_PEER_LOCALMSPID="${TC_ORG2_STACK}MSP"
-			export CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG2_DATA}/msp/tlscacerts/ca-cert.pem
-			export CORE_PEER_MSPCONFIGPATH=$TC_ORG2_ADMINMSP
-			export CORE_PEER_ADDRESS=localhost:${port}
-			peer lifecycle chaincode install ${chaincode}.tar.gz 2>&1
-		)
-		commonVerify $? "failed: $out" "$out"
-	done
-
-	commonPrintf "install chaincode on $TC_ORG3_STACK peers"
-	# for port in $TC_ORG3_P1_PORT $TC_ORG3_P2_PORT $TC_ORG3_P3_PORT
-	for port in $TC_ORG3_P1_PORT
-	do
-		commonPrintf "targeting localhost:${port}"
-		out=$(
-			export FABRIC_CFG_PATH="${TC_PATH_CHANNELS}/${channel}"
-			export CORE_PEER_TLS_ENABLED=true
-			export CORE_PEER_LOCALMSPID="${TC_ORG3_STACK}MSP"
-			export CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG3_DATA}/msp/tlscacerts/ca-cert.pem
-			export CORE_PEER_MSPCONFIGPATH=$TC_ORG3_ADMINMSP
-			export CORE_PEER_ADDRESS=localhost:${port}
-			peer lifecycle chaincode install ${chaincode}.tar.gz 2>&1
-		)
-		commonVerify $? "failed: $out" "$out"
-	done
-
-	# endregion: installing
-	# region: approve a chaincode definition
+	# region: package id
 
 	commonPrintf "getting package id"
-	out=$(
-		export FABRIC_CFG_PATH="${TC_PATH_CHANNELS}/${channel}"
-		export CORE_PEER_TLS_ENABLED=true
-		export CORE_PEER_LOCALMSPID="${TC_ORG1_STACK}MSP"
-		export CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG1_DATA}/msp/tlscacerts/ca-cert.pem
-		export CORE_PEER_MSPCONFIGPATH=$TC_ORG1_ADMINMSP
-		export CORE_PEER_ADDRESS=localhost:${TC_ORG1_P1_PORT}
-		peer lifecycle chaincode queryinstalled -O json  2>&1
-	)
-	commonVerify $? "failed: $out" "$out"
-	# local packageId=$( echo $out | jq ".installed_chaincodes[-1].package_id" | sed s/\"//g  2>&1 )
-	local packageId=$( echo $out | jq -r ".installed_chaincodes[].package_id" | while read -r pkgid; do [[ "$pkgid" == "${chaincode}_${version}"* ]] && echo $pkgid ; done )
+	packageId=$( cat ${path}/"${chaincode}_${version}.0" )
 	commonVerify $? "failed: $packageId" "package id: $packageId"
-	unset pkgid
+
+	# endregion: package id
+	# region: approve a chaincode definition
 
 	commonPrintf "approving chaincode definition for $TC_ORG1_STACK"
 	out=$(
-		export FABRIC_CFG_PATH="${TC_PATH_CHANNELS}/${channel}"
+		export FABRIC_CFG_PATH="${TC_PATH_CHANNELS}"
 		export CORE_PEER_TLS_ENABLED=true
 		export CORE_PEER_LOCALMSPID="${TC_ORG1_STACK}MSP"
 		export CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG1_DATA}/msp/tlscacerts/ca-cert.pem
@@ -145,7 +65,7 @@ _deploy() {
 
 	commonPrintf "approving chaincode definition for $TC_ORG2_STACK"
 	out=$(
-		export FABRIC_CFG_PATH="${TC_PATH_CHANNELS}/${channel}"
+		export FABRIC_CFG_PATH="${TC_PATH_CHANNELS}"
 		export CORE_PEER_TLS_ENABLED=true
 		export CORE_PEER_LOCALMSPID="${TC_ORG2_STACK}MSP"
 		export CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG2_DATA}/msp/tlscacerts/ca-cert.pem
@@ -157,7 +77,7 @@ _deploy() {
 
 	commonPrintf "approving chaincode definition for $TC_ORG3_STACK"
 	out=$(
-		export FABRIC_CFG_PATH="${TC_PATH_CHANNELS}/${channel}"
+		export FABRIC_CFG_PATH="${TC_PATH_CHANNELS}"
 		export CORE_PEER_TLS_ENABLED=true
 		export CORE_PEER_LOCALMSPID="${TC_ORG3_STACK}MSP"
 		export CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG3_DATA}/msp/tlscacerts/ca-cert.pem
@@ -172,7 +92,7 @@ _deploy() {
 
 	commonSleep 5 "check whether channel members have approved the definition"
 	out=$(
-		export FABRIC_CFG_PATH="${TC_PATH_CHANNELS}/${channel}"
+		export FABRIC_CFG_PATH="${TC_PATH_CHANNELS}"
 		export CORE_PEER_TLS_ENABLED=true
 		export CORE_PEER_LOCALMSPID="${TC_ORG1_STACK}MSP"
 		export CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG1_DATA}/msp/tlscacerts/ca-cert.pem
@@ -184,7 +104,7 @@ _deploy() {
 
 	commonPrintf "commiting chaincode"
 	out=$(
-		export FABRIC_CFG_PATH="${TC_PATH_CHANNELS}/${channel}"
+		export FABRIC_CFG_PATH="${TC_PATH_CHANNELS}"
 		export CORE_PEER_TLS_ENABLED=true
 		export CORE_PEER_LOCALMSPID="${TC_ORG1_STACK}MSP"
 		export CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG1_DATA}/msp/tlscacerts/ca-cert.pem
@@ -196,7 +116,7 @@ _deploy() {
 
 	commonSleep 5 "check if chaincode definition has been committed"
 	out=$(
-		export FABRIC_CFG_PATH="${TC_PATH_CHANNELS}/${channel}"
+		export FABRIC_CFG_PATH="${TC_PATH_CHANNELS}"
 		export CORE_PEER_TLS_ENABLED=true
 		export CORE_PEER_LOCALMSPID="${TC_ORG1_STACK}MSP"
 		export CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG1_DATA}/msp/tlscacerts/ca-cert.pem
@@ -209,4 +129,5 @@ _deploy() {
 	# endregion: commit
 
 }
-[[ "$TC_EXEC_DRY" == false ]] && _deploy
+[[ "$TC_EXEC_DRY" == false ]] && _aprove
+unset _aprove

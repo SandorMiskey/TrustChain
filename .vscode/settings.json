@@ -9,6 +9,7 @@
     "fasthttprouter",
     "GATEWAYPEER",
     "getopt",
+    "Gluster",
     "instancelist",
     "instanceregister",
     "instanceroot",
