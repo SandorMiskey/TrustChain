@@ -9,7 +9,7 @@ services:
   ${TC_COMMON3_S1_NAME}:
     command: sh
     deploy:
-      replicas: 1
+      replicas: 0
       placement:
         constraints: [ node.hostname == ${TC_COMMON3_S1_WORKER} ]
     image: busybox
@@ -27,7 +27,7 @@ services:
   ${TC_COMMON3_S2_NAME}:
     command: sh
     deploy:
-      replicas: 1
+      replicas: 0
       placement:
         constraints: [ node.hostname == ${TC_COMMON3_S2_WORKER} ]
     image: nicolaka/netshoot

@@ -217,7 +217,7 @@ _SwarmJoin() {
 }
 
 if [ "$TC_EXEC_DRY" == false ]; then
-	commonYN "leave docker swarm?" _SwarmLeave
+	# commonYN "leave docker swarm?" _SwarmLeave
 	commonYN "init docker swarm?" _SwarmInit
 	# commonYN "prune networks/volumes/containers/images?" _SwarmPrune
 	commonYN "join ${TC_SWARM_WORKER1[node]} and ${TC_SWARM_WORKER2[node]} to swarm?" _SwarmJoin
@@ -938,7 +938,6 @@ _Orderer1() {
 
 		_replicas() {
 			commonPrintf "updating peer replicas"
-			yq -i ".services.${TC_ORG1_G1_NAME}.deploy.replicas=1" ${TC_PATH_SWARM}/*_${TC_ORG1_STACK}.yaml
 			yq -i ".services.${TC_ORG1_P1_NAME}.deploy.replicas=1" ${TC_PATH_SWARM}/*_${TC_ORG1_STACK}.yaml
 			yq -i ".services.${TC_ORG1_P2_NAME}.deploy.replicas=1" ${TC_PATH_SWARM}/*_${TC_ORG1_STACK}.yaml
 			yq -i ".services.${TC_ORG1_P3_NAME}.deploy.replicas=1" ${TC_PATH_SWARM}/*_${TC_ORG1_STACK}.yaml
@@ -1534,14 +1533,16 @@ _Orderer1() {
 _channels() {
 
 	local out
+	local cfpath="${TC_PATH_CHANNELS}"
 
 	# region: create channels and join orgs
+
 
 	for chname in "$TC_CHANNEL1_NAME" "$TC_CHANNEL2_NAME"
 	do
 
-		local cfpath="${TC_PATH_CHANNELS}/${chname}"
-		local gblock=${cfpath}/genesis_block.pb
+		
+		local gblock="${TC_PATH_CHANNELS}/${chname}/genesis_block.pb"
 
 		# region: genesis block
 
@@ -1706,7 +1707,7 @@ _channels() {
 
 	commonPrintf "listing all the channels on org1_p1"
 	out=$(
-		export FABRIC_CFG_PATH="${TC_PATH_WORKBENCH}/channels/${TC_CHANNEL1_NAME}"
+		export FABRIC_CFG_PATH="${cfpath}"
 		export CORE_PEER_TLS_ENABLED=true
 		export CORE_PEER_LOCALMSPID="${TC_ORG1_STACK}MSP"
 		export CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG1_DATA}/msp/tlscacerts/ca-cert.pem
@@ -1718,11 +1719,9 @@ _channels() {
 
 	for chname in "$TC_CHANNEL1_NAME" "$TC_CHANNEL2_NAME"
 	do
-		local cfpath="${TC_PATH_WORKBENCH}/channels/${chname}"
-
 		commonPrintf "get info for $chname on org1_p1"
 		out=$(
-			export FABRIC_CFG_PATH="${TC_PATH_WORKBENCH}/channels/${TC_CHANNEL1_NAME}"
+			export FABRIC_CFG_PATH="$cfpath"
 			export CORE_PEER_TLS_ENABLED=true
 			export CORE_PEER_LOCALMSPID="${TC_ORG1_STACK}MSP"
 			export CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG1_DATA}/msp/tlscacerts/ca-cert.pem
@@ -1742,9 +1741,12 @@ _channels() {
 # endregion: channels
 # region: deploy chaincode
 
+ccVersion=1
 # [[ "$TC_EXEC_DRY" == false ]] && commonYN "deploay basic chaincode on ${TC_CHANNEL1_NAME}?" ${TC_PATH_SCRIPTS}/tcChaincodeInit.sh "basic" "$TC_CHANNEL1_NAME"
-[[ "$TC_EXEC_DRY" == false ]] && commonYN "deploay te-food-bundles chaincode on ${TC_CHANNEL1_NAME}?" ${TC_PATH_SCRIPTS}/tcChaincodeInit.sh "te-food-bundles" "$TC_CHANNEL1_NAME"
-[[ "$TC_EXEC_DRY" == false ]] && commonYN "deploay te-food-bundles chaincode on ${TC_CHANNEL2_NAME}?" ${TC_PATH_SCRIPTS}/tcChaincodeInit.sh "te-food-bundles" "$TC_CHANNEL2_NAME"
+[[ "$TC_EXEC_DRY" == false ]] && commonYN "install te-food-bundles chaincode on endoreser peers?" ${TC_PATH_SCRIPTS}/tcChaincodeInstall.sh "te-food-bundles" $ccVersion
+[[ "$TC_EXEC_DRY" == false ]] && commonYN "approve te-food-bundles chaincode on ${TC_CHANNEL1_NAME}?" ${TC_PATH_SCRIPTS}/tcChaincodeAprove.sh "te-food-bundles" "$TC_CHANNEL1_NAME" $ccVersion
+[[ "$TC_EXEC_DRY" == false ]] && commonYN "approve te-food-bundles chaincode on ${TC_CHANNEL2_NAME}?" ${TC_PATH_SCRIPTS}/tcChaincodeAprove.sh "te-food-bundles" "$TC_CHANNEL2_NAME" $ccVersion
+unset ccVersion
 
 # endregion: deploy chaincode
 # region: raw api
@@ -1758,15 +1760,21 @@ _buildRaw() {
 	commonVerify $? "failed: $out"
 	out=$( CGO_ENABLED=0 go build main.go 2>&1 )
 	commonVerify $? "failed: $out"
+
 	commonPrintf "moving binary under $TC_ORG1_G1_ASSETS_DIR"
 	out=$( mv main ${TC_ORG1_G1_ASSETS_DIR}/ 2>&1 )
 	commonVerify $? "failed: $out"
-	commonPrintf "restart $TC_ORG1_STACK"
-	${TC_PATH_SCRIPTS}/tcBootstrap.sh -m down -s $TC_ORG1_STACK 
+
+	commonPrintf "redeploy ${TC_NETWORK_NAME}_${TC_ORG1_STACK}_${TC_ORG1_G1_NAME}"
+	out=$( docker service update --replicas 0 ${TC_NETWORK_NAME}_${TC_ORG1_STACK}_${TC_ORG1_G1_NAME} 2>&1 )
 	commonVerify $? "failed: $out"
-	${TC_PATH_SCRIPTS}/tcBootstrap.sh -m up -s $TC_ORG1_STACK 
+	commonSleep $TC_SWARM_DELAY "waiting for the service to be taken down"
+	out=$( docker service update --replicas 1 ${TC_NETWORK_NAME}_${TC_ORG1_STACK}_${TC_ORG1_G1_NAME} 2>&1 )
 	commonVerify $? "failed: $out"
 
+	commonPrintf "updating ${TC_NETWORK_NAME}-${TC_ORG1_STACK}_${TC_ORG1_G1_NAME} replica # in stack config"
+	out=$( yq -i ".services.${TC_ORG1_G1_NAME}.deploy.replicas=1" ${TC_PATH_SWARM}/*_${TC_ORG1_STACK}.yaml )
+	commonVerify $? "failed: $out"
 }
 commonYN "build raw api?" _buildRaw
 

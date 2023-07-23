@@ -2,16 +2,18 @@
 
 ## public: metrics, management and monitoring (5000 -> 5999)
 
+### COMMON1 (5010 -> 5019)
+
+* TC_COMMON1_F1_PORT=5011
+
 ### COMMON2 (5020 -> 5029)
 
-* [TC_COMMON2_S1_PORT=5021 (visualizer -> TC_COMMON2_S1_NAME:8080)](http://35.158.186.93:5021)
-* [TC_COMMON2_S2_PORT=5022 (logspout -> TC_COMMON2_S2_NAME:80)](http://35.158.186.93:5022/logs)
+* [TC_COMMON2_S1_PORT=5021 (visualizer -> TC_COMMON2_S1_NAME:8080)](http://35.158.186.93:5021) + workers
+* [TC_COMMON2_S2_PORT=5022 (logspout -> TC_COMMON2_S2_NAME:80)](http://35.158.186.93:5022/logs) + workers
 * [TC_COMMON2_S3_PORT=5023 (prometheus -> TC_COMMON2_S3_NAME:9090)](http://35.158.186.93:5023)
 * [TC_COMMON2_S4_PORT=5024 (cadvisor -> TC_COMMON2_S4_NAME:8080)](http://35.158.186.93:5024)
 * [TC_COMMON2_S5_PORT=5025 (node-exporter -> TC_COMMON2_S5_NAME:9100)](http://35.158.186.93:5025)
 * [TC_COMMON2_S6_PORT=5026 (grafana -> TC_COMMON2_S6_NAME:3000)](http://35.158.186.93:5026)
-
-TC_COMMON2_S3_PORT=5202
 
 ### COMMON3 (5030 -> 5039)
 
