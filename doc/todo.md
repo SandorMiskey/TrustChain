@@ -1,14 +1,11 @@
 # todo
 
 * remote peers
-  * ssh conf
-  * join swarm
   * nfs
   * move workers
 * put p2s and p3s back in tcChaincodeInit.sh
 * put mgmt and metrics (and basic?) back in tcGenesis.sh
 * orderer restart? stress test
-* ca enrollment certificate will expire on 2024-07-19 21:43:00
 * set swarm cert expire date
 
 * swagger

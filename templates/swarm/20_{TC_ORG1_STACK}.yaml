@@ -19,6 +19,10 @@ services:
       - FABRIC_CA_SERVER_CSR_HOSTS=0.0.0.0
       - FABRIC_CA_SERVER_DEBUG=${TC_ORG1_C1_DEBUG}
       - FABRIC_CA_SERVER_LOGLEVEL=${TC_ORG1_C1_LOGLEVEL}
+      - FABRIC_CA_SERVER_SIGNING_DEFAULT_EXPIRY=876000h
+      - FABRIC_CA_SERVER_SIGNING_PROFILES_CA_EXPIRY=876000h
+      - FABRIC_CA_SERVER_SIGNING_PROFILES_TLS_EXPIRY=876000h
+      - FABRIC_CA_SERVER_CSR_CA_EXPIRY=876000h
     hostname: ${TC_ORG1_C1_FQDN} 
     image: hyperledger/fabric-ca:${TC_DEPS_CA}
     labels:
@@ -369,7 +373,7 @@ services:
     deploy:
       placement:
         constraints: [ node.hostname == ${TC_ORG1_G1_WORKER} ]
-      replicas: 1
+      replicas: 0
       restart_policy:
         condition: any 
         delay: ${TC_SWARM_DELAY}s

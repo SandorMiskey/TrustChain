@@ -38,9 +38,9 @@ export PATH=${TC_PATH_BIN}:${TC_PATH_SCRIPTS}:$PATH
 # region: exec control
 
 export TC_EXEC_DRY=false
-export TC_EXEC_FORCE=false
+export TC_EXEC_FORCE=true
 export TC_EXEC_PANIC=true
-export TC_EXEC_SURE=false
+export TC_EXEC_SURE=true
 export TC_EXEC_SILENT=false
 export TC_EXEC_VERBOSE=true
 
@@ -73,10 +73,8 @@ export TC_SWARM_NETNAME=$TC_NETWORK_NAME
 export TC_SWARM_NETINIT="--attachable --driver overlay --subnet 10.96.0.0/24 $TC_SWARM_NETNAME"
 export TC_SWARM_DELAY=5
 
-export TC_SWARM_WORKER1_SSH="tc2tw1"
-export TC_SWARM_WORKER1_NODE="tc2t-worker1"
-export TC_SWARM_WORKER2_SSH="tc2tw2"
-export TC_SWARM_WORKER2_NODE="tc2t-worker2"
+declare -A TC_SWARM_WORKER1=( [ssh]=tc2tw1 [node]=tc2t-worker1 )
+declare -A TC_SWARM_WORKER2=( [ssh]=tc2tw2 [node]=tc2t-worker2 )
 
 # endregion: swarm
 # region: tls ca
@@ -95,6 +93,7 @@ export TC_COMMON1_C1_DATA=${TC_PATH_WORKBENCH}/${TC_COMMON1_STACK}/${TC_COMMON1_
 # export TC_COMMON1_C1_HOME=${TC_COMMON1_C1_DATA}/${TC_COMMON1_C1_SUBHOME}
 export TC_COMMON1_C1_HOME=${TC_COMMON1_C1_DATA}
 export TC_COMMON1_C1_DEBUG=false
+export TC_COMMON1_C1_EXP=3153600000
 
 # endregion: tls ca
 # region: orgs
@@ -128,6 +127,7 @@ export TC_COMMON1_C1_DEBUG=false
 		# export TC_ORDERER1_C1_SUBHOME=crypto
 		# export TC_ORDERER1_C1_HOME=${TC_ORDERER1_C1_DATA}/${TC_ORDERER1_C1_SUBHOME}	
 		export TC_ORDERER1_C1_HOME=${TC_ORDERER1_C1_DATA}	
+		export TC_ORDERER1_C1_EXP=3153600000
 
 		export TC_ORDERER1_C1_ADMIN=${TC_ORDERER1_STACK}-${TC_ORDERER1_C1_NAME}-admin1
 		export TC_ORDERER1_C1_ADMINPW=$TC_ORDERER1_C1_ADMINPW
@@ -245,6 +245,7 @@ export TC_COMMON1_C1_DEBUG=false
 		# export TC_ORG1_C1_SUBHOME=crypto
 		# export TC_ORG1_C1_HOME=${TC_ORG1_C1_DATA}/${TC_ORG1_C1_SUBHOME}
 		export TC_ORG1_C1_HOME=${TC_ORG1_C1_DATA}
+		export TC_ORG1_C1_EXP=3153600000
 
 		export TC_ORG1_C1_ADMIN=${TC_ORG1_STACK}-${TC_ORG1_C1_NAME}-admin1
 		export TC_ORG1_C1_ADMINPW=$TC_ORG1_C1_ADMINPW
@@ -427,6 +428,7 @@ export TC_COMMON1_C1_DEBUG=false
 		# export TC_ORG2_C1_SUBHOME=crypto
 		# export TC_ORG2_C1_HOME=${TC_ORG2_C1_DATA}/${TC_ORG2_C1_SUBHOME}
 		export TC_ORG2_C1_HOME=${TC_ORG2_C1_DATA}
+		export TC_ORG2_C1_EXP=3153600000
 
 		export TC_ORG2_C1_ADMIN=${TC_ORG2_STACK}-${TC_ORG2_C1_NAME}-admin1
 		export TC_ORG2_C1_ADMINPW=$TC_ORG2_C1_ADMINPW
@@ -586,6 +588,7 @@ export TC_COMMON1_C1_DEBUG=false
 		# export TC_ORG3_C1_SUBHOME=crypto
 		# export TC_ORG3_C1_HOME=${TC_ORG3_C1_DATA}/${TC_ORG3_C1_SUBHOME}
 		export TC_ORG3_C1_HOME=${TC_ORG3_C1_DATA}
+		export TC_ORG3_C1_EXP=3153600000
 
 		export TC_ORG3_C1_ADMIN=${TC_ORG3_STACK}-${TC_ORG3_C1_NAME}-admin1
 		export TC_ORG3_C1_ADMINPW=$TC_ORG3_C1_ADMINPW
