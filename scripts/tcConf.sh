@@ -66,7 +66,7 @@ export TC_CHANNEL2_NAME=trustchain
 # region: swarm
 
 export TC_SWARM_PATH=$TC_PATH_SWARM
-export TC_SWARM_PUBLIC="35.158.186.93"
+export TC_SWARM_PUBLIC="3.121.76.229"
 export TC_SWARM_INIT="--advertise-addr ${TC_SWARM_PUBLIC}:2377 --listen-addr 0.0.0.0:2377 --cert-expiry 1000000h0m0s"
 export TC_SWARM_MANAGER=tc2t-manager
 export TC_SWARM_NETNAME=$TC_NETWORK_NAME
@@ -75,6 +75,7 @@ export TC_SWARM_DELAY=5
 
 declare -A TC_SWARM_WORKER1=( [ssh]=tc2tw1 [node]=tc2t-worker1 )
 declare -A TC_SWARM_WORKER2=( [ssh]=tc2tw2 [node]=tc2t-worker2 )
+declare -A TC_SWARM_WORKER3=( [ssh]=tc2tw3 [node]=tc2t-worker3 )
 
 # endregion: swarm
 # region: infra

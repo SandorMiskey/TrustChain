@@ -147,6 +147,7 @@ _SwarmLeave() {
 	COMMON_FORCE=$TC_EXEC_SURE
 	commonYN "remove ${TC_SWARM_WORKER1[node]}?" _leave ${TC_SWARM_WORKER1[ssh]}
 	commonYN "remove ${TC_SWARM_WORKER2[node]}?" _leave ${TC_SWARM_WORKER2[ssh]}
+	commonYN "remove ${TC_SWARM_WORKER3[node]}?" _leave ${TC_SWARM_WORKER3[ssh]}
 	commonYN "removing the last manager erases all current state of the swarm, are you sure?" _leaveManager
 	COMMON_FORCE=$force
 }
@@ -214,13 +215,14 @@ _SwarmJoin() {
 	}
 	commonYN "join ${TC_SWARM_WORKER1[node]}?" _join ${TC_SWARM_WORKER1[ssh]}
 	commonYN "join ${TC_SWARM_WORKER2[node]}?" _join ${TC_SWARM_WORKER2[ssh]}
+	commonYN "join ${TC_SWARM_WORKER3[node]}?" _join ${TC_SWARM_WORKER3[ssh]}
 }
 
 if [ "$TC_EXEC_DRY" == false ]; then
-	# commonYN "leave docker swarm?" _SwarmLeave
+	commonYN "leave docker swarm?" _SwarmLeave
 	commonYN "init docker swarm?" _SwarmInit
 	# commonYN "prune networks/volumes/containers/images?" _SwarmPrune
-	commonYN "join ${TC_SWARM_WORKER1[node]} and ${TC_SWARM_WORKER2[node]} to swarm?" _SwarmJoin
+	commonYN "join workers to swarm?" _SwarmJoin
 fi
 unset token
 
