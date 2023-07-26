@@ -102,7 +102,7 @@ export TC_COMMON3_S4_PW=TC_COMMON3_S4_PW
 # region: init
 
 export CGO_ENABLED=0 
-export TC_PATH_BASE=/srv/TrustChain
+export TC_PATH_BASE=/home/smiskey/TrustChain
 export TC_PATH_RC=${TC_PATH_BASE}/scripts/tcConf.sh
 export COMMON_FUNCS=${TC_PATH_BASE}/scripts/commonFuncs.sh
 
