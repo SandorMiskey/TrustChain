@@ -5,6 +5,13 @@ networks:
     name: ${TC_SWARM_NETNAME}
     external: true
 
+# volumes:
+#   test-nfs-volume:
+#     driver_opts:
+#       type: "nfs"
+#       o: "addr=3.121.76.229,nolock,soft,rw"
+#       device: ":/srv/TrustChain/workbench"
+
 services:
   ${TC_ORG3_C1_NAME}:
     command: /bin/bash -c 'fabric-ca-server start -b ${TC_ORG3_C1_ADMIN}:${TC_ORG3_C1_ADMINPW} --port ${TC_ORG3_C1_PORT}'
@@ -179,6 +186,13 @@ services:
     volumes:
       - ${TC_ORG3_P1_DATA}:${TC_ORG3_P1_DATA} 
       - /var/run/:/host/var/run/
+    #   - type: volume
+    #     source: test-nfs-volume
+    #     target: /srv/TrustChain/workbench
+    #     volume:
+    #       nocopy: true
+    # user: 1002:1002"
+        
     working_dir: ${TC_ORG3_P1_DATA}
   ${TC_ORG3_P2_NAME}:
     depends_on:

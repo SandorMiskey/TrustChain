@@ -179,9 +179,11 @@ _SwarmPrune() {
 		commonVerify $? "$status" "swarm status: $status"
 		status=$( ssh ${TC_SWARM_WORKER2[ssh]} "docker system prune --all -f" 2>&1 )
 		commonVerify $? "$status" "swarm status: $status"
+		status=$( ssh ${TC_SWARM_WORKER3[ssh]} "docker system prune --all -f" 2>&1 )
+		commonVerify $? "$status" "swarm status: $status"
 
 		# manager
-		status=$( docker network prune --all -f 2>&1 )
+		status=$( docker system prune --all -f 2>&1 )
 		commonVerify $? "$status" "network prune: `echo $status`"
 		# status=$( docker network prune -f 2>&1 )
 		# commonVerify $? "$status" "network prune: `echo $status`"
@@ -221,7 +223,7 @@ _SwarmJoin() {
 if [ "$TC_EXEC_DRY" == false ]; then
 	commonYN "leave docker swarm?" _SwarmLeave
 	commonYN "init docker swarm?" _SwarmInit
-	# commonYN "prune networks/volumes/containers/images?" _SwarmPrune
+	commonYN "prune networks/volumes/containers/images?" _SwarmPrune
 	commonYN "join workers to swarm?" _SwarmJoin
 fi
 unset token

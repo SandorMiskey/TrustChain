@@ -1,13 +1,16 @@
 # todo
 
 * remote peers
-  * nfs
-    * create/check export
-    * mount/check volume
-    * export on org/peer level
-    * authentication?
+  * GlusterFS?
+    * create cluster
+    * mount on manager and workers
+    * ...
+    * profit
+  * dependencies
+    * test on workers
+    * docker
+    * check if mount point available
   * move workers
-  * nfs -> GlusterFS
 * put p2s and p3s back in tcChaincodeInit.sh
 * put mgmt and metrics (and basic?) back in tcGenesis.sh
 * orderer restart? stress test
