@@ -75,9 +75,9 @@ func (setup *OrgSetup) Query(ctx *fasthttp.RequestCtx) {
 		request.error(err)
 		return
 	}
-	logger(log.LOG_DEBUG, fmt.Sprintf("%v: result type -> %T", ctx.ID, []byte(resultByte)))
-	logger(log.LOG_DEBUG, fmt.Sprintf("%v: result -> %s", ctx.ID, []byte(resultByte)))
-	logger(log.LOG_DEBUG, fmt.Sprintf("%v: result -> %s", ctx.ID, string(resultByte)))
+	logger(log.LOG_DEBUG, ctx.ID, fmt.Sprintf("result type -> %T", []byte(resultByte)))
+	// logger(log.LOG_DEBUG, ctx.ID, fmt.Sprintf("result -> %s", []byte(resultByte)))
+	// logger(log.LOG_DEBUG, ctx.ID, fmt.Sprintf(result -> %s", string(resultByte)))
 
 	// endregion: fetch result
 	// region: prepare message
@@ -121,7 +121,7 @@ func (setup *OrgSetup) Query(ctx *fasthttp.RequestCtx) {
 		resultMsg.Result = rawData
 	}
 
-	logger(log.LOG_DEBUG, fmt.Sprintf("%v: result -> %s", ctx.ID, rawData))
+	logger(log.LOG_DEBUG, ctx.ID, fmt.Sprintf("result -> %s", rawData))
 
 	// endregion: deconstruct
 	// region: closing

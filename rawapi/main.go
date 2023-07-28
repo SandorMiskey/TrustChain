@@ -54,6 +54,8 @@ func main() {
 		// "dbType":        {Desc: "db type as in TEx-kit/db/db.go", Type: "int", Def: 4},
 		// "dbUser":        {Desc: "database user", Type: "string", Def: "mgmt"},
 
+		"tc_rawapi_key": {Desc: "api key, skip if not set", Type: "string", Def: ""},
+
 		"tc_rawapi_http_enabled":        {Desc: "enable http", Type: "bool", Def: true},
 		"tc_rawapi_http_name":           {Desc: "server name in response header", Type: "string", Def: "TrustChain backend"},
 		"tc_rawapi_http_port":           {Desc: "http port", Type: "int", Def: 5998},
@@ -154,6 +156,7 @@ func main() {
 
 	RouterInstance = http.RouterSetup{
 		Logger:        &Logger,
+		Key:           Config.Entries["tc_rawapi_key"].Value.(string),
 		StaticEnabled: Config.Entries["tc_rawapi_http_static_enabled"].Value.(bool),
 		StaticRoot:    Config.Entries["tc_rawapi_http_static_root"].Value.(string),
 		StaticIndex:   Config.Entries["tc_rawapi_http_static_index"].Value.(string),

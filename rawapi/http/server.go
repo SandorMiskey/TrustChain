@@ -36,7 +36,7 @@ func (setup *ServerSetup) ServerLaunch() (*ServerSetup, error) {
 	// region: check
 
 	if setup.Logger == nil {
-		return setup, errors.New("http.ServerLaunch() needs a logger!")
+		return setup, errors.New("http.ServerLaunch() needs a logger")
 	}
 	logger := setup.Logger.Out
 

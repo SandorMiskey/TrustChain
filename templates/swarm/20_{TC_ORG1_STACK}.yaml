@@ -397,6 +397,7 @@ services:
       #
       # raw api
       #
+      - TC_RAWAPI_KEY=$TC_RAWAPI_KEY
       - TC_RAWAPI_HTTP_ENABLED=true
       - TC_RAWAPI_HTTP_NAME="TrustChain backend"
       - TC_RAWAPI_HTTP_PORT=$TC_RAWAPI_HTTP_PORT

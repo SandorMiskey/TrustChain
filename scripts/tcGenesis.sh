@@ -145,9 +145,9 @@ _SwarmLeave() {
 
 	local force=$COMMON_FORCE
 	COMMON_FORCE=$TC_EXEC_SURE
-	commonYN "remove ${TC_SWARM_WORKER1[node]}?" _leave ${TC_SWARM_WORKER1[ssh]}
-	commonYN "remove ${TC_SWARM_WORKER2[node]}?" _leave ${TC_SWARM_WORKER2[ssh]}
-	commonYN "remove ${TC_SWARM_WORKER3[node]}?" _leave ${TC_SWARM_WORKER3[ssh]}
+	commonYN "remove ${TC_SWARM_WORKER1[node]}?" _leave ${TC_SWARM_WORKER1[node]}
+	commonYN "remove ${TC_SWARM_WORKER2[node]}?" _leave ${TC_SWARM_WORKER2[node]}
+	commonYN "remove ${TC_SWARM_WORKER3[node]}?" _leave ${TC_SWARM_WORKER3[node]}
 	commonYN "removing the last manager erases all current state of the swarm, are you sure?" _leaveManager
 	COMMON_FORCE=$force
 }
@@ -175,11 +175,11 @@ _SwarmPrune() {
 
 		# workers
 
-		status=$( ssh ${TC_SWARM_WORKER1[ssh]} "docker system prune --all -f" 2>&1 )
+		status=$( ssh ${TC_SWARM_WORKER1[node]} "docker system prune --all -f" 2>&1 )
 		commonVerify $? "$status" "swarm status: $status"
-		status=$( ssh ${TC_SWARM_WORKER2[ssh]} "docker system prune --all -f" 2>&1 )
+		status=$( ssh ${TC_SWARM_WORKER2[node]} "docker system prune --all -f" 2>&1 )
 		commonVerify $? "$status" "swarm status: $status"
-		status=$( ssh ${TC_SWARM_WORKER3[ssh]} "docker system prune --all -f" 2>&1 )
+		status=$( ssh ${TC_SWARM_WORKER3[node]} "docker system prune --all -f" 2>&1 )
 		commonVerify $? "$status" "swarm status: $status"
 
 		# manager
@@ -215,15 +215,15 @@ _SwarmJoin() {
 		status=$( docker node ls 2>&1 )
 		commonVerify $? "$status" "swarm nodes: $status"
 	}
-	commonYN "join ${TC_SWARM_WORKER1[node]}?" _join ${TC_SWARM_WORKER1[ssh]}
-	commonYN "join ${TC_SWARM_WORKER2[node]}?" _join ${TC_SWARM_WORKER2[ssh]}
-	commonYN "join ${TC_SWARM_WORKER3[node]}?" _join ${TC_SWARM_WORKER3[ssh]}
+	commonYN "join ${TC_SWARM_WORKER1[node]}?" _join ${TC_SWARM_WORKER1[node]}
+	commonYN "join ${TC_SWARM_WORKER2[node]}?" _join ${TC_SWARM_WORKER2[node]}
+	commonYN "join ${TC_SWARM_WORKER3[node]}?" _join ${TC_SWARM_WORKER3[node]}
 }
 
 if [ "$TC_EXEC_DRY" == false ]; then
 	commonYN "leave docker swarm?" _SwarmLeave
 	commonYN "init docker swarm?" _SwarmInit
-	commonYN "prune networks/volumes/containers/images?" _SwarmPrune
+	# commonYN "prune networks/volumes/containers/images?" _SwarmPrune
 	commonYN "join workers to swarm?" _SwarmJoin
 fi
 unset token

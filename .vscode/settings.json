@@ -1,6 +1,7 @@
 {
   "cSpell.words": [
     "apiv",
+    "backupvolfile",
     "CCAAS",
     "CERTPATH",
     "configtxgen",
@@ -31,7 +32,8 @@
     "sampleconfig",
     "signcerts",
     "syslogd",
-    "TLSCERTPATH"
+    "TLSCERTPATH",
+    "workerx"
   ],
   "cSpell.ignoreWords": [
     "Atoi",

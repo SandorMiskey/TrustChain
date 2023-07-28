@@ -62,13 +62,13 @@ func (r *Response) Send(msg interface{}) error {
 
 		switch v := r.Message.(type) {
 		case string:
-			logger(log.LOG_DEBUG, fmt.Sprintf("%v: r.Message type is string", r.CTX.ID))
+			logger(log.LOG_DEBUG, fmt.Sprintf("%v: r.Message type is string: %s", r.CTX.ID, r.Message.(string)))
 			r.CTX.SetBodyString(r.Message.(string))
 		case error:
-			logger(log.LOG_DEBUG, fmt.Sprintf("%v: r.Message type is error", r.CTX.ID))
+			logger(log.LOG_DEBUG, fmt.Sprintf("%v: r.Message type is error: %s", r.CTX.ID, r.Message.(error).Error()))
 			r.CTX.SetBodyString(r.Message.(error).Error())
 		case []byte:
-			logger(log.LOG_DEBUG, fmt.Sprintf("%v: r.Message type is []byte", r.CTX.ID))
+			logger(log.LOG_DEBUG, fmt.Sprintf("%v: r.Message type is []byte: %s", r.CTX.ID, r.Message.([]byte)))
 			r.CTX.SetBody(r.Message.([]byte))
 		default:
 			err := fmt.Errorf("%v: unexpected type of content: %T (%s)", r.CTX.ID, v, r.Message)
@@ -77,7 +77,6 @@ func (r *Response) Send(msg interface{}) error {
 		}
 
 		logger(log.LOG_INFO, fmt.Sprintf("%v: response is given with content type: %s, status: %v", r.CTX.ID, r.ContentType, r.Status))
-		logger(log.LOG_DEBUG, fmt.Sprintf("%v: response is given: %s", r.CTX.ID, r))
 		return nil
 	} else {
 		err := fmt.Errorf("no fasthttp.RequestCtx")
@@ -114,8 +113,8 @@ func (r *Response) error(err error) {
 		r.CTX.SetStatusCode(500)
 		r.CTX.SetBodyString(msg)
 	} else {
-		msg = fmt.Sprintf("error in response: %s", r.CTX.ID, r.err)
+		msg = fmt.Sprintf("error in response: %s", r.err)
 	}
 	r.Logger.Out(log.LOG_ERR, msg)
-	r.Logger.Out(log.LOG_DEBUG, fmt.Sprintf("%s (%s)", msg, r))
+	r.Logger.Out(log.LOG_DEBUG, fmt.Sprintf("%s (%v)", msg, r))
 }
