@@ -1,26 +1,47 @@
 # todo
 
+* rawapi static: dynamic host and ports (service name everywhere)
+* swarm init/join/... -> tcSwarm.sh
 * remote peers
   * docker swarm manager redundancy?
-    * manager -> manager1
-    * new node -> manager2
-      * instance created, to be set up
-    * worker2 -> manager3
-    * worker1 still worker1
-    * worker3 -> worker2
-    * worker4 -> worker3
-    * here:
-      * aws console
+    * ssh config
+      * manager -> manager1
+      * new node -> manager2
+      * worker2 -> manager3
+      * worker1 still worker1
+      * worker3 -> worker2
+    * aws console
+      * todo
         * instance list: name, tags
         * elastic ip list: name, tags
         * security group
-      * /etc/hosts
-      * sshconfig
-      * hostname
-      * gluster re-conf
-      * tcConf.sh
-      * tcGenesis.sh SwarmLeave() and SwarmJoin()
+      * hosts:
+        * manager -> manager1
+        * new node -> manager2
+        * worker2 -> manager3
+        * worker1 still worker1
+        * worker3 -> worker2
+    * hostname
+      * manager -> manager1
+      * new node -> manager2
+      * worker2 -> manager3
+      * worker1 still worker1
+      * worker3 -> worker2
+    * /etc/hosts
+      * manager -> manager1
+      * new node -> manager2
+      * worker2 -> manager3
+      * worker1 still worker1
+      * worker3 -> worker2
+    * tcConf.sh, tcGenesis.sh SwarmLeave() and SwarmJoin()
+      * manager -> manager1
+      * new node -> manager2
+      * worker2 -> manager3
+      * worker1 still worker1
+      * worker3 -> worker2
+    * doc/ports.md
   * GlusterFS?
+    * manager*, remove additional ebs from worker1
     * recreate cluster
       * format xfs: mkfs.xfs -i size=512 /dev/device
     * authentication
@@ -42,7 +63,6 @@
 * put mgmt and metrics (and basic?) back in tcGenesis.sh
 * orderer restart? stress test
 * move HTTPS cert and key from tcGwInit.sh to templates/swarm/20_{TC_ORG1_STACK}.yaml
-* api key in rawapi.postman_collection.json
 
 * swagger
 * get by tx_id, block# via qscc [https://stackoverflow.com/questions/67263579/retrieve-block-number-and-transaction-id-from-query-to-hyperledger-fabric]
