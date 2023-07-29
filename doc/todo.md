@@ -9,7 +9,8 @@
       * new node -> manager2
       * worker2 -> manager3
       * worker1 still worker1
-      * worker3 -> worker2
+      * worker4 -> worker2
+      * worker3 still worker3
     * aws console
       * todo
         * instance list: name, tags
@@ -20,25 +21,29 @@
         * new node -> manager2
         * worker2 -> manager3
         * worker1 still worker1
-        * worker3 -> worker2
+        * worker4 -> worker2
+        * worker3 still worker3
     * hostname
       * manager -> manager1
       * new node -> manager2
       * worker2 -> manager3
       * worker1 still worker1
-      * worker3 -> worker2
+      * worker4 -> worker2
+      * worker3 still worker3
     * /etc/hosts
       * manager -> manager1
       * new node -> manager2
       * worker2 -> manager3
       * worker1 still worker1
-      * worker3 -> worker2
+      * worker4 -> worker2
+      * worker3 still worker3
     * tcConf.sh, tcGenesis.sh SwarmLeave() and SwarmJoin()
       * manager -> manager1
       * new node -> manager2
       * worker2 -> manager3
       * worker1 still worker1
-      * worker3 -> worker2
+      * worker4 -> worker2
+      * worker3 still worker3
     * doc/ports.md
   * GlusterFS?
     * manager*, remove additional ebs from worker1
