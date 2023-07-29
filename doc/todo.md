@@ -1,6 +1,5 @@
 # todo
 
-* swarm init/join/... -> tcSwarm.sh
 * remote peers
   * docker swarm manager redundancy?
     * ssh config
