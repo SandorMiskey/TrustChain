@@ -1,9 +1,12 @@
 {
   "cSpell.words": [
+    "ADMINPORT",
     "apiv",
     "backupvolfile",
+    "cadvisor",
     "CCAAS",
     "CERTPATH",
+    "CHPORT",
     "configtxgen",
     "contractapi",
     "erba",
@@ -20,6 +23,7 @@
     "mgmt",
     "MSPID",
     "multierr",
+    "OPPORT",
     "ORGNAME",
     "PEERENDPOINT",
     "protobuf",

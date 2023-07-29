@@ -1,6 +1,5 @@
 # todo
 
-* rawapi static: dynamic host and ports (service name everywhere)
 * swarm init/join/... -> tcSwarm.sh
 * remote peers
   * docker swarm manager redundancy?
