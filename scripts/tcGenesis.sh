@@ -1746,7 +1746,9 @@ _channels() {
 # region: deploy chaincode
 
 ccVersion=1
-# [[ "$TC_EXEC_DRY" == false ]] && commonYN "deploay basic chaincode on ${TC_CHANNEL1_NAME}?" ${TC_PATH_SCRIPTS}/tcChaincodeInit.sh "basic" "$TC_CHANNEL1_NAME"
+# [[ "$TC_EXEC_DRY" == false ]] && commonYN "install te-food-bundles chaincode on endoreser peers?" ${TC_PATH_SCRIPTS}/tcChaincodeInstall.sh "basic" $ccVersion
+# [[ "$TC_EXEC_DRY" == false ]] && commonYN "approve te-food-bundles chaincode on ${TC_CHANNEL1_NAME}?" ${TC_PATH_SCRIPTS}/tcChaincodeAprove.sh "basic" "$TC_CHANNEL1_NAME" $ccVersion
+
 [[ "$TC_EXEC_DRY" == false ]] && commonYN "install te-food-bundles chaincode on endoreser peers?" ${TC_PATH_SCRIPTS}/tcChaincodeInstall.sh "te-food-bundles" $ccVersion
 [[ "$TC_EXEC_DRY" == false ]] && commonYN "approve te-food-bundles chaincode on ${TC_CHANNEL1_NAME}?" ${TC_PATH_SCRIPTS}/tcChaincodeAprove.sh "te-food-bundles" "$TC_CHANNEL1_NAME" $ccVersion
 [[ "$TC_EXEC_DRY" == false ]] && commonYN "approve te-food-bundles chaincode on ${TC_CHANNEL2_NAME}?" ${TC_PATH_SCRIPTS}/tcChaincodeAprove.sh "te-food-bundles" "$TC_CHANNEL2_NAME" $ccVersion

@@ -1,8 +1,10 @@
 go 1.18
 
 use (
-    ./chaincode/te-food-bundles
-    ./rawapi
-    ./workbench/chaincode/basic
-    ./workbench/chaincode/te-food-bundles
+	.
+	./chaincode/basic
+	./chaincode/te-food-bundles
+	./rawapi
+	./workbench/chaincode/basic
+	./workbench/chaincode/te-food-bundles
 )
