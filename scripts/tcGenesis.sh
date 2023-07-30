@@ -126,7 +126,7 @@ _templates() {
 # endregion: process templates
 # region: swarm init
 
-# [[ "$TC_EXEC_DRY" == false ]] && commonYN "prune and reset docker swarm?" ${TC_PATH_SCRIPTS}/tcSwarm.sh
+[[ "$TC_EXEC_DRY" == false ]] && commonYN "prune and reset docker swarm?" ${TC_PATH_SCRIPTS}/tcSwarm.sh
 
 # endregion: swarm init
 # region: tls ca and file sharing
