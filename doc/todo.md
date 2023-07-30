@@ -1,14 +1,6 @@
 # todo
 
 * remote peers
-  * docker swarm manager redundancy?
-    * tcConf.sh, tcSwarm.sh SwarmLeave() and SwarmJoin()
-      * manager -> manager1
-      * new node -> manager2
-      * worker2 -> manager3
-      * worker1 still worker1
-      * worker4 -> worker2
-      * worker3 still worker3
   * GlusterFS?
     * manager*, remove additional ebs from worker1
     * recreate cluster

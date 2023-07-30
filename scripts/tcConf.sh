@@ -65,18 +65,32 @@ export TC_CHANNEL2_NAME=trustchain
 # endregion: network and channel
 # region: swarm
 
+# 3.77.27.176		tc2-test-manager1
+# 3.125.250.181		tc2-test-manager2
+# 54.93.194.71		tc2-test-manager3
+# 3.77.143.132		tc2-test-worker1
+# 185.187.73.203	tc2-test-worker2
+# 18.197.74.200		tc2-test-worker3
+
+declare -A TC_SWARM_MANAGER1=( [node]=tc2-test-manager1 [ip]=3.77.27.176 )
+declare -A TC_SWARM_MANAGER2=( [node]=tc2-test-manager2 [ip]=3.125.250.181 )
+declare -A TC_SWARM_MANAGER3=( [node]=tc2-test-manager3 [ip]=54.93.194.71 )
+TC_SWARM_MANAGERS=("TC_SWARM_MANAGER1" "TC_SWARM_MANAGER2" "TC_SWARM_MANAGER3")
+
+declare -A TC_SWARM_WORKER1=( [node]=tc2-test-worker1 [ip]=3.77.143.132 )
+declare -A TC_SWARM_WORKER2=( [node]=tc2-test-worker2 [ip]=185.187.73.203 )
+declare -A TC_SWARM_WORKER3=( [node]=tc2-test-worker3 [ip]=18.197.74.200 )
+TC_SWARM_WORKERS=("TC_SWARM_WORKER1" "TC_SWARM_WORKER2" "TC_SWARM_WORKER3")
+
 export TC_SWARM_PATH=$TC_PATH_SWARM
-export TC_SWARM_PUBLIC="3.77.27.176"
+export TC_SWARM_PUBLIC=${TC_SWARM_MANAGER1[ip]}
 export TC_SWARM_INIT="--advertise-addr ${TC_SWARM_PUBLIC}:2377 --listen-addr 0.0.0.0:2377 --cert-expiry 1000000h0m0s"
-export TC_SWARM_MANAGER=tc2t-manager
+export TC_SWARM_MANAGER=${TC_SWARM_MANAGER1[node]}
 export TC_SWARM_NETNAME=$TC_NETWORK_NAME
 export TC_SWARM_NETINIT="--attachable --driver overlay --subnet 10.96.0.0/24 $TC_SWARM_NETNAME"
 export TC_SWARM_DELAY=10
 
-declare -A TC_SWARM_WORKER1=( [node]=tc2t-worker1 [ip]=3.77.143.132 )
-declare -A TC_SWARM_WORKER2=( [node]=tc2t-worker2 [ip]=54.93.194.71 )
-declare -A TC_SWARM_WORKER3=( [node]=tc2t-worker3 [ip]=18.197.74.200 )
-declare -A TC_SWARM_WORKER4=( [node]=tc2t-worker4 [ip]=185.187.73.203 )
+
 
 # endregion: swarm
 # region: infra
@@ -88,7 +102,7 @@ export TC_COMMON1_C1_FQDN=${TC_COMMON1_C1_NAME}.${TC_COMMON1_STACK}.${TC_NETWORK
 export TC_COMMON1_C1_PORT=6001
 export TC_COMMON1_C1_ADMIN=${TC_COMMON1_STACK}-${TC_COMMON1_C1_NAME}-admin1
 export TC_COMMON1_C1_ADMINPW=$TC_COMMON1_C1_ADMINPW
-export TC_COMMON1_C1_WORKER=$TC_SWARM_MANAGER
+export TC_COMMON1_C1_WORKER=${TC_SWARM_MANAGER1[node]}
 export TC_COMMON1_C1_DATA=${TC_PATH_WORKBENCH}/${TC_COMMON1_STACK}/${TC_COMMON1_C1_NAME}
 # export TC_COMMON1_C1_DATA=${TC_PATH_ORGS}/${TC_COMMON1_STACK}/${TC_COMMON1_C1_NAME}
 # export TC_COMMON1_C1_SUBHOME=crypto
