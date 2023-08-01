@@ -211,7 +211,7 @@ function commonContinue() {
 
 	if [[ "$COMMON_FORCE" == "true" ]]; then
 		commonPrintfBold "commonYN(): forced Y for '$question'" 
-		ans="Y"
+		answer="Y"
 	else
 		commonPrintfBold "$question [Y/n] " "%s"
 		read answer

@@ -838,6 +838,11 @@ export TC_RAWAPI_PEERENDPOINT=${TC_ORG1_P1_FQDN}:${TC_ORG1_P1_PORT}
 export TC_RAWAPI_GATEWAYPEER=${TC_ORG1_P1_FQDN}
 
 # endregion: raw api
+# region: local under workbench
+
+[[ -f "$TC_PATH_LOCAL" ]] && source "$TC_PATH_LOCAL"
+
+# endregion: local under workbench
 # region: common funcs
 
 [[ -f "$TC_PATH_COMMON" ]] && source "$TC_PATH_COMMON"
@@ -850,8 +855,3 @@ export COMMON_SILENT=$TC_EXEC_SILENT
 export COMMON_VERBOSE=$TC_EXEC_VERBOSE
 
 # endregion: common funcs
-# region: local under workbench
-
-[[ -f "$TC_PATH_LOCAL" ]] && source "$TC_PATH_LOCAL"
-
-# endregion: local under workbench
