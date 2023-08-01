@@ -258,7 +258,7 @@ function _glusterFstab() {
 		_cmd="sudo sed -i \"/^$( echo ${peer[gdev]} | sed 's/\//\\\//g' )/d\" /etc/fstab"
 		_out=$(ssh ${peer[node]} "$_cmd" 2>&1 )
 		commonVerify $? "failed to remove ${peer[gdev]}: $_out" "${peer[gdev]} removed"
-		_cmd="sudo sed -i \"/^$( echo ${peer[node]}:${TC_GLUSTER_BRICK} | sed 's/\//\\\//g' )/d\" /etc/fstab"
+		_cmd="sudo sed -i \"/^$( echo ${peer[node]}:/${TC_GLUSTER_BRICK} | sed 's/\//\\\//g' )/d\" /etc/fstab"
 		_out=$(ssh ${peer[node]} "$_cmd" 2>&1 )
 		commonVerify $? "failed to remove ${peer[node]}:/${TC_GLUSTER_BRICK}: $_out" "${peer[node]}:/${TC_GLUSTER_BRICK} removed"
 
