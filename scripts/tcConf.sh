@@ -4,11 +4,6 @@
 # Copyright TE-FOOD International GmbH., All Rights Reserved
 #
 
-# region: load .env if any
-
-# [[ -f .env ]] && source .env
-
-# endregion: .env
 # region: base paths
 
 # get them from .env 
@@ -38,9 +33,7 @@ export TC_PATH_CHAINCODE=${TC_PATH_WORKBENCH}/chaincode
 # region: exec control
 
 export TC_EXEC_DRY=false
-# export TC_EXEC_FORCE=true
 export TC_EXEC_FORCE=false
-# export TC_EXEC_SURE=true
 export TC_EXEC_SURE=false
 export TC_EXEC_PANIC=true
 export TC_EXEC_SILENT=false
@@ -849,3 +842,8 @@ export COMMON_SILENT=$TC_EXEC_SILENT
 export COMMON_VERBOSE=$TC_EXEC_VERBOSE
 
 # endregion: common funcs
+# region: load .env if any
+
+[[ -f .env ]] && source .env
+
+# endregion: .env

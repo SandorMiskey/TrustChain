@@ -13,11 +13,8 @@ if [ ! -f  $TC_PATH_RC ]; then
 fi
 source $TC_PATH_RC
 
-_sourceEnv() {
-	source "${TC_PATH_BASE}/.env"
-}
-commonPrintfBold "note that certain environment variables must be set to work properly!"
-commonYN "reload ${TC_PATH_BASE}/.env?" _sourceEnv
+# commonPrintfBold "note that certain environment variables must be set to work properly!"
+# commonContinue "have you reloded ${TC_PATH_BASE}/.env?"
 
 if [[ ${TC_PATH_SCRIPTS:-"unset"} == "unset" ]]; then
 	commonVerify 1 "TC_PATH_SCRIPTS is unset"
