@@ -48,6 +48,20 @@ function _iterate() {
 	unset func msg k
 }
 
+function _glusterUmountVolume() {
+	commonPrintf " "
+	commonPrintf "umounting shared volume"
+	commonPrintf " "
+	_inner() {
+		local -n peer=$1
+		_out=$( ssh ${peer[node]} "sudo umount -f ${TC_PATH_WORKBENCH}" 2>&1 )
+		commonPrintf "status: $? $_out"
+	}
+	_iterate _inner "umount volume" configm "${TC_GLUSTER_NODES[@]}"
+	unset _inner _out
+	commonSleep 3 "done"
+}
+
 function _glusterDisable() {
 	commonPrintf " "
 	commonPrintf "disabling glusterd on nodes"
@@ -66,7 +80,7 @@ function _glusterDisable() {
 	commonSleep 3 "done"
 }
 
-function _glusterUmount() {
+function _glusterUmountDevice() {
 	commonPrintf " "
 	commonPrintf "umounting block device"
 	commonPrintf " "
@@ -239,6 +253,16 @@ function _glusterFstab() {
 	declare -n server2=${TC_GLUSTER_NODES[1]}
 	_inner() {
 		local -n peer=$1
+
+		commonPrintf "removing existing entries"
+		_cmd="sudo sed -i \"/^$( echo ${peer[gdev]} | sed 's/\//\\\//g' )/d\" /etc/fstab"
+		_out=$(ssh ${peer[node]} "$_cmd" 2>&1 )
+		commonVerify $? "failed to remove ${peer[gdev]}: $_out" "${peer[gdev]} removed"
+		_cmd="sudo sed -i \"/^$( echo ${peer[node]}:${TC_GLUSTER_BRICK} | sed 's/\//\\\//g' )/d\" /etc/fstab"
+		_out=$(ssh ${peer[node]} "$_cmd" 2>&1 )
+		commonVerify $? "failed to remove ${peer[node]}:/${TC_GLUSTER_BRICK}: $_out" "${peer[node]}:/${TC_GLUSTER_BRICK} removed"
+
+		commonPrintf "appending new entries"
 		local backupvol=${server1[node]}
 		if [[ "${peer[node]}" == "$backupvol" ]]; then
 			backupvol=${server2[node]}
@@ -250,10 +274,21 @@ function _glusterFstab() {
 		entry+="#\n"
 		entry+="${peer[gdev]} ${peer[gmnt]} xfs defaults 1 2\n"
 		entry+="${peer[node]}:/${TC_GLUSTER_BRICK} $TC_PATH_WORKBENCH glusterfs defaults,_netdev,backupvolfile-server=${backupvol} 0 0\n"
-		# _out=$( ssh ${peer[node]} "sudo echo -e '${entry}' >> /etc/fstab" 2>&1 )
-		# ssh "$REMOTE_USER@$REMOTE_SERVER" "sudo bash -c 'echo \"$LOCAL_CONTENT\" > $REMOTE_FILE'"
 		_out=$( ssh ${peer[node]} "sudo bash -c 'echo -e \"$entry\" >> /etc/fstab'" 2>&1 )
 		commonVerify $? "failed to update fstab: $_out" "fstab update succeeded"
+
+		commonPrintf "mkdir -p -v ${peer[node]}:${TC_PATH_WORKBENCH}"
+		_out=$( ssh ${peer[node]} "sudo mkdir -p -v ${TC_PATH_WORKBENCH}" 2>&1 )
+		commonVerify $? "failed: $_out" "mkdir -p -v ${TC_PATH_WORKBENCH} on ${peer[node]} succeeded"
+
+		commonPrintf "chgrp and chmod g+rwx"
+		local grp=$( id -g )
+		_out=$( sudo chgrp $grp "$TC_PATH_WORKBENCH" )
+		commonVerify $? $_out
+		_out=$( sudo chmod g+rwx "$TC_PATH_WORKBENCH" )
+		commonVerify $? $_out
+
+		commonPrintf "mount -a at ${peer[node]}"
 		_out=$( ssh ${peer[node]} "sudo mount -a" 2>&1 )
 		commonVerify $? "failed mount -a: $_out" "mount -a succeeded"
 	}
@@ -263,16 +298,23 @@ function _glusterFstab() {
 }
 
 if [[ "$TC_EXEC_DRY" == "false" ]]; then
-	# commonPrintfBold " "
-	# commonPrintfBold "THIS SCRIPT CAN BE DESTRUCTIVE, IT SHOULD BE RUN WITH SPECIAL CARE ON THE MAIN MANAGER NODE"
-	# commonPrintfBold " "
-	# commonYN "this is dangerous, want to leave now?" exit
-	# commonYN "disable glusterd on peers?" _glusterDisable
-	# commonYN "umount gluster's dedicated devices?" _glusterUmount
-	# commonYN "mkfs on those devices?" _glusterMkFs
-	# commonYN "mount filesystems?" _glusterMount
-	# commonYN "start and enable glusterd on peers?" _glusterEnable
-	# commonYN "configure the trusted pool?" _glusterProbe
-	# commonYN "lay the brick?" _glusterLay
-	commonYN "add /etc/fstab entry and mount -a?" _glusterFstab
+	_inner() {
+		commonYN "umount shared wolume on peers?" _glusterUmountVolume
+		commonYN "disable glusterd on peers?" _glusterDisable
+		commonYN "umount gluster's dedicated devices?" _glusterUmountDevice
+		commonYN "mkfs on those devices?" _glusterMkFs
+		commonYN "mount filesystems?" _glusterMount
+		commonYN "start and enable glusterd on peers?" _glusterEnable
+		commonYN "configure the trusted pool?" _glusterProbe
+		commonYN "lay the brick?" _glusterLay
+		commonYN "add /etc/fstab entry and mount -a?" _glusterFstab
+	}
+	force=$COMMON_FORCE
+	COMMON_FORCE=$TC_EXEC_SURE
+	commonPrintfBold " "
+	commonPrintfBold "THIS SCRIPT CAN BE DESTRUCTIVE, IT SHOULD BE RUN WITH SPECIAL CARE ON THE MAIN MANAGER NODE"
+	commonPrintfBold " "
+	commonYN "this is dangerous, do you want to continoue?" _inner
+	COMMON_FORCE=$force
+	unset _inner force
 fi
