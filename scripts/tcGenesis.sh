@@ -27,10 +27,14 @@ commonPP $TC_PATH_SCRIPTS
 # endregion: config
 # region: strartup warning
 
-# commonPrintfBold " "
-# commonPrintfBold "THIS SCRIPT CAN BE DESTRUCTIVE, IT SHOULD BE RUN WITH SPECIAL CARE ON THE MAIN MANAGER NODE"
-# commonPrintfBold " "
-# commonYN "this is dangerous, want to leave now?" exit
+commonPrintfBold " "
+commonPrintfBold "THIS SCRIPT CAN BE DESTRUCTIVE, IT SHOULD BE RUN WITH SPECIAL CARE ON THE MAIN MANAGER NODE"
+commonPrintfBold " "
+force=$COMMON_FORCE
+COMMON_FORCE=$TC_EXEC_SURE
+commonContinue "do you want to continue?"
+COMMON_FORCE=$force
+unset force
 
 # endregion: warning
 # region: check for dependencies and versions
@@ -86,13 +90,15 @@ _WipePersistent() {
 			commonPrintf "mkdir -p -v $TC_PATH_WORKBENCH" 
 			err=$( sudo mkdir -p -v "$TC_PATH_WORKBENCH" )
 			commonVerify $? $err
-		fi		
+		fi
+
 		commonPrintf "chgrp and chmod g+rwx"
 		local grp=$( id -g )
 		err=$( sudo chgrp $grp "$TC_PATH_WORKBENCH" )
 		commonVerify $? $err
 		err=$( sudo chmod g+rwx "$TC_PATH_WORKBENCH" )
 		commonVerify $? $err
+
 		commonPrintf "symlink $TC_PATH_LOCALWORKBENCH -> $TC_PATH_WORKBENCH"
 		err=$( ln -s "$TC_PATH_WORKBENCH" "$TC_PATH_LOCALWORKBENCH" )
 		commonVerify $? $err
@@ -111,6 +117,11 @@ _WipePersistent() {
 [[ "$TC_EXEC_DRY" == false ]] && commonYN "wipe persistent data?" _WipePersistent
 
 # endregion: remove config and persistent data
+# region: reset glusterd
+
+[[ "$TC_EXEC_DRY" == false ]] && commonYN "reset cluster filesystem?" ${TC_PATH_SCRIPTS}/tcGlusterServers.sh
+
+# endregion: reset glusterd
 # region: process templates
 
 _templates() {
