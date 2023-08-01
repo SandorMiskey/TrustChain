@@ -178,6 +178,7 @@ function commonDeps() {
 
 function commonYN() {
 	local question=$1
+	local ans
 	shift
 
 	if [[ "$COMMON_FORCE" == "true" ]]; then
@@ -202,6 +203,31 @@ function commonYN() {
 			commonYN "$question" "$@"
 			;;
 	esac
+}
+
+function commonContinue() {
+	local question=$1; shift
+	local answer
+
+	if [[ "$COMMON_FORCE" == "true" ]]; then
+		commonPrintfBold "commonYN(): forced Y for '$question'" 
+		ans="Y"
+	else
+		commonPrintfBold "$question [Y/n] " "%s"
+		read answer
+	fi
+	case "$answer" in
+		y | Y)
+			commonPrintf "okay, going ahead"
+			;;
+		n | N)
+			exit
+			;;
+		*)
+			commonPrintf "'y' or 'n'"
+			commonContinue "$question"
+			;;
+	esac	
 }
 
 function commonPP() {
