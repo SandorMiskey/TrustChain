@@ -5,6 +5,4 @@ use (
 	./chaincode/basic
 	./chaincode/te-food-bundles
 	./rawapi
-	./workbench/chaincode/basic
-	./workbench/chaincode/te-food-bundles
 )

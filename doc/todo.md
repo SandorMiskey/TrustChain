@@ -1,10 +1,9 @@
 # todo
 
+* link workbench from base
 * remote peers
   * GlusterFS?
-    * manager*, remove additional ebs from worker1
-    * recreate cluster
-      * format xfs: mkfs.xfs -i size=512 /dev/device
+    * dependency check
     * authentication
       * [https://access.redhat.com/documentation/en-us/red_hat_gluster_storage/3.4/html/administration_guide/chap-accessing_data_-_setting_up_clients#Mounting_Volumes_Using_Native_Client]
       * for manager

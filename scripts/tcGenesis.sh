@@ -25,6 +25,14 @@ fi
 commonPP $TC_PATH_SCRIPTS
 
 # endregion: config
+# region: strartup warning
+
+# commonPrintfBold " "
+# commonPrintfBold "THIS SCRIPT CAN BE DESTRUCTIVE, IT SHOULD BE RUN WITH SPECIAL CARE ON THE MAIN MANAGER NODE"
+# commonPrintfBold " "
+# commonYN "this is dangerous, want to leave now?" exit
+
+# endregion: warning
 # region: check for dependencies and versions
 
 _FabricVersions() {
@@ -66,8 +74,16 @@ _WipePersistent() {
 		commonPrintf "removing $TC_PATH_WORKBENCH"
 		err=$( sudo rm -Rf "$TC_PATH_WORKBENCH" )
 		commonVerify $? $err
-		err=$( mkdir "$TC_PATH_WORKBENCH" )
+		err=$( sudo mkdir "$TC_PATH_WORKBENCH" )
 		commonVerify $? $err
+		local grp=$( id -g )
+		err=$( sudo chgrp $grp "$TC_PATH_WORKBENCH" )
+		commonVerify $? $err
+		err=$( sudo chmod g+rwx "$TC_PATH_WORKBENCH" )
+		commonVerify $? $err
+		err=$( ln -s "$TC_PATH_WORKBENCH" "$TC_PATH_LOCALWORKBENCH" )
+		commonVerify $? $err
+		unset err
 	}
 
 	local force=$COMMON_FORCE
@@ -82,7 +98,9 @@ _WipePersistent() {
 # region: process templates
 
 _templates() {
+	commonPrintf " "
 	commonPrintf "processing templates:"
+	commonPrintf " "
 	for template in $( find $TC_PATH_TEMPLATES/* ! -name '.*' -print ); do
 		target=$( commonSetvar $template )
 		target=$( echo $target | sed s+$TC_PATH_TEMPLATES+$TC_PATH_WORKBENCH+ )
@@ -109,7 +127,9 @@ _templates() {
 		fi
 	done
 
+	commonPrintf " "
 	commonPrintf "unpacking chaincode templates"
+	commonPrintf " "
 	for template in $( find $TC_PATH_CHAINCODE/*tgz -print ); do 
 		commonPrintf "working on $template"
 		local out=$( tar -C "${TC_PATH_CHAINCODE}/" -xzvf $template 2>&1 )

@@ -19,6 +19,13 @@ export TC_PATH_RC=$TC_PATH_RC
 export TC_PATH_BIN=${TC_PATH_BASE}/bin
 export TC_PATH_SCRIPTS=${TC_PATH_BASE}/scripts
 export TC_PATH_TEMPLATES=${TC_PATH_BASE}/templates
+export TC_PATH_LOCALWORKBENCH=${TC_PATH_BASE}/wb
+
+# trustchain independent common functions
+export TC_PATH_COMMON=${TC_PATH_SCRIPTS}/commonFuncs.sh
+
+# add scripts and bins to PATH
+export PATH=${TC_PATH_BIN}:${TC_PATH_SCRIPTS}:$PATH
 
 # dirs under workbench
 export TC_PATH_WORKBENCH=/srv/TrustChain
@@ -28,19 +35,13 @@ export TC_PATH_CHANNELS=${TC_PATH_WORKBENCH}/channels
 export TC_PATH_CHAINCODE=${TC_PATH_WORKBENCH}/chaincode
 export TC_PATH_LOCAL=${TC_PATH_WORKBENCH}/tcLocal.sh
 
-# trustchain independent common functions
-export TC_PATH_COMMON=${TC_PATH_SCRIPTS}/commonFuncs.sh
-
-# add scripts and bins to PATH
-export PATH=${TC_PATH_BIN}:${TC_PATH_SCRIPTS}:$PATH
-
 # endregion: base paths
 # region: exec control
 
 export TC_EXEC_DRY=false
-export TC_EXEC_FORCE=false
+export TC_EXEC_FORCE=true
 export TC_EXEC_PANIC=true
-export TC_EXEC_SURE=false
+export TC_EXEC_SURE=true
 export TC_EXEC_SILENT=false
 export TC_EXEC_VERBOSE=true
 
