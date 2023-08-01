@@ -180,7 +180,7 @@ function commonYN() {
 	local question=$1
 	shift
 
-	if [ "$COMMON_FORCE" == "true" ]; then
+	if [[ "$COMMON_FORCE" == "true" ]]; then
 		# commonPrintfBold "forced Y for '$question'" "${COMMON_BOLD}${COMMON_PREFIX}%s${COMMON_NORM} \n"
 		# commonPrintfBold "COMMON_YN(): forced Y for '$question'" "${COMMON_BOLD}%s${COMMON_NORM}\n"
 		commonPrintfBold "commonYN(): forced Y for '$question'" 

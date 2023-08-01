@@ -19,9 +19,9 @@ export TC_PATH_RC=$TC_PATH_RC
 export TC_PATH_BIN=${TC_PATH_BASE}/bin
 export TC_PATH_SCRIPTS=${TC_PATH_BASE}/scripts
 export TC_PATH_TEMPLATES=${TC_PATH_BASE}/templates
-export TC_PATH_WORKBENCH=${TC_PATH_BASE}/workbench
 
 # dirs under workbench
+export TC_PATH_WORKBENCH=/srv/TrustChain
 export TC_PATH_SWARM=${TC_PATH_WORKBENCH}/swarm
 export TC_PATH_ORGS=${TC_PATH_WORKBENCH}/organizations
 export TC_PATH_CHANNELS=${TC_PATH_WORKBENCH}/channels
@@ -38,9 +38,9 @@ export PATH=${TC_PATH_BIN}:${TC_PATH_SCRIPTS}:$PATH
 # region: exec control
 
 export TC_EXEC_DRY=false
-export TC_EXEC_FORCE=true
+export TC_EXEC_FORCE=false
 export TC_EXEC_PANIC=true
-export TC_EXEC_SURE=true
+export TC_EXEC_SURE=false
 export TC_EXEC_SILENT=false
 export TC_EXEC_VERBOSE=true
 
@@ -72,9 +72,9 @@ export TC_CHANNEL2_NAME=trustchain
 # 185.187.73.203	tc2-test-worker2
 # 18.197.74.200		tc2-test-worker3
 
-declare -A TC_SWARM_MANAGER1=( [node]=tc2-test-manager1 [ip]=3.77.27.176 )
-declare -A TC_SWARM_MANAGER2=( [node]=tc2-test-manager2 [ip]=3.125.250.181 )
-declare -A TC_SWARM_MANAGER3=( [node]=tc2-test-manager3 [ip]=54.93.194.71 )
+declare -A TC_SWARM_MANAGER1=( [node]=tc2-test-manager1 [ip]=3.77.27.176 [gdev]=/dev/nvme1n1p1 [gmnt]=/srv/GlusterData )
+declare -A TC_SWARM_MANAGER2=( [node]=tc2-test-manager2 [ip]=3.125.250.181 [gdev]=/dev/nvme1n1p1 [gmnt]=/srv/GlusterData )
+declare -A TC_SWARM_MANAGER3=( [node]=tc2-test-manager3 [ip]=54.93.194.71 [gdev]=/dev/nvme1n1p1 [gmnt]=/srv/GlusterData )
 TC_SWARM_MANAGERS=("TC_SWARM_MANAGER1" "TC_SWARM_MANAGER2" "TC_SWARM_MANAGER3")
 
 declare -A TC_SWARM_WORKER1=( [node]=tc2-test-worker1 [ip]=3.77.143.132 )
@@ -93,6 +93,15 @@ export TC_SWARM_DELAY=10
 
 
 # endregion: swarm
+# region: gluster
+
+TC_GLUSTER_BRICK=TrustChain
+TC_GLUSTER_NODES=("TC_SWARM_MANAGER1" "TC_SWARM_MANAGER2" "TC_SWARM_MANAGER3")
+TC_GLUSTER_MOUNTPOINT="/srv/GlusterData"
+TC_GLUSTER_DISPERSE=3
+TC_GLUSTER_REDUNDANCY=1
+
+# endregion: gluster
 # region: infra
 
 export TC_COMMON1_STACK=infra
