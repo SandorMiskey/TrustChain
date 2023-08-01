@@ -1,6 +1,6 @@
 # todo
 
-* link workbench from base
+* add scripts to workbench
 * remote peers
   * GlusterFS?
     * dependency check
@@ -8,7 +8,6 @@
       * [https://access.redhat.com/documentation/en-us/red_hat_gluster_storage/3.4/html/administration_guide/chap-accessing_data_-_setting_up_clients#Mounting_Volumes_Using_Native_Client]
       * for manager
       * subdir for workers (see 6.1.3.4. Manually Mounting Sub-directories Using Native Client)
-    * mount redundancy (backupvolfile-server=server-name)
     * permissions?
   * dependencies
     * test on workers

@@ -71,16 +71,29 @@ _WipePersistent() {
 
 
 	_wipe() {
-		commonPrintf "removing $TC_PATH_WORKBENCH"
-		err=$( sudo rm -Rf "$TC_PATH_WORKBENCH" )
+		commonPrintf "removing $TC_PATH_LOCALWORKBENCH symlink to $TC_PATH_WORKBENCH"
+		err=$( sudo rm -f "$TC_PATH_LOCALWORKBENCH" )
 		commonVerify $? $err
-		err=$( sudo mkdir "$TC_PATH_WORKBENCH" )
-		commonVerify $? $err
+
+		if [ -d "$TC_PATH_WORKBENCH" ]; then
+			commonPrintf "$TC_PATH_WORKBENCH exists"
+			commonPrintf "removing ${TC_PATH_WORKBENCH}/*"
+			# err=$( sudo rm -rf "${TC_PATH_WORKBENCH}/*" )
+			err=$( sudo find "$TC_PATH_WORKBENCH" -mindepth 1 -delete )
+			commonVerify $? $err
+		else
+			commonPrintf "$TC_PATH_WORKBENCH doesn't exists"
+			commonPrintf "mkdir -p -v $TC_PATH_WORKBENCH" 
+			err=$( sudo mkdir -p -v "$TC_PATH_WORKBENCH" )
+			commonVerify $? $err
+		fi		
+		commonPrintf "chgrp and chmod g+rwx"
 		local grp=$( id -g )
 		err=$( sudo chgrp $grp "$TC_PATH_WORKBENCH" )
 		commonVerify $? $err
 		err=$( sudo chmod g+rwx "$TC_PATH_WORKBENCH" )
 		commonVerify $? $err
+		commonPrintf "symlink $TC_PATH_LOCALWORKBENCH -> $TC_PATH_WORKBENCH"
 		err=$( ln -s "$TC_PATH_WORKBENCH" "$TC_PATH_LOCALWORKBENCH" )
 		commonVerify $? $err
 		unset err
@@ -88,7 +101,10 @@ _WipePersistent() {
 
 	local force=$COMMON_FORCE
 	COMMON_FORCE=$TC_EXEC_SURE
-	commonYN "THIS WILL WIPE ALL PERSISTENT DATA OF YOURS... SURE?" _wipe
+	commonPrintfBold " "
+	commonPrintfBold "THIS WILL WIPE ALL PERSISTENT DATA OF YOURS..."
+	commonPrintfBold " "
+	commonYN "SURE?" _wipe
 	COMMON_FORCE=$force
 }
 

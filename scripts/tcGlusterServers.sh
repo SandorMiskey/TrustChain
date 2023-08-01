@@ -243,33 +243,36 @@ function _glusterFstab() {
 		if [[ "${peer[node]}" == "$backupvol" ]]; then
 			backupvol=${server2[node]}
 		fi
-		echo " "
-		echo "#"
-		echo "# TC entries"
-		echo "#"
-		echo "${peer[gdev]} ${peer[gmnt]} xfs defaults 1 2"
-		echo "${peer[node]}:/${TC_GLUSTER_BRICK} $TC_PATH_WORKBENCH glusterfs defaults,_netdev,backupvolfile-server=${backupvol} 0 0"
-		# echo " "
-		# local status
-		# status=$( ssh $1 "echo \"tc2-test-manager" 2>&1 )
-		# commonVerify $? "failed: $status" "succeeded"
+		local entry=""
+		entry+="\n"
+		entry+="#\n"
+		entry+="# TC entries\n"
+		entry+="#\n"
+		entry+="${peer[gdev]} ${peer[gmnt]} xfs defaults 1 2\n"
+		entry+="${peer[node]}:/${TC_GLUSTER_BRICK} $TC_PATH_WORKBENCH glusterfs defaults,_netdev,backupvolfile-server=${backupvol} 0 0\n"
+		# _out=$( ssh ${peer[node]} "sudo echo -e '${entry}' >> /etc/fstab" 2>&1 )
+		# ssh "$REMOTE_USER@$REMOTE_SERVER" "sudo bash -c 'echo \"$LOCAL_CONTENT\" > $REMOTE_FILE'"
+		_out=$( ssh ${peer[node]} "sudo bash -c 'echo -e \"$entry\" >> /etc/fstab'" 2>&1 )
+		commonVerify $? "failed to update fstab: $_out" "fstab update succeeded"
+		_out=$( ssh ${peer[node]} "sudo mount -a" 2>&1 )
+		commonVerify $? "failed mount -a: $_out" "mount -a succeeded"
 	}
-	_iterate _inner "mount on" confirm "${TC_GLUSTER_NODES[@]}"
+	_iterate _inner "update fstab and mount -a on" confirm "${TC_GLUSTER_NODES[@]}"
 	unset _inner _out
 	commonSleep 3 "done"
 }
 
 if [[ "$TC_EXEC_DRY" == "false" ]]; then
-	commonPrintfBold " "
-	commonPrintfBold "THIS SCRIPT CAN BE DESTRUCTIVE, IT SHOULD BE RUN WITH SPECIAL CARE ON THE MAIN MANAGER NODE"
-	commonPrintfBold " "
-	commonYN "this is dangerous, want to leave now?" exit
-	commonYN "disable glusterd on peers?" _glusterDisable
-	commonYN "umount gluster's dedicated devices?" _glusterUmount
-	commonYN "mkfs on those devices?" _glusterMkFs
-	commonYN "mount filesystems?" _glusterMount
-	commonYN "start and enable glusterd on peers?" _glusterEnable
-	commonYN "configure the trusted pool?" _glusterProbe
-	commonYN "lay the brick?" _glusterLay
+	# commonPrintfBold " "
+	# commonPrintfBold "THIS SCRIPT CAN BE DESTRUCTIVE, IT SHOULD BE RUN WITH SPECIAL CARE ON THE MAIN MANAGER NODE"
+	# commonPrintfBold " "
+	# commonYN "this is dangerous, want to leave now?" exit
+	# commonYN "disable glusterd on peers?" _glusterDisable
+	# commonYN "umount gluster's dedicated devices?" _glusterUmount
+	# commonYN "mkfs on those devices?" _glusterMkFs
+	# commonYN "mount filesystems?" _glusterMount
+	# commonYN "start and enable glusterd on peers?" _glusterEnable
+	# commonYN "configure the trusted pool?" _glusterProbe
+	# commonYN "lay the brick?" _glusterLay
 	commonYN "add /etc/fstab entry and mount -a?" _glusterFstab
 fi

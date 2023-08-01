@@ -8,6 +8,62 @@
 	},
 	"item": [
 		{
+			"name": "/docs",
+			"item": [
+				{
+					"name": "/hosts_and_ports.md",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/hosts_and_ports.md",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"hosts_and_ports.md"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/index.html",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/index.html",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"index.html"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/error",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/error",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"error"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
 			"name": "/invoke",
 			"item": [
 				{
@@ -388,7 +444,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseURL}}/query?channel=trustchain-test&chaincode=te-food-bundles&function=BundleGet&args=59",
+							"raw": "{{baseURL}}/query?channel=trustchain-test&chaincode=te-food-bundles&function=BundleGet&args=10",
 							"host": [
 								"{{baseURL}}"
 							],
@@ -410,7 +466,7 @@
 								},
 								{
 									"key": "args",
-									"value": "59"
+									"value": "10"
 								},
 								{
 									"key": "args",
@@ -794,7 +850,10 @@
 			"script": {
 				"type": "text/javascript",
 				"exec": [
-					""
+					"pm.request.headers.add({ ",
+					"    key: \"X-API-Key\",",
+					"    value: \"{{apiKey}}\" ",
+					"});"
 				]
 			}
 		},
