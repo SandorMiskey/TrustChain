@@ -33,7 +33,6 @@ export TC_PATH_SWARM=${TC_PATH_WORKBENCH}/swarm
 export TC_PATH_ORGS=${TC_PATH_WORKBENCH}/organizations
 export TC_PATH_CHANNELS=${TC_PATH_WORKBENCH}/channels
 export TC_PATH_CHAINCODE=${TC_PATH_WORKBENCH}/chaincode
-export TC_PATH_LOCAL=${TC_PATH_WORKBENCH}/tcLocal.sh
 
 # endregion: base paths
 # region: exec control
@@ -838,11 +837,6 @@ export TC_RAWAPI_PEERENDPOINT=${TC_ORG1_P1_FQDN}:${TC_ORG1_P1_PORT}
 export TC_RAWAPI_GATEWAYPEER=${TC_ORG1_P1_FQDN}
 
 # endregion: raw api
-# region: local under workbench
-
-[[ -f "$TC_PATH_LOCAL" ]] && source "$TC_PATH_LOCAL"
-
-# endregion: local under workbench
 # region: common funcs
 
 [[ -f "$TC_PATH_COMMON" ]] && source "$TC_PATH_COMMON"
