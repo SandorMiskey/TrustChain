@@ -19,7 +19,7 @@ export TC_PATH_RC=$TC_PATH_RC
 export TC_PATH_BIN=${TC_PATH_BASE}/bin
 export TC_PATH_SCRIPTS=${TC_PATH_BASE}/scripts
 export TC_PATH_TEMPLATES=${TC_PATH_BASE}/templates
-export TC_PATH_LOCALWORKBENCH=${TC_PATH_BASE}/wb
+export TC_PATH_LOCALWORKBENCH=${TC_PATH_BASE}/wbench
 
 # trustchain independent common functions
 export TC_PATH_COMMON=${TC_PATH_SCRIPTS}/commonFuncs.sh
@@ -39,10 +39,10 @@ export TC_PATH_LOCAL=${TC_PATH_WORKBENCH}/tcLocal.sh
 # region: exec control
 
 export TC_EXEC_DRY=false
-export TC_EXEC_FORCE=true
-# export TC_EXEC_FORCE=false
-export TC_EXEC_SURE=true
-# export TC_EXEC_SURE=false
+# export TC_EXEC_FORCE=true
+export TC_EXEC_FORCE=false
+# export TC_EXEC_SURE=true
+export TC_EXEC_SURE=false
 export TC_EXEC_PANIC=true
 export TC_EXEC_SILENT=false
 export TC_EXEC_VERBOSE=true
