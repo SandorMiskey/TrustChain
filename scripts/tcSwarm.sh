@@ -20,33 +20,20 @@ commonPP $TC_PATH_SCRIPTS
 
 # endregion: common
 
-_iterate() {
-	local func=$1
-	local msg=$2
-	shift 2
-
-	for k in "$@"; do
-		declare -n details=$k
-		local node=${details[node]}
-		commonYN "$msg${node}?" $func ${node}
-		# unset details
-	done
-
-	unset func msg k
-}
-
 _swarmLeave() {
 	local force=$COMMON_FORCE
 	COMMON_FORCE=$TC_EXEC_SURE
 
 	_leave() {
-		local worker=$1
-		local status=$( ssh $worker "docker swarm leave --force" 2>&1 )
+		local -n peer=$1
+		local status=$( ssh ${peer[node]} "docker swarm leave --force" 2>&1 )
 		commonVerify $? "$status" "swarm status: $status"
 	}
 
+	commonPrintfBold " "
 	commonPrintfBold "remember: removing the last manager erases all current state of the swarm!"
-	_iterate _leave "remove node " "${TC_SWARM_WORKERS[@]}" "${TC_SWARM_MANAGERS[@]}"
+	commonPrintfBold " "
+	commonIterate _leave "confirm|remove |array|node| from swarm?" "${TC_SWARM_WORKERS[@]}" "${TC_SWARM_MANAGERS[@]}"
 
 	unset _leave
 	COMMON_FORCE=$force
@@ -57,16 +44,18 @@ _swarmPrune() {
 	COMMON_FORCE=$TC_EXEC_SURE
 
 	_prune() {
-		local worker=$1
-		local status=$( ssh $worker "docker system prune --all -f" 2>&1 )
+		local -n peer=$1
+		local status=$( ssh ${peer[node]} "docker system prune --all -f" 2>&1 )
 		commonVerify $? "$status" "swarm status: $status"
 
-		# status=$( ssh $worker "docker volume rm $(docker volume ls -q)" 2>&1 )
+		# status=$( ssh ${peer[node]} "docker volume rm $(docker volume ls -q)" 2>&1 )
 		# commonVerify $? "$status" "volume rm: `echo $status`"
 	}
 
+	commonPrintfBold " "
 	commonPrintfBold "remember: this will remove all local stuff CURRENTLY not used by at least one container!"
-	_iterate _prune "system prune --all -f @" "${TC_SWARM_WORKERS[@]}" "${TC_SWARM_MANAGERS[@]}"
+	commonPrintfBold " "
+	commonIterate _prune "confirm|system prune --all -f @ |array|node|?" "${TC_SWARM_WORKERS[@]}" "${TC_SWARM_MANAGERS[@]}"
 
 	unset _prune
 	COMMON_FORCE=$force
@@ -92,20 +81,20 @@ _swarmJoin() {
 	local token=""
 
 	_joinManager() {
-		local node=$1
+		local -n peer=$1
 		local cmd="docker swarm join --token $( docker swarm join-token -q manager ) ${leader[ip]}:2377"
-		local status=$( ssh $node "$cmd" 2>&1 )
+		local status=$( ssh ${peer[node]} "$cmd" 2>&1 )
 		commonVerify $? "$status" "swarm status: $status"
 	}
 	_joinWorker() {
-		local node=$1
+		local -n peer=$1
 		local cmd="docker swarm join --token $( docker swarm join-token -q worker ) ${leader[ip]}:2377"
-		local status=$( ssh $node "$cmd" 2>&1 )
+		local status=$( ssh ${peer[node]} "$cmd" 2>&1 )
 		commonVerify $? "$status" "swarm status: $status"
 	}
 
-	token=$tokeManager && _iterate _joinManager "join node as a manager: " "${managers[@]}"
-	token=$tokenWorker && _iterate _joinWorker "join node as a worker: " "${TC_SWARM_WORKERS[@]}"
+	token=$tokeManager && commonIterate _joinManager "print|join node as a manager: |array|node|" "${managers[@]}"
+	token=$tokenWorker && commonIterate _joinWorker "print|join node as a worker: |array|node|" "${TC_SWARM_WORKERS[@]}"
 
 	local status=$( docker node ls 2>&1 )
 	commonVerify $? "$status" "swarm nodes: $status"
@@ -118,4 +107,12 @@ if [ "$TC_EXEC_DRY" == false ]; then
 	commonYN "prune networks/volumes/containers/images?" _swarmPrune
 	commonYN "init docker swarm?" _swarmInit
 	commonYN "join workers to swarm?" _swarmJoin
+
+	_prefix="$COMMON_PREFIX"
+	COMMON_PREFIX="===>>> "
+	commonPrintfBold " "
+	commonPrintfBold "ALL DONE! IF THIS IS FINAL, ISSUE THE FOLLOWING COMMAND: sudo chmod a-x ${TC_PATH_SCRIPTS}/tcSwarm.sh"
+	commonPrintfBold " "
+	COMMON_PREFIX="_prefix"
+	unset _prefix
 fi
