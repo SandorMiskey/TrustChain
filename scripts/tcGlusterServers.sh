@@ -20,34 +20,6 @@ commonPP $TC_PATH_SCRIPTS
 
 # endregion: common
 
-function _iterate() {
-	local func=$1; shift
-	local msg=$1; shift
-	local mode=$1; shift
-
-	for k in "$@"; do
-		declare -n peer=$k
-		case $mode in
-			"confirm")
-				commonYN "(${peer[node]}) $msg" $func "$k"
-				;;
-			"ignore")
-				$func "$k"
-				;;
-			"bold")
-				commonPrintfBold "(${peer[node]}) $msg"
-				$func "$k"
-				;;
-			*)
-				commonPrintf "(${peer[node]}) $msg"	
-				$func "$k"
-				;;
-		esac
-	done
-
-	unset func msg k
-}
-
 function _glusterUmountVolume() {
 	commonPrintf " "
 	commonPrintf "umounting shared volume"
@@ -57,14 +29,14 @@ function _glusterUmountVolume() {
 		_out=$( ssh ${peer[node]} "sudo umount -f ${TC_PATH_WORKBENCH}" 2>&1 )
 		commonPrintf "status: $? $_out"
 	}
-	_iterate _inner "umount volume" configm "${TC_GLUSTER_NODES[@]}"
+	commonIterate _inner "confirm|umoun volume on |array|node|?" "${TC_GLUSTER_NODES[@]}" 
 	unset _inner _out
 	commonSleep 3 "done"
 }
 
 function _glusterDisable() {
 	commonPrintf " "
-	commonPrintf "disabling glusterd on nodes"
+	commonPrintf "reseting glusterd on glusterfs servers"
 	commonPrintf " "
 	_inner() {
 		local -n peer=$1
@@ -75,7 +47,7 @@ function _glusterDisable() {
 		out=$( ssh ${peer[node]} "sudo sudo rm -rf /var/lib/glusterd" 2>&1 )
 		commonVerify $? "failed: $_out" "/var/lib/glusterd removed"
 	}
-	_iterate _inner "reset glusterd" - "${TC_GLUSTER_NODES[@]}"
+	commonIterate _inner "confirm|reset glusterd on |array|node|?" "${TC_GLUSTER_NODES[@]}" 
 	unset _inner _out
 	commonSleep 3 "done"
 }
@@ -89,7 +61,7 @@ function _glusterUmountDevice() {
 		_out=$( ssh ${peer[node]} "sudo umount ${peer[gdev]}" 2>&1 )
 		commonPrintf "status: $? $_out"
 	}
-	_iterate _inner "umount blockdevice" - "${TC_GLUSTER_NODES[@]}"
+	commonIterate _inner "print|umount blockdevice on |array|node|?" "${TC_GLUSTER_NODES[@]}" 
 	unset _inner _out
 	commonSleep 3 "done"
 }
@@ -110,7 +82,7 @@ function _glusterMkFs() {
 		commonYN "mkfs.xfs on ${peer[node]}:${peer[gdev]}" _innerInner
 		unset _innerInner
 	}
-	_iterate _inner "mkfs.xfs" ignore "${TC_GLUSTER_NODES[@]}"
+	commonIterate _inner "-|mkfs.xfs on |array|node|" "${TC_GLUSTER_NODES[@]}" 
 
 	unset _inner _out
 	COMMON_FORCE=$force
@@ -128,7 +100,7 @@ function _glusterMount() {
 		_out=$( ssh ${peer[node]} "sudo mount ${peer[gdev]} ${peer[gmnt]}" 2>&1 )
 		commonVerify $? "failed: $_out" "mount ${peer[gdev]} ${peer[gmnt]} on ${peer[node]} succeeded" 
 	}
-	_iterate _inner "mount" - "${TC_GLUSTER_NODES[@]}"
+	commonIterate _inner "print|mount on |array|node|:" "${TC_GLUSTER_NODES[@]}" 
 	unset _inner _out
 	commonSleep 3 "done"
 }
@@ -142,7 +114,7 @@ function _glusterEnable() {
 		_out=$( ssh ${peer[node]} "sudo systemctl enable --now glusterd " 2>&1 )
 		commonVerify $? "failed: $_out" "enabled (${_out})"
 	}
-	_iterate _inner "systemctl enable --now glusterd" - "${TC_GLUSTER_NODES[@]}"
+	commonIterate _inner "print|systemctl enable --now glusterd on |array|node|:" "${TC_GLUSTER_NODES[@]}" 
 	unset _inner _out
 	commonSleep 3 "done"
 }
@@ -162,7 +134,7 @@ function _glusterProbe() {
 		_out=$( ssh ${server1[node]} "sudo gluster peer probe ${peer[node]} " 2>&1 )
 		commonVerify $? "failed: $_out" "probe succeeded: (${_out})"
 	}
-	_iterate _inner "gluster peer probe from ${server1[node]}" - "${TC_GLUSTER_NODES[@]:1}"
+	commonIterate _inner "print|gluster peer probe from ${server1[node]} to |array|node|:" "${TC_GLUSTER_NODES[@]:1}" 
 	commonPrintf "(${server1[node]}) gluster peer probe from ${server2[node]} "
 	_out=$( ssh ${server2[node]} "sudo gluster peer probe ${server1[node]}" 2>&1 )
 	commonVerify $? "failed: $_out" "probe succeeded: (${_out})"
@@ -175,13 +147,13 @@ function _glusterProbe() {
 		_out=$( ssh ${peer[node]} "sudo gluster peer status" 2>&1 )
 		commonVerify $? "failed to query status: $_out" "${_out}"
 	}
-	_iterate _inner "gluster peer status:" - "${TC_GLUSTER_NODES[@]}"
+	commonIterate _inner "print|gluster peer status on |array|node|:" "${TC_GLUSTER_NODES[@]}" 
 	_inner() {
 		local -n peer=$1
 		_out=$( ssh ${peer[node]} "sudo gluster pool list" 2>&1 )
 		commonVerify $? "failed to query pool list: $_out" "${_out}"
 	}
-	_iterate _inner "gluster pool list:" - "${TC_GLUSTER_NODES[@]}"
+	commonIterate _inner "print|gluster pool list on |array|node|:" "${TC_GLUSTER_NODES[@]}" 
 
 	# endregion: status
 
@@ -202,7 +174,7 @@ function _glusterLay() {
 		_out=$( ssh ${peer[node]} "sudo mkdir -p -v $dir " 2>&1 )
 		commonVerify $? "failed: $_out" "mkdir -p -v $dir on ${peer[node]} succeeded"
 	}
-	_iterate _inner "mkdir -p -v mountpoint/brick" - "${TC_GLUSTER_NODES[@]}"
+	commonIterate _inner "print|mkdir -p -v mountpoint/brick |array|node|:" "${TC_GLUSTER_NODES[@]}" 
 	unset _inner _out
 	commonSleep 3 "done"
 
@@ -217,7 +189,7 @@ function _glusterLay() {
 		local -n peer=$1
 		servers+="${peer[node]}:${peer[gmnt]}/${TC_GLUSTER_BRICK} "
 	}
-	_iterate _inner - ignore "${TC_GLUSTER_NODES[@]}"
+	commonIterate _inner "||||" "${TC_GLUSTER_NODES[@]}" 
 	local -n manager=${TC_GLUSTER_NODES[0]}
 	local cmd="sudo gluster volume create $TC_GLUSTER_BRICK disperse $TC_GLUSTER_DISPERSE redundancy $TC_GLUSTER_REDUNDANCY $servers"
 	commonPrintf "${cmd}will be issued on ${manager[node]}" 
@@ -292,15 +264,15 @@ function _glusterFstab() {
 		_out=$( ssh ${peer[node]} "sudo mount -a" 2>&1 )
 		commonVerify $? "failed mount -a: $_out" "mount -a succeeded"
 	}
-	_iterate _inner "update fstab and mount -a on" confirm "${TC_GLUSTER_NODES[@]}"
+	commonIterate _inner "confirm|update fstab and mount -a on |array|node|?" "${TC_GLUSTER_NODES[@]}" 
 	unset _inner _out
 	commonSleep 3 "done"
 }
 
 if [[ "$TC_EXEC_DRY" == "false" ]]; then
 	_inner() {
-		commonYN "umount shared wolume on peers?" _glusterUmountVolume
-		commonYN "disable glusterd on peers?" _glusterDisable
+		commonYN "umount shared wolume on glusterfs servers?" _glusterUmountVolume
+		commonYN "reset glusterd on glusterfs servers?" _glusterDisable
 		commonYN "umount gluster's dedicated devices?" _glusterUmountDevice
 		commonYN "mkfs on those devices?" _glusterMkFs
 		commonYN "mount filesystems?" _glusterMount
@@ -317,4 +289,12 @@ if [[ "$TC_EXEC_DRY" == "false" ]]; then
 	commonYN "this is dangerous, do you want to continoue?" _inner
 	COMMON_FORCE=$force
 	unset _inner force
+
+	_prefix="$COMMON_PREFIX"
+	COMMON_PREFIX="===>>> "
+	commonPrintfBold " "
+	commonPrintfBold "ALL DONE! IF THIS IS FINAL, ISSUE THE FOLLOWING COMMAND: sudo chmod a-x ${TC_PATH_SCRIPTS}/tcGlusterServers.sh"
+	commonPrintfBold " "
+	COMMON_PREFIX="_prefix"
+	unset _prefix
 fi

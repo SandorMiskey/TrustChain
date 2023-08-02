@@ -14,6 +14,8 @@
     "GATEWAYPEER",
     "getopt",
     "Gluster",
+    "glusterd",
+    "glusterfs",
     "instancelist",
     "instanceregister",
     "instanceroot",

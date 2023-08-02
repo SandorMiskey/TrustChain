@@ -257,3 +257,52 @@ function commonJoinArray() {
 	# printf "${out%$cut}"
 	echo "${out%$cut}"
 }
+
+function commonIterate() {
+	local func=$1; shift
+
+	IFS="|" read -r mode prefix type field suffix <<< "$1"; shift
+	if [ -z $mode ]; then mode=ignore; fi
+
+	for k in "$@"; do
+		local dump=$prefix
+		if [ ! -z $type ]; then
+			case $type in
+				"array")
+					local array
+					declare -n array=$k
+					if [ ! -z $field ]; then
+						dump+="[$field]->${array[$field]}"
+					else
+						for index in "${!array[@]}"; do
+							dump+="[${index}]->${array[$index]} "
+						done
+					fi
+					;;
+				*)
+					dump+="$k"
+					;;
+			esac
+		fi
+		dump="${dump%"${dump##*[![:space:]]}"}"
+		dump+=$suffix
+		case $mode in
+			"bold")
+				commonPrintfBold "$dump"	
+				$func "$k"
+				;;
+			"confirm")
+				commonYN "$dump" $func "$k"
+				;;
+			"print")
+				commonPrintf "$dump"	
+				$func "$k"
+				;;
+			*)
+				$func $k
+				;;
+		esac
+	done
+
+	unset mode prefix type field suffix
+}

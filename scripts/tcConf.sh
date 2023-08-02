@@ -129,7 +129,7 @@ export TC_COMMON1_C1_EXP=3153600000
 
 		# region: orderer1 all stack
 
-		export TC_ORDERER1_STACK=te-food-orderers
+		export TC_ORDERER1_STACK=orderers
 		export TC_ORDERER1_DATA=${TC_PATH_ORGS}/ordererOrganizations/${TC_ORDERER1_STACK}
 		export TC_ORDERER1_DOMAIN=${TC_ORDERER1_STACK}.${TC_NETWORK_DOMAIN}
 		export TC_ORDERER1_LOGLEVEL=info
@@ -241,7 +241,7 @@ export TC_COMMON1_C1_EXP=3153600000
 
 		# region: org1 all stack
 
-		export TC_ORG1_STACK=te-food-backbone
+		export TC_ORG1_STACK=backbone
 		export TC_ORG1_DATA=${TC_PATH_ORGS}/peerOrganizations/${TC_ORG1_STACK}
 		export TC_ORG1_DOMAIN=${TC_ORG1_STACK}.${TC_NETWORK_DOMAIN}
 		export TC_ORG1_LOGLEVEL=info

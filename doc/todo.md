@@ -3,7 +3,6 @@
 * add scripts to workbench
 * remote peers
   * GlusterFS?
-    * dependency check
     * authentication
       * [https://access.redhat.com/documentation/en-us/red_hat_gluster_storage/3.4/html/administration_guide/chap-accessing_data_-_setting_up_clients#Mounting_Volumes_Using_Native_Client]
       * for manager
@@ -26,6 +25,9 @@
 * swagger
 * get by tx_id, block# via qscc [https://stackoverflow.com/questions/67263579/retrieve-block-number-and-transaction-id-from-query-to-hyperledger-fabric]
 * SASC leftover (doc/legacy_to_port)
+* more dependency check
+  * glusterd
+  * mount.glusterfs
 * tls ca checklist [https://hyperledger-fabric-ca.readthedocs.io/en/latest/deployguide/ca-config.html]
 * operations:
   * (tls)ca "Operation Server Listening on 127.0.0.1:9443"
