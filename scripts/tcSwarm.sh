@@ -108,11 +108,12 @@ if [ "$TC_EXEC_DRY" == false ]; then
 	commonYN "init docker swarm?" _swarmInit
 	commonYN "join workers to swarm?" _swarmJoin
 
+	_me=$( basename "$0" )
 	_prefix="$COMMON_PREFIX"
 	COMMON_PREFIX="===>>> "
 	commonPrintfBold " "
-	commonPrintfBold "ALL DONE! IF THIS IS FINAL, ISSUE THE FOLLOWING COMMAND: sudo chmod a-x ${TC_PATH_SCRIPTS}/tcSwarm.sh"
+	commonPrintfBold "ALL DONE! IF THIS IS FINAL, ISSUE THE FOLLOWING COMMAND: sudo chmod a-x ${TC_PATH_SCRIPTS}/${_me}"
 	commonPrintfBold " "
 	COMMON_PREFIX="_prefix"
-	unset _prefix
+	unset _prefix _me
 fi

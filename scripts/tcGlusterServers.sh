@@ -290,11 +290,12 @@ if [[ "$TC_EXEC_DRY" == "false" ]]; then
 	COMMON_FORCE=$force
 	unset _inner force
 
+	_me=$( basename "$0" )
 	_prefix="$COMMON_PREFIX"
 	COMMON_PREFIX="===>>> "
 	commonPrintfBold " "
-	commonPrintfBold "ALL DONE! IF THIS IS FINAL, ISSUE THE FOLLOWING COMMAND: sudo chmod a-x ${TC_PATH_SCRIPTS}/tcGlusterServers.sh"
+	commonPrintfBold "ALL DONE! IF THIS IS FINAL, ISSUE THE FOLLOWING COMMAND: sudo chmod a-x ${TC_PATH_SCRIPTS}/${_me}"
 	commonPrintfBold " "
 	COMMON_PREFIX="_prefix"
-	unset _prefix
+	unset _prefix _me
 fi
