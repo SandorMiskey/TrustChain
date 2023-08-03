@@ -2,12 +2,12 @@
 
 # region: load common functions
 
-[[ ${TC_PATH_RC:-"unset"} == "unset" ]] && TC_PATH_RC=${TC_PATH_BASE}/scripts/commonFuncs.sh
-if [ ! -f  $TC_PATH_RC ]; then
-	echo "=> TC_PATH_RC ($TC_PATH_RC) not found, make sure proper path is set or you execute this from the repo's 'scrips' directory!"
-	exit 1
-fi
-source $TC_PATH_RC
+# [[ ${TC_PATH_RC:-"unset"} == "unset" ]] && TC_PATH_RC=${TC_PATH_BASE}/scripts/commonFuncs.sh
+# if [ ! -f  $TC_PATH_RC ]; then
+# 	echo "=> TC_PATH_RC ($TC_PATH_RC) not found, make sure proper path is set or you execute this from the repo's 'scrips' directory!"
+# 	exit 1
+# fi
+# source $TC_PATH_RC
 
 # if [[ ${TC_PATH_SCRIPTS:-"unset"} == "unset" ]]; then
 # 	commonVerify 1 "TC_PATH_SCRIPTS is unset"
@@ -105,7 +105,7 @@ Y9rdr62KQ5aXN9FAarw54Yu3FnUOAxHK
 
 # endregion: HTTPS
 
-commonPrintfBold "init.sh starts"
+# commonPrintfBold "init.sh starts"
 
 while true
 do

@@ -376,5 +376,5 @@ services:
     tty: true
     volumes:
       - ${TC_ORG3_DATA}:${TC_ORG3_DATA}
-      - ${TC_PATH_SCRIPTS}:${TC_PATH_SCRIPTS}
+      # - ${TC_PATH_SCRIPTS}:${TC_PATH_SCRIPTS}
     working_dir: ${TC_PATH_BASE}

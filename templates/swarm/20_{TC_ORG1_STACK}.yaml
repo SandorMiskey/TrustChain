@@ -362,12 +362,12 @@ services:
     tty: true
     volumes:
       - ${TC_ORG1_DATA}:${TC_ORG1_DATA}
-      - ${TC_PATH_SCRIPTS}:${TC_PATH_SCRIPTS}
+      # - ${TC_PATH_SCRIPTS}:${TC_PATH_SCRIPTS}
     working_dir: ${TC_PATH_BASE}
 
   ${TC_ORG1_G1_NAME}:
     # command: /bin/bash
-    command: /bin/bash ${TC_PATH_SCRIPTS}/tcGwInit.sh
+    command: /bin/bash ${TC_ORG1_G1_ASSETS_DIR}/tcGwInit.sh
     # depends_on:
     #   - ${TC_ORG1_D1_FQDN}
     deploy:
@@ -382,9 +382,9 @@ services:
       #
       # set env
       #
-      - TC_PATH_BASE=${TC_PATH_BASE}
-      - TC_PATH_RC=${TC_PATH_BASE}/scripts/tcConf.sh
-      - COMMON_FUNCS=${TC_PATH_BASE}/scripts/commonFuncs.sh
+      # - TC_PATH_BASE=${TC_PATH_BASE}
+      # - TC_PATH_RC=${TC_PATH_BASE}/scripts/tcConf.sh
+      # - COMMON_FUNCS=${TC_PATH_BASE}/scripts/commonFuncs.sh
       #
       # hyperledger settings
       #
@@ -439,5 +439,5 @@ services:
     volumes:
       - ${TC_ORG1_G1_DATA}:${TC_ORG1_G1_DATA}
       - ${TC_ORG1_CLIENTHOME}:${TC_ORG1_CLIENTHOME}
-      - ${TC_PATH_SCRIPTS}:${TC_PATH_SCRIPTS}
+      # - ${TC_PATH_SCRIPTS}:${TC_PATH_SCRIPTS}
     working_dir: ${TC_PATH_BASE}

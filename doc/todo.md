@@ -1,7 +1,7 @@
 # todo
 
-* add scripts to workbench
 * remote peers
+  * move payload to managers
   * GlusterFS?
     * authentication
       * [https://access.redhat.com/documentation/en-us/red_hat_gluster_storage/3.4/html/administration_guide/chap-accessing_data_-_setting_up_clients#Mounting_Volumes_Using_Native_Client]
@@ -12,8 +12,7 @@
     * test on workers
     * docker
     * check if mount point with data is available
-  * move workers
-    * managers pre-set by hand
+  * move payload to workers
     * workers
       * check/create mount point
       * mount work dir

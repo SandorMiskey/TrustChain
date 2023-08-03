@@ -82,13 +82,13 @@ _swarmJoin() {
 
 	_joinManager() {
 		local -n peer=$1
-		local cmd="docker swarm join --token $( docker swarm join-token -q manager ) ${leader[ip]}:2377"
+		local cmd="docker swarm join --advertise-addr ${peer[ip]}:2377 --token $( docker swarm join-token -q manager ) ${leader[ip]}:2377"
 		local status=$( ssh ${peer[node]} "$cmd" 2>&1 )
 		commonVerify $? "$status" "swarm status: $status"
 	}
 	_joinWorker() {
 		local -n peer=$1
-		local cmd="docker swarm join --token $( docker swarm join-token -q worker ) ${leader[ip]}:2377"
+		local cmd="docker swarm join --advertise-addr ${peer[ip]}:2377 --token $( docker swarm join-token -q worker ) ${leader[ip]}:2377"
 		local status=$( ssh ${peer[node]} "$cmd" 2>&1 )
 		commonVerify $? "$status" "swarm status: $status"
 	}

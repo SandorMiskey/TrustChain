@@ -23,7 +23,7 @@ services:
     tty: true
     volumes:
       - ${TC_PATH_WORKBENCH}:${TC_PATH_WORKBENCH}
-      - ${TC_PATH_SCRIPTS}:${TC_PATH_SCRIPTS}
+      # - ${TC_PATH_SCRIPTS}:${TC_PATH_SCRIPTS}
   ${TC_COMMON3_S2_NAME}:
     command: sh
     deploy:
@@ -41,7 +41,7 @@ services:
     tty: true
     volumes:
       - ${TC_PATH_WORKBENCH}:${TC_PATH_WORKBENCH}
-      - ${TC_PATH_SCRIPTS}:${TC_PATH_SCRIPTS}
+      # - ${TC_PATH_SCRIPTS}:${TC_PATH_SCRIPTS}
   ${TC_COMMON3_S3_NAME}:
     image: portainer/agent:2.17.0
     deploy:
