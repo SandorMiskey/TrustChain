@@ -1,13 +1,16 @@
 # todo
 
 * remote peers
+  * common user/uid/group/gid on all managers and workers
   * move payload to managers
+    * all initial launch on manager1
+    * move service to SERVICE_WORKER
   * GlusterFS?
+    * permissions?
     * authentication
       * [https://access.redhat.com/documentation/en-us/red_hat_gluster_storage/3.4/html/administration_guide/chap-accessing_data_-_setting_up_clients#Mounting_Volumes_Using_Native_Client]
       * for manager
       * subdir for workers (see 6.1.3.4. Manually Mounting Sub-directories Using Native Client)
-    * permissions?
   * dependencies
     * test on workers
     * docker
@@ -16,10 +19,11 @@
     * workers
       * check/create mount point
       * mount work dir
-* put p2s and p3s back in tcChaincodeInit.sh
-* put mgmt and metrics (and basic?) back in tcGenesis.sh
+  * update docs/hosts_and_ports.md
 * orderer restart? stress test
 * move HTTPS cert and key from tcGwInit.sh to templates/swarm/20_{TC_ORG1_STACK}.yaml
+* put p2s and p3s back in tcChaincodeInit.sh
+* put mgmt and metrics (and basic?) back in tcGenesis.sh
 
 * swagger
 * get by tx_id, block# via qscc [https://stackoverflow.com/questions/67263579/retrieve-block-number-and-transaction-id-from-query-to-hyperledger-fabric]
