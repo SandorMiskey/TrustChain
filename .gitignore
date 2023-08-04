@@ -6,6 +6,7 @@ doc/legacy_to_port/SASC.tgz
 rawapi/vendor
 scripts/.env.sh
 scripts/worksheet.sh
+scripts/proto.sh
 workbench
 wbench
 
