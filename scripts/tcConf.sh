@@ -14,7 +14,7 @@ export TC_PATH_RC=$TC_PATH_RC
 export TC_PATH_BIN=${TC_PATH_BASE}/bin
 export TC_PATH_SCRIPTS=${TC_PATH_BASE}/scripts
 export TC_PATH_TEMPLATES=${TC_PATH_BASE}/templates
-export TC_PATH_LOCALWORKBENCH=${TC_PATH_BASE}/wbench
+export TC_PATH_LOCALWORKBENCH=${TC_PATH_BASE}/workbench
 
 # trustchain independent common functions
 export TC_PATH_COMMON=${TC_PATH_SCRIPTS}/commonFuncs.sh
