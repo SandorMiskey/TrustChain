@@ -50,10 +50,10 @@ export TC_DEPS_BINS=('awk' 'bash' 'curl' 'git' 'go' 'jq' 'configtxgen' 'yq')
 # endregion: versions and deps
 # region: environment
 
-export TC_USER_NAME="trustchain"
-export TC_USER_UID=12345
-export TC_USER_GROUP="trustchain"
-export TC_USER_GID=12345
+# export TC_USER_NAME="trustchain"
+# export TC_USER_UID=12345
+# export TC_USER_GROUP="trustchain"
+# export TC_USER_GID=12345
 
 # endregion: environment
 # region: network and channel
@@ -83,8 +83,8 @@ TC_SWARM_MANAGERS=("TC_SWARM_MANAGER1" "TC_SWARM_MANAGER2" "TC_SWARM_MANAGER3")
 declare -A TC_SWARM_WORKER1=( [node]=tc2-test-worker1 [ip]=3.77.143.132 )
 declare -A TC_SWARM_WORKER2=( [node]=tc2-test-worker2 [ip]=185.187.73.203 )
 declare -A TC_SWARM_WORKER3=( [node]=tc2-test-worker3 [ip]=18.197.74.200 )
-TC_SWARM_WORKERS=("TC_SWARM_WORKER1")
-# TC_SWARM_WORKERS=("TC_SWARM_WORKER1" "TC_SWARM_WORKER2" "TC_SWARM_WORKER3")
+TC_SWARM_WORKERS=("TC_SWARM_WORKER1" "TC_SWARM_WORKER2" "TC_SWARM_WORKER3")
+# TC_SWARM_WORKERS=("TC_SWARM_WORKER1")
 
 export TC_SWARM_PATH=$TC_PATH_SWARM
 export TC_SWARM_PUBLIC=${TC_SWARM_MANAGER1[ip]}

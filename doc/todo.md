@@ -1,7 +1,6 @@
 # todo
 
 * remote peers
-  * common user/uid/group/gid on all managers and workers
   * move payload to managers
     * all initial launch on manager1
     * move service to SERVICE_WORKER
@@ -27,6 +26,7 @@
 * put mgmt and metrics (and basic?) back in tcGenesis.sh
 
 * swagger
+* common uid/gid on managers and workers on-the-fly
 * get by tx_id, block# via qscc [https://stackoverflow.com/questions/67263579/retrieve-block-number-and-transaction-id-from-query-to-hyperledger-fabric]
 * SASC leftover (doc/legacy_to_port)
 * more dependency check

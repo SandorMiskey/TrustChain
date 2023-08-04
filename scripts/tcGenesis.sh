@@ -116,27 +116,27 @@ _WipePersistent() {
 # endregion: remove config and persistent data
 # region: create user and group
 
-_prepareUser() {
-	commonPrintf " "
-	commonPrintf "del/add user and group, whach out: no error handling here!"
-	commonPrintf
+# _prepareUser() {
+# 	commonPrintf " "
+# 	commonPrintf "del/add user and group, whach out: no error handling here!"
+# 	commonPrintf
 
-	_inner() {
-		local -n peer=$1
-		commonPrintf "delete user and group"
-		ssh ${peer[node]} "export LC_ALL=C.UTF-8; sudo deluser $TC_USER_NAME"
-		ssh ${peer[node]} "export LC_ALL=C.UTF-8; sudo delgroup $TC_USER_GROUP"
-		commonPrintf "create group"
-		ssh ${peer[node]} "export LC_ALL=C.UTF-8; sudo addgroup --gid $TC_USER_GID $TC_USER_GROUP"
-		commonPrintf "create user and add to docker group"
-		ssh ${peer[node]} "export LC_ALL=C.UTF-8; sudo adduser --uid $TC_USER_UID --gid $TC_USER_UID --shell /usr/sbin/nologin --home $TC_PATH_WORKBENCH --gecos "" --no-create-home --disabled-login --quiet $TC_USER_NAME"
-		ssh ${peer[node]} "export LC_ALL=C.UTF-8; sudo usermod -aG docker $TC_USER_NAME"
-		ssh ${peer[node]} "export LC_ALL=C.UTF-8; sudo usermod -aG $TC_USER_GROUP $( whoami )"
-	}
-	commonIterate _inner "confirm|recreate user ($TC_USER_NAME) and group ($TC_USER_GROUP) on |array|node|?" "${TC_SWARM_WORKERS[@]}" "${TC_SWARM_MANAGERS[@]}"
-}
+# 	_inner() {
+# 		local -n peer=$1
+# 		commonPrintf "delete user and group"
+# 		ssh ${peer[node]} "export LC_ALL=C.UTF-8; sudo deluser $TC_USER_NAME"
+# 		ssh ${peer[node]} "export LC_ALL=C.UTF-8; sudo delgroup $TC_USER_GROUP"
+# 		commonPrintf "create group"
+# 		ssh ${peer[node]} "export LC_ALL=C.UTF-8; sudo addgroup --gid $TC_USER_GID $TC_USER_GROUP"
+# 		commonPrintf "create user and add to docker group"
+# 		ssh ${peer[node]} "export LC_ALL=C.UTF-8; sudo adduser --uid $TC_USER_UID --gid $TC_USER_UID --shell /usr/sbin/nologin --home $TC_PATH_WORKBENCH --gecos "" --no-create-home --disabled-login --quiet $TC_USER_NAME"
+# 		ssh ${peer[node]} "export LC_ALL=C.UTF-8; sudo usermod -aG docker $TC_USER_NAME"
+# 		ssh ${peer[node]} "export LC_ALL=C.UTF-8; sudo usermod -aG $TC_USER_GROUP $( whoami )"
+# 	}
+# 	commonIterate _inner "confirm|recreate user ($TC_USER_NAME) and group ($TC_USER_GROUP) on |array|node|?" "${TC_SWARM_WORKERS[@]}" "${TC_SWARM_MANAGERS[@]}"
+# }
 
-[[ "$TC_EXEC_DRY" == false ]] && _prepareUser
+# [[ "$TC_EXEC_DRY" == false ]] && _prepareUser
 
 # endregion: create user and group
 # region: reset glusterd
