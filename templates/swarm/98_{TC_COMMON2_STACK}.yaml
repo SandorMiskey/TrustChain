@@ -26,9 +26,11 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
   ${TC_COMMON2_S2_NAME}:
     deploy:
-      mode: global
+      mode: replicated
+      # mode: global
+      replicas: 1
       placement:
-        constraints: [node.platform.os == linux]
+        constraints: [node.role == manager]
     image: gliderlabs/logspout:latest
     networks:
       ${TC_NETWORK_NAME}:

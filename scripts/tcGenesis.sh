@@ -141,7 +141,7 @@ _WipePersistent() {
 # endregion: create user and group
 # region: reset glusterd
 
-[[ "$TC_EXEC_DRY" == false ]] && commonYN "reset cluster filesystem?" ${TC_PATH_SCRIPTS}/tcGlusterServers.sh
+# [[ "$TC_EXEC_DRY" == false ]] && commonYN "reset cluster filesystem?" ${TC_PATH_SCRIPTS}/tcGlusterServers.sh
 
 # endregion: reset glusterd
 # region: process templates
@@ -1491,7 +1491,7 @@ _Orderer1() {
 		${TC_PATH_SCRIPTS}/tcBootstrap.sh -m up -s ${TC_COMMON2_STACK}
 		commonVerify $? "failed!"
 	}
-	# commonYN "bootstrap ${TC_COMMON2_STACK}?" _bootstrapCommon2
+	commonYN "bootstrap ${TC_COMMON2_STACK}?" _bootstrapCommon2
 
 	# endregion: bootstrap COMMON2
 	# region: bootstrap COMMON3
