@@ -253,18 +253,25 @@ function _glusterFstab() {
 		_out=$( ssh ${peer[node]} "sudo mkdir -p -v ${TC_PATH_WORKBENCH}" 2>&1 )
 		commonVerify $? "failed: $_out" "mkdir -p -v ${TC_PATH_WORKBENCH} on ${peer[node]} succeeded"
 
-		commonPrintf "chgrp and chmod g+rwx"
-		local grp=$( id -g )
-		_out=$( sudo chgrp $grp "$TC_PATH_WORKBENCH" )
-		commonVerify $? $_out
-		_out=$( sudo chmod g+rwx "$TC_PATH_WORKBENCH" )
-		commonVerify $? $_out
-
 		commonPrintf "mount -a at ${peer[node]}"
 		_out=$( ssh ${peer[node]} "sudo mount -a" 2>&1 )
 		commonVerify $? "failed mount -a: $_out" "mount -a succeeded"
+
+		# commonPrintf "chown -R $TC_USER_NAME:$TC_USER_GROUP"
+		# _out=$( ssh ${peer[node]} "sudo chown $TC_USER_NAME:$TC_USER_GROUP ${TC_PATH_WORKBENCH}" 2>&1 )
+		# commonVerify $? "failed: $_out" "chown $TC_USER_NAME:$TC_USER_GROUP ${TC_PATH_WORKBENCH} succeeded"
+		# _out=$( sudo chmod g+rwx "$TC_PATH_WORKBENCH" )
+		# commonVerify $? $_out
 	}
-	commonIterate _inner "confirm|update fstab and mount -a on |array|node|?" "${TC_GLUSTER_NODES[@]}" 
+	commonIterate _inner "confirm|update fstab and mount -a on |array|node|?" "${TC_GLUSTER_NODES[@]}"
+
+	commonPrintf "chgrp and chmod g+rwx"
+	local grp=$( id -g )
+	_out=$( sudo chgrp $grp "$TC_PATH_WORKBENCH" )
+	commonVerify $? $_out
+	_out=$( sudo chmod g+rwx "$TC_PATH_WORKBENCH" )
+	commonVerify $? $_out
+
 	unset _inner _out
 	commonSleep 3 "done"
 }

@@ -50,10 +50,10 @@ export TC_DEPS_BINS=('awk' 'bash' 'curl' 'git' 'go' 'jq' 'configtxgen' 'yq')
 # endregion: versions and deps
 # region: environment
 
-# export TC_USER_NAME="trustchain"
-# export TC_USER_UID=12345
-# export TC_USER_GROUP="trustchain"
-# export TC_USER_GID=12345
+export TC_USER_NAME="trustchain"
+export TC_USER_UID=12345
+export TC_USER_GROUP="trustchain"
+export TC_USER_GID=12345
 
 # endregion: environment
 # region: network and channel
@@ -91,8 +91,8 @@ export TC_SWARM_PUBLIC=${TC_SWARM_MANAGER1[ip]}
 export TC_SWARM_INIT="--advertise-addr ${TC_SWARM_PUBLIC}:2377 --cert-expiry 1000000h0m0s"
 export TC_SWARM_MANAGER=${TC_SWARM_MANAGER1[node]}
 export TC_SWARM_NETNAME=$TC_NETWORK_NAME
-export TC_SWARM_NETINIT="--attachable --driver overlay --subnet 10.10.0.0/24 $TC_SWARM_NETNAME"
-export TC_SWARM_DELAY=20
+export TC_SWARM_NETINIT="--attachable --driver overlay --subnet 10.96.0.0/24 $TC_SWARM_NETNAME"
+export TC_SWARM_DELAY=10
 
 # endregion: swarm
 # region: gluster

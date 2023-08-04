@@ -114,6 +114,31 @@ _WipePersistent() {
 [[ "$TC_EXEC_DRY" == false ]] && commonYN "wipe persistent data?" _WipePersistent
 
 # endregion: remove config and persistent data
+# region: create user and group
+
+_prepareUser() {
+	commonPrintf " "
+	commonPrintf "del/add user and group, whach out: no error handling here!"
+	commonPrintf
+
+	_inner() {
+		local -n peer=$1
+		commonPrintf "delete user and group"
+		ssh ${peer[node]} "export LC_ALL=C.UTF-8; sudo deluser $TC_USER_NAME"
+		ssh ${peer[node]} "export LC_ALL=C.UTF-8; sudo delgroup $TC_USER_GROUP"
+		commonPrintf "create group"
+		ssh ${peer[node]} "export LC_ALL=C.UTF-8; sudo addgroup --gid $TC_USER_GID $TC_USER_GROUP"
+		commonPrintf "create user and add to docker group"
+		ssh ${peer[node]} "export LC_ALL=C.UTF-8; sudo adduser --uid $TC_USER_UID --gid $TC_USER_UID --shell /usr/sbin/nologin --home $TC_PATH_WORKBENCH --gecos "" --no-create-home --disabled-login --quiet $TC_USER_NAME"
+		ssh ${peer[node]} "export LC_ALL=C.UTF-8; sudo usermod -aG docker $TC_USER_NAME"
+		ssh ${peer[node]} "export LC_ALL=C.UTF-8; sudo usermod -aG $TC_USER_GROUP $( whoami )"
+	}
+	commonIterate _inner "confirm|recreate user ($TC_USER_NAME) and group ($TC_USER_GROUP) on |array|node|?" "${TC_SWARM_WORKERS[@]}" "${TC_SWARM_MANAGERS[@]}"
+}
+
+[[ "$TC_EXEC_DRY" == false ]] && _prepareUser
+
+# endregion: create user and group
 # region: reset glusterd
 
 [[ "$TC_EXEC_DRY" == false ]] && commonYN "reset cluster filesystem?" ${TC_PATH_SCRIPTS}/tcGlusterServers.sh
@@ -159,6 +184,11 @@ _templates() {
 		local out=$( tar -C "${TC_PATH_CHAINCODE}/" -xzvf $template 2>&1 )
 		commonVerify $? "failed: $out" "$out"
 	done
+
+	# commonPrintf " "
+	# commonPrintf "chown -R $TC_USER_NAME:$TC_USER_GROUP $TC_PATH_WORKBENCH"
+	# commonPrintg
+	# sudo chown -R $TC_USER_NAME:$TC_USER_GROUP $TC_PATH_WORKBENCH 
 
 	unset out
 	unset templates
@@ -293,7 +323,7 @@ _TLS1() (
 	# endregion: registering org2 peers
 	# region: registering org3 peers
 
-	_registerOrg2() {
+	_registerOrg3() {
 		commonPrintf "registering >>>$TC_ORG3_DOMAIN<<< peers with >>>$TC_COMMON1_C1_FQDN<<<" 
 		out=$(
 			_setClient
@@ -311,7 +341,7 @@ _TLS1() (
 		)
 		commonVerify $? "failed to register tls identity: $out" "$out"
 	}
-	commonYN "register >>>$TC_ORG3_DOMAIN<<< peers with >>>$TC_COMMON1_C1_FQDN<<<?" _registerOrg2
+	commonYN "register >>>$TC_ORG3_DOMAIN<<< peers with >>>$TC_COMMON1_C1_FQDN<<<?" _registerOrg3
 
 	# endregion: registering org3 peers
 
@@ -1471,9 +1501,9 @@ _Orderer1() {
 		${TC_PATH_SCRIPTS}/tcBootstrap.sh -m up -s ${TC_COMMON3_STACK}
 		commonVerify $? "failed!"
 	}
-	# commonYN "bootstrap ${TC_COMMON3_STACK}?" _bootstrapCommon3
+	commonYN "bootstrap ${TC_COMMON3_STACK}?" _bootstrapCommon3
 
-	# endregion: bootstrap COMMON2
+	# endregion: bootstrap COMMON3
 
 # endregion: common services
 # region: channels
