@@ -9,7 +9,7 @@ scripts/worksheet.sh
 scripts/proto.sh
 workbench
 wbench
-templates/{TC_COMMON1_STACK}/{TC_COMMON1_REGISTRY_NAME}/docker
+templates/{TC_COMMON1_STACK}/{TC_COMMON1_REGISTRY_NAME}/docker.tgz
 
 # Created by https://www.toptal.com/developers/gitignore/api/go,vim,web,macos,linux,visualstudiocode,node
 # Edit at https://www.toptal.com/developers/gitignore?templates=go,vim,web,macos,linux,visualstudiocode,node

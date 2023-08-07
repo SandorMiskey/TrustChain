@@ -1,6 +1,7 @@
 # todo
 
 * private docker registry
+  * on other m's and w's
 * remote peers
   * move payload to managers
     * all initial launch on manager1

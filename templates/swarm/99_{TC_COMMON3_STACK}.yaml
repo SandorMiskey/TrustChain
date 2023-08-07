@@ -12,7 +12,7 @@ services:
       replicas: 0
       placement:
         constraints: [ node.hostname == ${TC_COMMON3_S1_WORKER} ]
-    image: busybox
+    image: $TC_SWARM_IMG_BUSYBOX
     labels:
       service: ${TC_COMMON3_S1_NAME}
     networks:
@@ -43,7 +43,7 @@ services:
       - ${TC_PATH_WORKBENCH}:${TC_PATH_WORKBENCH}
       # - ${TC_PATH_SCRIPTS}:${TC_PATH_SCRIPTS}
   ${TC_COMMON3_S3_NAME}:
-    image: $TC_SWARM_IMG_PORTAINER-AGENT
+    image: $TC_SWARM_IMG_PORTAINERAGENT
     deploy:
       mode: global
       placement:

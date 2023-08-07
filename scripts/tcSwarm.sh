@@ -45,10 +45,11 @@ _swarmPrune() {
 
 	_prune() {
 		local -n peer=$1
-		local status=$( ssh ${peer[node]} "docker network prune -f" 2>&1 )
-		commonVerify $? "$status" "swarm status: $status"
-		# status=$( ssh ${peer[node]} "docker system prune --all -f" 2>&1 )
+		local status
+		# status=$( ssh ${peer[node]} "docker network prune -f" 2>&1 )
 		# commonVerify $? "$status" "swarm status: $status"
+		status=$( ssh ${peer[node]} "docker system prune --all -f" 2>&1 )
+		commonVerify $? "$status" "swarm status: $status"
 		# status=$( ssh ${peer[node]} "docker volume rm $(docker volume ls -q)" 2>&1 )
 		# commonVerify $? "$status" "volume rm: `echo $status`"
 	}

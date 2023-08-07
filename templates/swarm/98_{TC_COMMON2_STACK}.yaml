@@ -101,7 +101,7 @@ services:
       restart_policy:
         condition: any 
         delay: ${TC_SWARM_DELAY}s
-    image: $TC_SWARM_IMG_NODE-EXPORTER
+    image: $TC_SWARM_IMG_NODEEXPORTER
     networks:
       ${TC_NETWORK_NAME}:
         aliases:

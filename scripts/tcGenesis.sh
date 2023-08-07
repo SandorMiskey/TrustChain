@@ -185,6 +185,14 @@ _templates() {
 		commonVerify $? "failed: $out" "$out"
 	done
 
+	commonPrintf " "
+	commonPrintf "unpacking private docker repo"
+	commonPrintf " "
+	out=$( tar -C ${TC_COMMON1_REGISTRY_DATA}/ -xzvf ${TC_COMMON1_REGISTRY_DATA}/docker.tgz  )
+	commonVerify $? "failed: $out" "$out"
+	out=$( rm ${TC_COMMON1_REGISTRY_DATA}/docker.tgz  )
+	commonVerify $? "failed: $out" "$out"
+
 	# commonPrintf " "
 	# commonPrintf "chown -R $TC_USER_NAME:$TC_USER_GROUP $TC_PATH_WORKBENCH"
 	# commonPrintg

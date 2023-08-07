@@ -44,7 +44,7 @@ export TC_EXEC_VERBOSE=true
 
 export TC_DEPS_CA=1.5.6
 export TC_DEPS_FABRIC=2.5.4
-# export TC_DEPS_COUCHDB=3.3.1
+export TC_DEPS_COUCHDB=3.3.1
 export TC_DEPS_BINS=('awk' 'bash' 'curl' 'git' 'go' 'jq' 'configtxgen' 'yq')
 
 # endregion: versions and deps
@@ -103,16 +103,15 @@ export TC_SWARM_IMG_VISUALIZER=localhost:6000/trustchain-visualizer
 export TC_SWARM_IMG_LOGSPOUT=localhost:6000/trustchain-logspout
 export TC_SWARM_IMG_PROMETHEUS=localhost:6000/trustchain-prometheus
 export TC_SWARM_IMG_CADVISOR=localhost:6000/trustchain-cadvisor
-export TC_SWARM_IMG_NODE-EXPORTER=localhost:6000/trustchain-node-exporter
+export TC_SWARM_IMG_NODEEXPORTER=localhost:6000/trustchain-node-exporter
 export TC_SWARM_IMG_GRAFANA=localhost:6000/trustchain-grafana
 export TC_SWARM_IMG_BUSYBOX=localhost:6000/trustchain-busybox
 export TC_SWARM_IMG_NETSHOOT=localhost:6000/trustchain-netshoot
-export TC_SWARM_IMG_PORTAINER-AGENT=localhost:6000/trustchain-portainer-agent
+export TC_SWARM_IMG_PORTAINERAGENT=localhost:6000/trustchain-portainer-agent
 export TC_SWARM_IMG_PORTAINER=localhost:6000/trustchain-portainer
-
-export CORE_CHAINCODE_BUILDER=localhost:6000/trustchain-fabric-ccenv
-export CORE_CHAINCODE_GOLANG_RUNTIME=localhost:6000/trustchain-fabric-baseos
-export CORE_CHAINCODE_NODE_RUNTIME=localhost:6000/trustchain-fabric-nodeenv
+export TC_SWARM_IMG_CCENV=localhost:6000/trustchain-fabric-ccenv
+export TC_SWARM_IMG_BASEOS=localhost:6000/trustchain-fabric-baseos
+export TC_SWARM_IMG_NODEENV=localhost:6000/trustchain-fabric-nodeenv
 
 # endregion: swarm
 # region: gluster
