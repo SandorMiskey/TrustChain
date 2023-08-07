@@ -28,6 +28,7 @@
 
 * swagger
 * common uid/gid on managers and workers on-the-fly
+* pull, tag and push images to private repo
 * get by tx_id, block# via qscc [https://stackoverflow.com/questions/67263579/retrieve-block-number-and-transaction-id-from-query-to-hyperledger-fabric]
 * SASC leftover (doc/legacy_to_port)
 * more dependency check
