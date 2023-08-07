@@ -349,7 +349,6 @@ _TLS1() (
 )
 
 [[ "$TC_EXEC_DRY" == false ]] && commonYN "bootstrap ${TC_COMMON1_STACK}, enroll tls ca admin, then register peers and orderers?" _TLS1
-exit
 
 # endregion: tls
 # region: func for disseminating certs
