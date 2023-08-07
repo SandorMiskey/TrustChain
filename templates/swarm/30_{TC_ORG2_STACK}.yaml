@@ -24,7 +24,7 @@ services:
       - FABRIC_CA_SERVER_SIGNING_PROFILES_TLS_EXPIRY=876000h
       - FABRIC_CA_SERVER_CSR_CA_EXPIRY=876000h
     hostname: ${TC_ORG2_C1_FQDN} 
-    image: hyperledger/fabric-ca:${TC_DEPS_CA}
+    image: ${TC_SWARM_IMG_CA}
     labels:
       service: ${TC_ORG2_C1_FQDN}
     networks:
@@ -50,7 +50,7 @@ services:
       - COUCHDB_USER=${TC_ORG2_D1_USER}
       - COUCHDB_PASSWORD=${TC_ORG2_D1_USERPW}
     hostname: ${TC_ORG2_D1_FQDN}
-    image: couchdb:${TC_DEPS_COUCHDB}
+    image: ${TC_SWARM_IMG_COUCHDB}
     labels:
       service: ${TC_ORG2_D1_FQDN}
     networks:
@@ -75,7 +75,7 @@ services:
       - COUCHDB_USER=${TC_ORG2_D2_USER}
       - COUCHDB_PASSWORD=${TC_ORG2_D2_USERPW}
     hostname: ${TC_ORG2_D2_FQDN}
-    image: couchdb:${TC_DEPS_COUCHDB}
+    image: ${TC_SWARM_IMG_COUCHDB}
     labels:
       service: ${TC_ORG2_D2_FQDN}
     networks:
@@ -100,7 +100,7 @@ services:
       - COUCHDB_USER=${TC_ORG2_D3_USER}
       - COUCHDB_PASSWORD=${TC_ORG2_D3_USERPW}
     hostname: ${TC_ORG2_D3_FQDN}
-    image: couchdb:${TC_DEPS_COUCHDB}
+    image: ${TC_SWARM_IMG_COUCHDB}
     labels:
       service: ${TC_ORG2_D3_FQDN}
     networks:
@@ -125,6 +125,9 @@ services:
         delay: ${TC_SWARM_DELAY}s
         max_attempts: 5
     environment:
+      - CORE_CHAINCODE_BUILDER=${TC_SWARM_IMG_CCENV}
+      - CORE_CHAINCODE_GOLANG_RUNTIME=${TC_SWARM_IMG_BASEOS}
+      - CORE_CHAINCODE_NODE_RUNTIME=${TC_SWARM_IMG_NODEENV}
       - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
       - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=${TC_ORG2_D1_FQDN}:5984
       - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=${TC_ORG2_D1_USER}
@@ -164,7 +167,7 @@ services:
       - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=${TC_NETWORK_NAME}
       - FABRIC_LOGGING_SPEC=${TC_ORG2_P1_LOGLEVEL}
     hostname: ${TC_ORG2_P1_FQDN}
-    image: hyperledger/fabric-peer:${TC_DEPS_FABRIC}
+    image: ${TC_SWARM_IMG_PEER}
     labels:
       service: ${TC_ORG2_P1_FQDN}
     networks:
@@ -192,6 +195,9 @@ services:
         delay: ${TC_SWARM_DELAY}s
         max_attempts: 5
     environment:
+      - CORE_CHAINCODE_BUILDER=${TC_SWARM_IMG_CCENV}
+      - CORE_CHAINCODE_GOLANG_RUNTIME=${TC_SWARM_IMG_BASEOS}
+      - CORE_CHAINCODE_NODE_RUNTIME=${TC_SWARM_IMG_NODEENV}
       - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
       - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=${TC_ORG2_D2_FQDN}:5984
       - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=${TC_ORG2_D2_USER}
@@ -231,7 +237,7 @@ services:
       - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=${TC_NETWORK_NAME}
       - FABRIC_LOGGING_SPEC=${TC_ORG2_P2_LOGLEVEL}
     hostname: ${TC_ORG2_P2_FQDN}
-    image: hyperledger/fabric-peer:${TC_DEPS_FABRIC}
+    image: ${TC_SWARM_IMG_PEER}
     labels:
       service: ${TC_ORG2_P2_FQDN}
     networks:
@@ -259,6 +265,9 @@ services:
         delay: ${TC_SWARM_DELAY}s
         max_attempts: 5
     environment:
+      - CORE_CHAINCODE_BUILDER=${TC_SWARM_IMG_CCENV}
+      - CORE_CHAINCODE_GOLANG_RUNTIME=${TC_SWARM_IMG_BASEOS}
+      - CORE_CHAINCODE_NODE_RUNTIME=${TC_SWARM_IMG_NODEENV}
       - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
       - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=${TC_ORG2_D3_FQDN}:5984
       - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=${TC_ORG2_D3_USER}
@@ -298,7 +307,7 @@ services:
       - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=${TC_NETWORK_NAME}
       - FABRIC_LOGGING_SPEC=${TC_ORG2_P3_LOGLEVEL}
     hostname: ${TC_ORG2_P3_FQDN}
-    image: hyperledger/fabric-peer:${TC_DEPS_FABRIC}
+    image: ${TC_SWARM_IMG_PEER}
     labels:
       service: ${TC_ORG2_P3_FQDN}
     networks:
@@ -322,7 +331,7 @@ services:
     deploy:
       placement:
         constraints: [ node.hostname == ${TC_ORG2_CLI1_WORKER} ]
-      replicas: 1
+      replicas: 0
       restart_policy:
         condition: any 
         delay: ${TC_SWARM_DELAY}s
@@ -346,7 +355,7 @@ services:
       # - GOPATH=${TC_ORG2_CLI1_ASSETS_CHAINCODE}
       - TC_PATH_RC=$TC_PATH_RC
     hostname: ${TC_ORG2_CLI1_FQDN}
-    image: hyperledger/fabric-tools:${TC_DEPS_FABRIC}
+    image: ${TC_SWARM_IMG_TOOLS}
     labels:
       service: ${TC_ORG2_CLI1_FQDN}
     networks:

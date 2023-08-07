@@ -8,6 +8,8 @@ networks:
 services:
   ${TC_ORDERER1_C1_NAME}:
     command: /bin/bash -c 'fabric-ca-server start -b ${TC_ORDERER1_C1_ADMIN}:${TC_ORDERER1_C1_ADMINPW} --port ${TC_ORDERER1_C1_PORT}'
+    depends_on:
+      - ${TC_COMMON1_REGISTRY_FQDN}
     deploy:
       replicas: 1
       placement:
@@ -23,7 +25,7 @@ services:
       - FABRIC_CA_SERVER_SIGNING_PROFILES_TLS_EXPIRY=876000h
       - FABRIC_CA_SERVER_CSR_CA_EXPIRY=876000h
     hostname: ${TC_ORDERER1_C1_FQDN} 
-    image: hyperledger/fabric-ca:${TC_DEPS_CA}
+    image: ${TC_SWARM_IMG_CA}
     labels:
       service: ${TC_ORDERER1_C1_FQDN}
     networks:
@@ -37,6 +39,8 @@ services:
       - ${TC_ORDERER1_C1_DATA}:${TC_ORDERER1_C1_DATA}
 
   ${TC_ORDERER1_O1_NAME}:
+    depends_on:
+      - ${TC_COMMON1_REGISTRY_FQDN}
     deploy:
       replicas: 0
       placement:
@@ -73,7 +77,7 @@ services:
       - ORDERER_OPERATIONS_TLS_CLIENTAUTHREQUIRED=true
       - ORDERER_OPERATIONS_TLS_CLIENTROOTCAS=[${TC_ORDERER1_O1_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_COMMON1_C1_PORT}.pem]
     hostname: ${TC_ORDERER1_O1_FQDN}
-    image: hyperledger/fabric-orderer:${TC_DEPS_FABRIC}
+    image: ${TC_SWARM_IMG_ORDERER}
     labels:
       service: ${TC_ORDERER1_O1_FQDN}
     networks:
@@ -88,6 +92,8 @@ services:
     volumes:
       - ${TC_ORDERER1_O1_DATA}:${TC_ORDERER1_O1_DATA}
   ${TC_ORDERER1_O2_NAME}:
+    depends_on:
+      - ${TC_COMMON1_REGISTRY_FQDN}
     deploy:
       replicas: 0
       placement:
@@ -124,7 +130,7 @@ services:
       - ORDERER_OPERATIONS_TLS_CLIENTAUTHREQUIRED=true
       - ORDERER_OPERATIONS_TLS_CLIENTROOTCAS=[${TC_ORDERER1_O2_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_COMMON1_C1_PORT}.pem]
     hostname: ${TC_ORDERER1_O2_FQDN}
-    image: hyperledger/fabric-orderer:${TC_DEPS_FABRIC}
+    image: ${TC_SWARM_IMG_ORDERER}
     labels:
       service: ${TC_ORDERER1_O2_FQDN}
     networks:
@@ -139,6 +145,8 @@ services:
     volumes:
       - ${TC_ORDERER1_O2_DATA}:${TC_ORDERER1_O2_DATA}
   ${TC_ORDERER1_O3_NAME}:
+    depends_on:
+      - ${TC_COMMON1_REGISTRY_FQDN}
     deploy:
       replicas: 0
       placement:
@@ -175,7 +183,7 @@ services:
       - ORDERER_OPERATIONS_TLS_CLIENTAUTHREQUIRED=true
       - ORDERER_OPERATIONS_TLS_CLIENTROOTCAS=[${TC_ORDERER1_O3_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_COMMON1_C1_PORT}.pem]
     hostname: ${TC_ORDERER1_O3_FQDN}
-    image: hyperledger/fabric-orderer:${TC_DEPS_FABRIC}
+    image: ${TC_SWARM_IMG_ORDERER}
     labels:
       service: ${TC_ORDERER1_O3_FQDN}
     networks:

@@ -15,10 +15,10 @@ services:
       - REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY=${TC_COMMON1_REGISTRY_DATA}
       - REGISTRY_HTTP_ADDR=0.0.0.0:${TC_COMMON1_REGISTRY_PORT}
     hostname: ${TC_COMMON1_REGISTRY_FQDN} 
-    image: registry
+    image: registry:2
     labels:
       service: ${TC_COMMON1_REGISTRY_FQDN}
-      registry: true
+      # registry: true
     networks:
       ${TC_SWARM_NETNAME}:
         aliases:
@@ -26,12 +26,14 @@ services:
           - ${TC_COMMON1_REGISTRY_FQDN}
     ports:
       - ${TC_COMMON1_REGISTRY_PORT}:${TC_COMMON1_REGISTRY_PORT}
-    restart: always
+    # restart: always
     volumes:
       - ${TC_COMMON1_REGISTRY_DATA}:${TC_COMMON1_REGISTRY_DATA}
 
   ${TC_COMMON1_C1_NAME}:
     command: sh -c 'fabric-ca-server start -b ${TC_COMMON1_C1_ADMIN}:${TC_COMMON1_C1_ADMINPW} --port ${TC_COMMON1_C1_PORT}'
+    depends_on:
+      - ${TC_COMMON1_REGISTRY_FQDN}
     deploy:
       replicas: 1
       placement:
@@ -47,7 +49,7 @@ services:
       - FABRIC_CA_SERVER_SIGNING_PROFILES_TLS_EXPIRY=876000h
       - FABRIC_CA_SERVER_CSR_CA_EXPIRY=876000h
     hostname: ${TC_COMMON1_C1_FQDN} 
-    image: hyperledger/fabric-ca:${TC_DEPS_CA}
+    image: ${TC_SWARM_IMG_CA}
     labels:
       service: ${TC_COMMON1_C1_FQDN}
     networks:

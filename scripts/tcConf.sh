@@ -43,8 +43,8 @@ export TC_EXEC_VERBOSE=true
 # region: versions and deps
 
 export TC_DEPS_CA=1.5.6
-export TC_DEPS_FABRIC=2.5.3
-export TC_DEPS_COUCHDB=3.3.1
+export TC_DEPS_FABRIC=2.5.4
+# export TC_DEPS_COUCHDB=3.3.1
 export TC_DEPS_BINS=('awk' 'bash' 'curl' 'git' 'go' 'jq' 'configtxgen' 'yq')
 
 # endregion: versions and deps
@@ -94,6 +94,26 @@ export TC_SWARM_NETNAME=$TC_NETWORK_NAME
 export TC_SWARM_NETINIT="--attachable --driver overlay --subnet 10.96.0.0/24 $TC_SWARM_NETNAME"
 export TC_SWARM_DELAY=20
 
+export TC_SWARM_IMG_COUCHDB=localhost:6000/trustchain-couchdb
+export TC_SWARM_IMG_CA=localhost:6000/trustchain-fabric-ca
+export TC_SWARM_IMG_ORDERER=localhost:6000/trustchain-fabric-orderer
+export TC_SWARM_IMG_PEER=localhost:6000/trustchain-fabric-peer
+export TC_SWARM_IMG_TOOLS=localhost:6000/trustchain-fabric-tools
+export TC_SWARM_IMG_VISUALIZER=localhost:6000/trustchain-visualizer
+export TC_SWARM_IMG_LOGSPOUT=localhost:6000/trustchain-logspout
+export TC_SWARM_IMG_PROMETHEUS=localhost:6000/trustchain-prometheus
+export TC_SWARM_IMG_CADVISOR=localhost:6000/trustchain-cadvisor
+export TC_SWARM_IMG_NODE-EXPORTER=localhost:6000/trustchain-node-exporter
+export TC_SWARM_IMG_GRAFANA=localhost:6000/trustchain-grafana
+export TC_SWARM_IMG_BUSYBOX=localhost:6000/trustchain-busybox
+export TC_SWARM_IMG_NETSHOOT=localhost:6000/trustchain-netshoot
+export TC_SWARM_IMG_PORTAINER-AGENT=localhost:6000/trustchain-portainer-agent
+export TC_SWARM_IMG_PORTAINER=localhost:6000/trustchain-portainer
+
+export CORE_CHAINCODE_BUILDER=localhost:6000/trustchain-fabric-ccenv
+export CORE_CHAINCODE_GOLANG_RUNTIME=localhost:6000/trustchain-fabric-baseos
+export CORE_CHAINCODE_NODE_RUNTIME=localhost:6000/trustchain-fabric-nodeenv
+
 # endregion: swarm
 # region: gluster
 
@@ -106,7 +126,7 @@ TC_GLUSTER_REDUNDANCY=1
 # region: infra
 
 export TC_COMMON1_STACK=infra
-export TC_COMMON1_DOMANIN=${TC_COMMON1_STACK}.${TC_NETWORK_DOMAIN}
+export TC_COMMON1_DOMAIN=${TC_COMMON1_STACK}.${TC_NETWORK_DOMAIN}
 
 
 export TC_COMMON1_REGISTRY_NAME=registriy
@@ -163,9 +183,10 @@ export TC_COMMON1_C1_EXP=3153600000
 		export TC_ORDERER1_C1_DATA=${TC_ORDERER1_DATA}/${TC_ORDERER1_C1_NAME}
 		# export TC_ORDERER1_C1_SUBHOME=crypto
 		# export TC_ORDERER1_C1_HOME=${TC_ORDERER1_C1_DATA}/${TC_ORDERER1_C1_SUBHOME}	
-		export TC_ORDERER1_C1_HOME=${TC_ORDERER1_C1_DATA}	
-		export TC_ORDERER1_C1_EXP=3153600000
+		export TC_ORDERER1_C1_HOME=${TC_ORDERER1_C1_DATA}
+		export TC_ORDERER1_C1_IMAGE=localhost:6000/trustchain-fabric-ca
 
+		export TC_ORDERER1_C1_EXP=3153600000
 		export TC_ORDERER1_C1_ADMIN=${TC_ORDERER1_STACK}-${TC_ORDERER1_C1_NAME}-admin1
 		export TC_ORDERER1_C1_ADMINPW=$TC_ORDERER1_C1_ADMINPW
 

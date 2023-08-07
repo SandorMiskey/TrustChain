@@ -15,7 +15,7 @@ services:
       mode: global
       placement:
         constraints: [node.platform.os == linux]
-    image: dockersamples/visualizer
+    image: $TC_SWARM_IMG_VISUALIZER
     networks:
       ${TC_NETWORK_NAME}:
         aliases:
@@ -31,7 +31,7 @@ services:
       replicas: 1
       placement:
         constraints: [node.role == manager]
-    image: gliderlabs/logspout:latest
+    image: $TC_SWARM_IMG_LOGSPOUT
     networks:
       ${TC_NETWORK_NAME}:
         aliases:
@@ -50,7 +50,7 @@ services:
       replicas: 1
       placement:
         constraints: [ node.hostname == ${TC_COMMON2_S3_WORKER} ]
-    image: prom/prometheus:latest
+    image: $TC_SWARM_IMG_PROMETHEUS
     networks:
       ${TC_NETWORK_NAME}:
         aliases:
@@ -71,7 +71,7 @@ services:
       restart_policy:
         condition: any 
         delay: ${TC_SWARM_DELAY}s
-    image: gcr.io/cadvisor/cadvisor:latest
+    image: $TC_SWARM_IMG_CADVISOR
     networks:
       ${TC_NETWORK_NAME}:
         aliases:
@@ -101,7 +101,7 @@ services:
       restart_policy:
         condition: any 
         delay: ${TC_SWARM_DELAY}s
-    image: prom/node-exporter:v1.3.1
+    image: $TC_SWARM_IMG_NODE-EXPORTER
     networks:
       ${TC_NETWORK_NAME}:
         aliases:
@@ -116,7 +116,7 @@ services:
       replicas: 1
       placement:
         constraints: [ node.hostname == ${TC_COMMON2_S6_WORKER} ]
-    image: grafana/grafana:latest
+    image: $TC_SWARM_IMG_GRAFANA
     user: "${TC_COMMON2_UID}:${TC_COMMON2_GID}"
     networks:
       ${TC_NETWORK_NAME}:

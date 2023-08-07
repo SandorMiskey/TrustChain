@@ -30,7 +30,7 @@ services:
       replicas: 0
       placement:
         constraints: [ node.hostname == ${TC_COMMON3_S2_WORKER} ]
-    image: nicolaka/netshoot
+    image: $TC_SWARM_IMG_NETSHOOT
     labels:
       service: ${TC_COMMON3_S2_NAME}
     networks:
@@ -43,7 +43,7 @@ services:
       - ${TC_PATH_WORKBENCH}:${TC_PATH_WORKBENCH}
       # - ${TC_PATH_SCRIPTS}:${TC_PATH_SCRIPTS}
   ${TC_COMMON3_S3_NAME}:
-    image: portainer/agent:2.17.0
+    image: $TC_SWARM_IMG_PORTAINER-AGENT
     deploy:
       mode: global
       placement:
@@ -64,7 +64,7 @@ services:
       replicas: 1
       placement:
         constraints: [node.role == manager]
-    image: portainer/portainer-ce:2.17.0
+    image: $TC_SWARM_IMG_PORTAINER
     networks:
       ${TC_NETWORK_NAME}:
         aliases:
