@@ -1,11 +1,6 @@
 # todo
 
-* private docker registry
-  * on other m's and w's
 * remote peers
-  * move payload to managers
-    * all initial launch on manager1
-    * move service to SERVICE_WORKER
   * GlusterFS?
     * permissions?
     * authentication
@@ -18,18 +13,17 @@
     * docker
     * check if mount point with data is available
   * move payload to workers
+    * docker pull on worker3
     * workers
       * check/create mount point
       * mount work dir
   * update docs/hosts_and_ports.md
 * orderer restart? stress test
-* move HTTPS cert and key from tcGwInit.sh to templates/swarm/20_{TC_ORG1_STACK}.yaml
 * put p2s and p3s back in tcChaincodeInit.sh
-* put mgmt and metrics (and basic?) back in tcGenesis.sh
+* move HTTPS cert and key from tcGwInit.sh to templates/swarm/20_{TC_ORG1_STACK}.yaml
 
 * swagger
 * common uid/gid on managers and workers on-the-fly
-* pull, tag and push images to private repo
 * get by tx_id, block# via qscc [https://stackoverflow.com/questions/67263579/retrieve-block-number-and-transaction-id-from-query-to-hyperledger-fabric]
 * SASC leftover (doc/legacy_to_port)
 * more dependency check

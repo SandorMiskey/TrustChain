@@ -444,7 +444,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseURL}}/query?channel=trustchain-test&chaincode=te-food-bundles&function=BundleGet&args=10",
+							"raw": "{{baseURL}}/query?channel=trustchain-test&chaincode=te-food-bundles&function=BundleGet&args={{bundleID}}",
 							"host": [
 								"{{baseURL}}"
 							],
@@ -466,7 +466,7 @@
 								},
 								{
 									"key": "args",
-									"value": "10"
+									"value": "{{bundleID}}"
 								},
 								{
 									"key": "args",
