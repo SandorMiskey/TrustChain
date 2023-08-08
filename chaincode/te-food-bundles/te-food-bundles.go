@@ -331,18 +331,18 @@ func (t *Chaincode) BundleValidate(ctx contractapi.TransactionContextInterface, 
 
 	err := json.Unmarshal([]byte(bundleStr), &bundleIn)
 	if err != nil {
-		msg := fmt.Errorf("t.CreateBundle: error parsing bundle: %s (%s)", err, bundleStr)
+		msg := fmt.Errorf("t.BundleValidate: error parsing bundle: %s (%s)", err, bundleStr)
 		Logger.Out(log.LOG_ERR, msg)
 		return false, msg
 	}
-	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.CreateBundle: bundleStr unmarshal -> %#v", bundleIn))
+	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.BundleValidate: bundleStr unmarshal -> %#v", bundleIn))
 
 	// endregion: parse json
 	// region: decode the base64 encoded string
 
 	decodedBytes, err := base64.StdEncoding.DecodeString(bundleIn.DataBase64)
 	if err != nil {
-		msg := fmt.Errorf("t.CreateBundle: unable to decode bundleIn.DataBase64: %s (%s)", err, bundleIn.DataBase64)
+		msg := fmt.Errorf("t.BundleValidate: unable to decode bundleIn.DataBase64: %s (%s)", err, bundleIn.DataBase64)
 		Logger.Out(log.LOG_ERR, msg)
 		return false, msg
 	}
@@ -355,10 +355,10 @@ func (t *Chaincode) BundleValidate(ctx contractapi.TransactionContextInterface, 
 
 	// compare
 	if bundleIn.DataHash != hashString {
-		Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.CreateBundle: bundleIn.DataHash != hashString: %s != %s)", bundleIn.DataHash, hashString))
+		Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.BundleValidate: bundleIn.DataHash != hashString: %s != %s)", bundleIn.DataHash, hashString))
 		return false, nil
 	}
-	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.CreateBundle: bundleIn.DataHash == hashString: %s != %s)", bundleIn.DataHash, hashString))
+	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.BundleValidate: bundleIn.DataHash == hashString: %s != %s)", bundleIn.DataHash, hashString))
 	return true, nil
 
 	// endregion: compute
