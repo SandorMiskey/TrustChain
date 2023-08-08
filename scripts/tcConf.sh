@@ -80,9 +80,9 @@ declare -A TC_SWARM_MANAGER2=( [node]=tc2-test-manager2 [ip]=3.125.250.181 [gdev
 declare -A TC_SWARM_MANAGER3=( [node]=tc2-test-manager3 [ip]=54.93.194.71 [gdev]=/dev/nvme1n1p1 [gmnt]=/srv/GlusterData )
 TC_SWARM_MANAGERS=("TC_SWARM_MANAGER1" "TC_SWARM_MANAGER2" "TC_SWARM_MANAGER3")
 
-declare -A TC_SWARM_WORKER1=( [node]=tc2-test-worker1 [ip]=3.77.143.132 )
-declare -A TC_SWARM_WORKER2=( [node]=tc2-test-worker2 [ip]=185.187.73.203 )
-declare -A TC_SWARM_WORKER3=( [node]=tc2-test-worker3 [ip]=18.197.74.200 )
+declare -A TC_SWARM_WORKER1=( [node]=tc2-test-worker1 [ip]=3.77.143.132 [mnt]="/x" )
+declare -A TC_SWARM_WORKER2=( [node]=tc2-test-worker2 [ip]=185.187.73.203 [mnt]="/x" )
+declare -A TC_SWARM_WORKER3=( [node]=tc2-test-worker3 [ip]=18.197.74.200 [mnt]="/x" )
 TC_SWARM_WORKERS=("TC_SWARM_WORKER1" "TC_SWARM_WORKER2" "TC_SWARM_WORKER3")
 # TC_SWARM_WORKERS=("TC_SWARM_WORKER1")
 
@@ -92,7 +92,7 @@ export TC_SWARM_INIT="--advertise-addr ${TC_SWARM_PUBLIC}:2377 --cert-expiry 100
 export TC_SWARM_MANAGER=${TC_SWARM_MANAGER1[node]}
 export TC_SWARM_NETNAME=$TC_NETWORK_NAME
 export TC_SWARM_NETINIT="--attachable --driver overlay --subnet 10.96.0.0/24 $TC_SWARM_NETNAME"
-export TC_SWARM_DELAY=10
+export TC_SWARM_DELAY=20
 
 export TC_SWARM_IMG_COUCHDB=localhost:6000/trustchain-couchdb
 export TC_SWARM_IMG_CA=localhost:6000/trustchain-fabric-ca
@@ -117,7 +117,9 @@ export TC_SWARM_IMG_NODEENV=localhost:6000/trustchain-fabric-nodeenv
 # region: gluster
 
 TC_GLUSTER_BRICK=TrustChain
-TC_GLUSTER_NODES=("TC_SWARM_MANAGER1" "TC_SWARM_MANAGER2" "TC_SWARM_MANAGER3")
+TC_GLUSTER_MANAGERS=("TC_SWARM_MANAGER1" "TC_SWARM_MANAGER2" "TC_SWARM_MANAGER3")
+# TC_GLUSTER_WORKERS=("TC_SWARM_WORKER1" "TC_SWARM_WORKER2" "TC_SWARM_WORKER3")
+TC_GLUSTER_MOUNTS=()
 TC_GLUSTER_DISPERSE=3
 TC_GLUSTER_REDUNDANCY=1
 
@@ -455,6 +457,11 @@ export TC_COMMON1_C1_EXP=3153600000
 		export TC_ORG2_DOMAIN=${TC_ORG2_STACK}.${TC_NETWORK_DOMAIN}
 		export TC_ORG2_LOGLEVEL=info
 
+		declare -A TC_ORG2_MOUNT1=( [node]=${TC_SWARM_WORKER1[node]} [ip]=${TC_SWARM_WORKER1[ip]} [mnt]="$TC_ORG2_DATA" )
+		declare -A TC_ORG2_MOUNT2=( [node]=${TC_SWARM_WORKER2[node]} [ip]=${TC_SWARM_WORKER2[ip]} [mnt]="$TC_ORG2_DATA" )
+		TC_GLUSTER_MOUNTS+=("TC_ORG2_MOUNT1")
+		TC_GLUSTER_MOUNTS+=("TC_ORG2_MOUNT2")
+
 		export TC_ORG2_ADMIN=${TC_ORG2_STACK}-admin1
 		export TC_ORG2_ADMINPW=$TC_ORG2_ADMINPW
 		export TC_ORG2_ADMINATRS="hf.Registrar.Roles=client,hf.Registrar.Attributes=*,hf.Revoker=true,hf.GenCRL=true,admin=true:ecert,abac.init=true:ecert"
@@ -614,6 +621,13 @@ export TC_COMMON1_C1_EXP=3153600000
 		export TC_ORG3_DATA=${TC_PATH_ORGS}/peerOrganizations/${TC_ORG3_STACK}
 		export TC_ORG3_DOMAIN=${TC_ORG3_STACK}.${TC_NETWORK_DOMAIN}
 		export TC_ORG3_LOGLEVEL=info
+
+		declare -A TC_ORG3_MOUNT=( [node]=${TC_SWARM_WORKER2[node]} [ip]=${TC_SWARM_WORKER2[ip]} [mnt]="$TC_ORG3_DATA" )
+		TC_GLUSTER_MOUNTS+=("TC_ORG3_MOUNT")
+		# declare -A TC_SWARM_WORKER2=( [node]=$ [ip]=185.187.73.203 [mnt]="/x" )
+		# declare -A TC_SWARM_WORKER3=( [node]=tc2-test-worker3 [ip]=18.197.74.200 [mnt]="/x" )
+		# TC_SWARM_WORKER2["mnt"]=$TC_ORG3_DATA
+		# TC_SWARM_WORKER3["mnt"]=$TC_ORG3_DATA
 
 		export TC_ORG3_ADMIN=${TC_ORG3_STACK}-admin1
 		export TC_ORG3_ADMINPW=$TC_ORG3_ADMINPW

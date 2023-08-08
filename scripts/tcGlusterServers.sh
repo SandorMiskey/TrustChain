@@ -29,7 +29,16 @@ function _glusterUmountVolume() {
 		_out=$( ssh ${peer[node]} "sudo umount -f ${TC_PATH_WORKBENCH}" 2>&1 )
 		commonPrintf "status: $? $_out"
 	}
-	commonIterate _inner "confirm|umoun volume on |array|node|?" "${TC_GLUSTER_NODES[@]}" 
+	commonIterate _inner "confirm|umount volume on |array|node|?" "${TC_GLUSTER_MANAGERS[@]}"
+	_inner() {
+		local -n peer=$1
+		local _cmd="sudo umount -f ${peer[mnt]}"
+		commonPrintf "${_cmd} will be issued on ${peer[node]}"
+		local _out=$( ssh ${peer[node]} "$_cmd" 2>&1 )
+		commonPrintf "status: $? $_out"
+	}
+	commonIterate _inner "confirm|umount volume on |array|node|?" "${TC_GLUSTER_MOUNTS[@]}"
+
 	unset _inner _out
 	commonSleep 3 "done"
 }
@@ -47,7 +56,7 @@ function _glusterDisable() {
 		out=$( ssh ${peer[node]} "sudo sudo rm -rf /var/lib/glusterd" 2>&1 )
 		commonVerify $? "failed: $_out" "/var/lib/glusterd removed"
 	}
-	commonIterate _inner "confirm|reset glusterd on |array|node|?" "${TC_GLUSTER_NODES[@]}" 
+	commonIterate _inner "confirm|reset glusterd on |array|node|?" "${TC_GLUSTER_MANAGERS[@]}" 
 	unset _inner _out
 	commonSleep 3 "done"
 }
@@ -61,7 +70,7 @@ function _glusterUmountDevice() {
 		_out=$( ssh ${peer[node]} "sudo umount ${peer[gdev]}" 2>&1 )
 		commonPrintf "status: $? $_out"
 	}
-	commonIterate _inner "print|umount blockdevice on |array|node|?" "${TC_GLUSTER_NODES[@]}" 
+	commonIterate _inner "print|umount blockdevice on |array|node|?" "${TC_GLUSTER_MANAGERS[@]}" 
 	unset _inner _out
 	commonSleep 3 "done"
 }
@@ -82,7 +91,7 @@ function _glusterMkFs() {
 		commonYN "mkfs.xfs on ${peer[node]}:${peer[gdev]}" _innerInner
 		unset _innerInner
 	}
-	commonIterate _inner "-|mkfs.xfs on |array|node|" "${TC_GLUSTER_NODES[@]}" 
+	commonIterate _inner "-|mkfs.xfs on |array|node|" "${TC_GLUSTER_MANAGERS[@]}" 
 
 	unset _inner _out
 	COMMON_FORCE=$force
@@ -100,7 +109,7 @@ function _glusterMount() {
 		_out=$( ssh ${peer[node]} "sudo mount ${peer[gdev]} ${peer[gmnt]}" 2>&1 )
 		commonVerify $? "failed: $_out" "mount ${peer[gdev]} ${peer[gmnt]} on ${peer[node]} succeeded" 
 	}
-	commonIterate _inner "print|mount on |array|node|:" "${TC_GLUSTER_NODES[@]}" 
+	commonIterate _inner "print|mount on |array|node|:" "${TC_GLUSTER_MANAGERS[@]}" 
 	unset _inner _out
 	commonSleep 3 "done"
 }
@@ -114,7 +123,7 @@ function _glusterEnable() {
 		_out=$( ssh ${peer[node]} "sudo systemctl enable --now glusterd " 2>&1 )
 		commonVerify $? "failed: $_out" "enabled (${_out})"
 	}
-	commonIterate _inner "print|systemctl enable --now glusterd on |array|node|:" "${TC_GLUSTER_NODES[@]}" 
+	commonIterate _inner "print|systemctl enable --now glusterd on |array|node|:" "${TC_GLUSTER_MANAGERS[@]}" 
 	unset _inner _out
 	commonSleep 3 "done"
 }
@@ -124,8 +133,8 @@ function _glusterProbe() {
 	commonPrintf "adding peers to trusted pool"
 	commonPrintf " "
 
-	declare -n server1=${TC_GLUSTER_NODES[0]}
-	declare -n server2=${TC_GLUSTER_NODES[1]}
+	declare -n server1=${TC_GLUSTER_MANAGERS[0]}
+	declare -n server2=${TC_GLUSTER_MANAGERS[1]}
 
 	# region: probe
 
@@ -134,7 +143,7 @@ function _glusterProbe() {
 		_out=$( ssh ${server1[node]} "sudo gluster peer probe ${peer[node]} " 2>&1 )
 		commonVerify $? "failed: $_out" "probe succeeded: (${_out})"
 	}
-	commonIterate _inner "print|gluster peer probe from ${server1[node]} to |array|node|:" "${TC_GLUSTER_NODES[@]:1}" 
+	commonIterate _inner "print|gluster peer probe from ${server1[node]} to |array|node|:" "${TC_GLUSTER_MANAGERS[@]:1}" 
 	commonPrintf "(${server1[node]}) gluster peer probe from ${server2[node]} "
 	_out=$( ssh ${server2[node]} "sudo gluster peer probe ${server1[node]}" 2>&1 )
 	commonVerify $? "failed: $_out" "probe succeeded: (${_out})"
@@ -147,13 +156,13 @@ function _glusterProbe() {
 		_out=$( ssh ${peer[node]} "sudo gluster peer status" 2>&1 )
 		commonVerify $? "failed to query status: $_out" "${_out}"
 	}
-	commonIterate _inner "print|gluster peer status on |array|node|:" "${TC_GLUSTER_NODES[@]}" 
+	commonIterate _inner "print|gluster peer status on |array|node|:" "${TC_GLUSTER_MANAGERS[@]}" 
 	_inner() {
 		local -n peer=$1
 		_out=$( ssh ${peer[node]} "sudo gluster pool list" 2>&1 )
 		commonVerify $? "failed to query pool list: $_out" "${_out}"
 	}
-	commonIterate _inner "print|gluster pool list on |array|node|:" "${TC_GLUSTER_NODES[@]}" 
+	commonIterate _inner "print|gluster pool list on |array|node|:" "${TC_GLUSTER_MANAGERS[@]}" 
 
 	# endregion: status
 
@@ -174,7 +183,7 @@ function _glusterLay() {
 		_out=$( ssh ${peer[node]} "sudo mkdir -p -v $dir " 2>&1 )
 		commonVerify $? "failed: $_out" "mkdir -p -v $dir on ${peer[node]} succeeded"
 	}
-	commonIterate _inner "print|mkdir -p -v mountpoint/brick |array|node|:" "${TC_GLUSTER_NODES[@]}" 
+	commonIterate _inner "print|mkdir -p -v mountpoint/brick |array|node|:" "${TC_GLUSTER_MANAGERS[@]}" 
 	unset _inner _out
 	commonSleep 3 "done"
 
@@ -189,8 +198,8 @@ function _glusterLay() {
 		local -n peer=$1
 		servers+="${peer[node]}:${peer[gmnt]}/${TC_GLUSTER_BRICK} "
 	}
-	commonIterate _inner "||||" "${TC_GLUSTER_NODES[@]}" 
-	local -n manager=${TC_GLUSTER_NODES[0]}
+	commonIterate _inner "||||" "${TC_GLUSTER_MANAGERS[@]}" 
+	local -n manager=${TC_GLUSTER_MANAGERS[0]}
 	local cmd="sudo gluster volume create $TC_GLUSTER_BRICK disperse $TC_GLUSTER_DISPERSE redundancy $TC_GLUSTER_REDUNDANCY $servers"
 	commonPrintf "${cmd}will be issued on ${manager[node]}" 
 	_out=$( ssh ${manager[node]} "$cmd" 2>&1 )
@@ -204,7 +213,7 @@ function _glusterLay() {
 	commonPrintf " "
 	commonPrintf "starting volume"
 	commonPrintf " "
-	local -n manager=${TC_GLUSTER_NODES[0]}
+	local -n manager=${TC_GLUSTER_MANAGERS[0]}
 	_out=$( ssh ${manager[node]} "sudo gluster volume start $TC_GLUSTER_BRICK" 2>&1 )
 	commonVerify $? "failed: $_out" "volume started: $_out"
 	commonPrintf "gluster volume info"
@@ -214,6 +223,41 @@ function _glusterLay() {
 	commonSleep 3 "done"
 
 	# endregion: start volume
+	# region: auth.allow
+
+	commonPrintf " "
+	commonPrintf "auth.allow"
+	commonPrintf " "
+
+	local servers="/("
+	_inner() {
+		local -n peer=$1
+		servers+="${peer[ip]}|"
+	}
+	commonIterate _inner "||||" "${TC_GLUSTER_MANAGERS[@]}"
+	servers="${servers%|})"
+
+	_inner() {
+		local -n peer=$1
+		local mnt=$( echo ${peer[mnt]} | sed s+$TC_PATH_WORKBENCH++ )
+		servers+=",${mnt}(${peer[ip]})"
+	}
+	commonIterate _inner "||||" "${TC_GLUSTER_MOUNTS[@]}"
+	commonPrintf "$servers"
+
+	local -n manager=${TC_GLUSTER_MANAGERS[0]}
+	_cmd="sudo gluster volume set $TC_GLUSTER_BRICK auth.allow \"$servers\""
+	commonPrintf "${_cmd} will be issued on ${manager[node]}"
+	_out=$( ssh ${manager[node]} "$_cmd" 2>&1 )
+	commonVerify $? "$_cmd failed: $_out" "$_cmd succeeded: $_out"
+	_cmd="sudo gluster volume info"
+	commonPrintf "${_cmd} will be issued on ${manager[node]}"
+	_out=$( ssh ${manager[node]} "$_cmd" 2>&1 )
+	commonVerify $? "$_cmd failed: $_out" "$_cmd succeeded: $_out"
+	unset _inner _out _cmd
+	commonSleep 3 "done"
+
+	# endregion: auth.allow
 
 }
 
@@ -221,8 +265,11 @@ function _glusterFstab() {
 	commonPrintf " "
 	commonPrintf "creating fstab entries and mount -a"
 	commonPrintf " "
-	declare -n server1=${TC_GLUSTER_NODES[0]}
-	declare -n server2=${TC_GLUSTER_NODES[1]}
+	declare -n server1=${TC_GLUSTER_MANAGERS[0]}
+	declare -n server2=${TC_GLUSTER_MANAGERS[1]}
+
+	# region: servers
+
 	_inner() {
 		local -n peer=$1
 
@@ -240,10 +287,10 @@ function _glusterFstab() {
 			backupvol=${server2[node]}
 		fi
 		local entry=""
-		entry+="\n"
-		entry+="#\n"
-		entry+="# TC entries\n"
-		entry+="#\n"
+		# entry+="\n"
+		# entry+="#\n"
+		# entry+="# TC entries\n"
+		# entry+="#\n"
 		entry+="${peer[gdev]} ${peer[gmnt]} xfs defaults 1 2\n"
 		entry+="${peer[node]}:/${TC_GLUSTER_BRICK} $TC_PATH_WORKBENCH glusterfs defaults,_netdev,backupvolfile-server=${backupvol} 0 0\n"
 		_out=$( ssh ${peer[node]} "sudo bash -c 'echo -e \"$entry\" >> /etc/fstab'" 2>&1 )
@@ -262,8 +309,49 @@ function _glusterFstab() {
 		# commonVerify $? "failed: $_out" "chown $TC_USER_NAME:$TC_USER_GROUP ${TC_PATH_WORKBENCH} succeeded"
 		# _out=$( sudo chmod g+rwx "$TC_PATH_WORKBENCH" )
 		# commonVerify $? $_out
+	
 	}
-	commonIterate _inner "confirm|update fstab and mount -a on |array|node|?" "${TC_GLUSTER_NODES[@]}"
+	commonIterate _inner "confirm|update fstab and mount -a on server |array|node|?" "${TC_GLUSTER_MANAGERS[@]}"
+
+	# endregion: servers
+	# region: clients
+
+	_inner() {
+		local -n peer=$1
+		local _path=$( echo ${peer[mnt]} | sed s+$TC_PATH_WORKBENCH++ )
+
+		# _inInner() {
+		# 	local -n server $1
+		# 	_cmd="sudo sed -i \"/^$( echo ${server[node]}:/${_path} | sed 's/\//\\\//g' )/d\" /etc/fstab"
+		# 	_out=$(ssh ${peer[node]} "$_cmd" 2>&1 )
+		# 	commonVerify $? "failed to remove ${peer[node]}:/${TC_GLUSTER_BRICK}: $_out" "${peer[node]}:/${TC_GLUSTER_BRICK} removed"
+		# 	unset _cmd _out
+		# }
+		# commonIterate _inInner "print|removing |array|node| entries on ${peer[node]}" "${TC_GLUSTER_MANAGERS[@]}"
+
+		# _entry+="${server1[node]}:/${TC_GLUSTER_BRICK}${_path} ${peer[mnt]} glusterfs defaults,_netdev,backupvolfile-server=${server2[node]} 0 0\n"
+		# commonPrintf "appending new entry on ${peer[node]}: $_entry"
+		# _out=$( ssh ${peer[node]} "sudo bash -c 'echo -e \"_$entry\" >> /etc/fstab'" 2>&1 )
+		# commonVerify $? "failed to update fstab: $_out" "fstab update succeeded"
+
+		# commonPrintf "mkdir -p -v ${server1[node]}:${peer[mnt]}"
+		# _out=$( ssh ${server1[node]} "sudo mkdir -p -v ${peer[mnt]}" 2>&1 )
+		# commonVerify $? "failed: $_out" "mkdir -p -v ${peer[mnt]} on ${peer[node]} succeeded"
+
+		# commonPrintf "mkdir -p -v ${peer[node]}:${peer[mnt]}"
+		# _out=$( ssh ${peer[node]} "sudo mkdir -p -v ${peer[mnt]}" 2>&1 )
+		# commonVerify $? "failed: $_out" "mkdir -p -v ${peer[mnt]} on ${peer[node]} succeeded"
+
+		# commonPrintf "mount -a at ${peer[node]}"
+		# _out=$( ssh ${peer[node]} "sudo mount -a" 2>&1 )
+		# commonVerify $? "failed mount -a: $_out" "mount -a succeeded"
+
+		unset _entry _out _path
+		# sudo mount -t glusterfs tc2-test-manager1:/TrustChain/organizations/peerOrganizations/supernodes /srv/TrustChain/organizations/peerOrganizations/supernodes
+	}
+	commonIterate _inner "confirm|update fstab and mount -a on client |array|node|?" "${TC_GLUSTER_MOUNTS[@]}"
+
+	# endregion: clients
 
 	commonPrintf "chgrp and chmod g+rwx"
 	local grp=$( id -g )
