@@ -5,6 +5,12 @@ networks:
     name: ${TC_NETWORK_NAME}
     external: true
 
+secrets:
+  tc_https_cert:
+    external: true
+  tc_https_key:
+    external: true
+
 services:
   ${TC_COMMON1_REGISTRY_NAME}:
     deploy:
@@ -27,6 +33,9 @@ services:
     ports:
       - ${TC_COMMON1_REGISTRY_PORT}:${TC_COMMON1_REGISTRY_PORT}
     # restart: always
+    secrets:
+      - tc_https_cert
+      - tc_https_key
     volumes:
       - ${TC_COMMON1_REGISTRY_DATA}:${TC_COMMON1_REGISTRY_DATA}
 

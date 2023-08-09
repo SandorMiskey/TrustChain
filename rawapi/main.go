@@ -54,7 +54,8 @@ func main() {
 		// "dbType":        {Desc: "db type as in TEx-kit/db/db.go", Type: "int", Def: 4},
 		// "dbUser":        {Desc: "database user", Type: "string", Def: "mgmt"},
 
-		"tc_rawapi_key": {Desc: "api key, skip if not set", Type: "string", Def: ""},
+		"tc_rawapi_key":      {Desc: "api key, skip if not set", Type: "string", Def: ""},
+		"tc_rawapi_key_file": {Desc: "api key from file", Type: "string", Def: ""},
 
 		"tc_rawapi_http_enabled":        {Desc: "enable http", Type: "bool", Def: true},
 		"tc_rawapi_http_name":           {Desc: "server name in response header", Type: "string", Def: "TrustChain backend"},

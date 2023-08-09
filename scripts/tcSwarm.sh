@@ -66,8 +66,20 @@ _swarmPrune() {
 _swarmInit() {
 	declare -n leader="${TC_SWARM_MANAGERS[0]}"
 
-	local out=$( ssh "${leader[node]}" "docker swarm init ${TC_SWARM_INIT}" 2>&1 )
+	local out cmd
+
+	out=$( ssh "${leader[node]}" "docker swarm init ${TC_SWARM_INIT}" 2>&1 )
 	commonVerify $? "failed: $out" "swarm status: $out"
+
+	cmd="echo \"$TC_HTTP_API_KEY\" | docker secret create tc_http_api_key -"
+	out=$( ssh ${leader[node]} "$cmd" 2>&1 )
+	commonVerify $? "failed: $out" "tc_http_api_key external secret is created"
+	cmd="echo \"$TC_HTTPS_CERT\" | docker secret create tc_https_cert -"
+	out=$( ssh ${leader[node]} "$cmd" 2>&1 )
+	commonVerify $? "failed: $out" "tc_https_cert external secret is created"
+	cmd="echo \"$TC_HTTPS_KEY\" | docker secret create tc_https_key -"
+	out=$( ssh ${leader[node]} "$cmd" 2>&1 )
+	commonVerify $? "failed: $out" "tc_https_key external secret is created"
 
 	local tokerWorker=$( ssh ${leader[node]} "docker swarm join-token -q worker" 2>&1 )
 	commonVerify $? "failed: $tokerWorker" "worker token: $tokerWorker"

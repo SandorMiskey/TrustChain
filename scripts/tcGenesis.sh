@@ -189,9 +189,9 @@ _templates() {
 	commonPrintf "unpacking private docker repo"
 	commonPrintf " "
 	out=$( tar -C ${TC_COMMON1_REGISTRY_DATA}/ -xzvf ${TC_COMMON1_REGISTRY_DATA}/docker.tgz  )
-	commonVerify $? "failed: $out" "$out"
+	commonVerify $? "failed: $out" "docker repo in place"
 	out=$( rm ${TC_COMMON1_REGISTRY_DATA}/docker.tgz  )
-	commonVerify $? "failed: $out" "$out"
+	commonVerify $? "failed: $out" "docker repo archive removed"
 
 	# commonPrintf " "
 	# commonPrintf "chown -R $TC_USER_NAME:$TC_USER_GROUP $TC_PATH_WORKBENCH"

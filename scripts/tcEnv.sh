@@ -111,8 +111,8 @@ export TC_COMMON3_S4_PW=xxx
 # endregion: passwords
 # region: HTTPS
 
-export TC_RAWAPI_KEY=xxx
-export TC_RAWAPI_HTTPS_CERT=xxx
-export TC_RAWAPI_HTTPS_KEY=xxx
+export TC_HTTP_API_KEY=xxx
+export TC_HTTPS_CERT=xxx
+export TC_HTTPS_KEY=xxx
 
 # endregion: HTTPS
