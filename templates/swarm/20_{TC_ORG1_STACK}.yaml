@@ -381,10 +381,7 @@ services:
     working_dir: ${TC_PATH_WORKBENCH}
 
   ${TC_ORG1_G1_NAME}:
-    # command: /bin/bash
     command: /bin/bash ${TC_ORG1_G1_ASSETS_DIR}/tcGwInit.sh
-    # depends_on:
-    #   - ${TC_ORG1_D1_FQDN}
     deploy:
       placement:
         constraints: [ node.hostname == ${TC_ORG1_G1_WORKER} ]
@@ -451,8 +448,6 @@ services:
     ports:
       - ${TC_ORG1_G1_PORT1}:${TC_ORG1_G1_PORT1}
       - ${TC_ORG1_G1_PORT2}:${TC_ORG1_G1_PORT2}
-    # stdin_open: true
-    # tty: true
     secrets:
       - tc_http_api_key
       - tc_https_cert

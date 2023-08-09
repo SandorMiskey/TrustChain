@@ -141,7 +141,7 @@ _WipePersistent() {
 # endregion: create user and group
 # region: reset glusterd
 
-[[ "$TC_EXEC_DRY" == false ]] && commonYN "reset cluster filesystem?" ${TC_PATH_SCRIPTS}/tcGlusterServers.sh
+# [[ "$TC_EXEC_DRY" == false ]] && commonYN "reset cluster filesystem?" ${TC_PATH_SCRIPTS}/tcGlusterServers.sh
 
 # endregion: reset glusterd
 # region: process templates
@@ -222,10 +222,48 @@ _TLS1() (
 
 	local out
 
+	# region: registry
+
+	_inner() {
+		commonPrintf " "
+		commonPrintf "setting tls cert and key for docker registry"
+		commonPrintf " "
+
+		out=$( openssl req \
+			-newkey rsa:4096 -nodes -sha256 -keyout ${TC_COMMON1_REGISTRY_DATA}/${TC_COMMON1_REGISTRY_NAME}.key \
+			-addext "subjectAltName = DNS:${TC_SWARM_MANAGER1[node]}" \
+			-x509 -days 36500 -out ${TC_COMMON1_REGISTRY_DATA}/${TC_COMMON1_REGISTRY_NAME}.crt \
+			-batch )
+		commonVerify $? "failed: $out" "$out"
+		unset out
+	}
+	commonYN "set tls cert for docker registry?" _inner
+	unset _inner
+
+	local leader=${TC_SWARM_MANAGER1[node]}
+	_inner() {
+		local -n peer=$1
+		out=$( scp ${TC_COMMON1_REGISTRY_DATA}/${TC_COMMON1_REGISTRY_NAME}.crt ${peer[node]}:ca.crt )
+		commonVerify $? "failed: $out" "ca.crt copied"
+		dir="/etc/docker/certs.d/${leader}:${TC_SWARM_IMG_PORT}"
+		cmd="sudo mkdir -p \"$dir\""
+		out=$( ssh ${peer[node]} "$cmd" )
+		commonVerify $? "failed: $out" "$dir created"
+		cmd="sudo mv ~/ca.crt \"$dir/\""
+		out=$( ssh ${peer[node]} "$cmd" )
+		commonVerify $? "failed: $out" "ca.crt in place"
+		unset out dir cmd
+	}
+	commonIterate _inner "confirm|copy tls cert for registry tls to |array|node|?" "${TC_SWARM_WORKERS[@]}" "${TC_SWARM_MANAGERS[@]}"
+	unset _inner
+
+	# endregion: registry
 	# region: bootstrap tls ca
 
 	_bootstrap() {
+		commonPrintf " "
 		commonPrintf "bootstrapping >>>${TC_COMMON1_STACK}<<<"
+		commonPrintf " "
 		${TC_PATH_SCRIPTS}/tcBootstrap.sh -m up -s ${TC_COMMON1_STACK}
 		commonVerify $? "failed!"
 	}

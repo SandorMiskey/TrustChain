@@ -93,24 +93,25 @@ export TC_SWARM_NETNAME=$TC_NETWORK_NAME
 export TC_SWARM_NETINIT="--attachable --driver overlay --subnet 10.96.0.0/24 $TC_SWARM_NETNAME"
 export TC_SWARM_DELAY=20
 
-export TC_SWARM_IMG_COUCHDB=localhost:6000/trustchain-couchdb
-export TC_SWARM_IMG_CA=localhost:6000/trustchain-fabric-ca
-export TC_SWARM_IMG_ORDERER=localhost:6000/trustchain-fabric-orderer
-export TC_SWARM_IMG_PEER=localhost:6000/trustchain-fabric-peer
-export TC_SWARM_IMG_TOOLS=localhost:6000/trustchain-fabric-tools
-export TC_SWARM_IMG_VISUALIZER=localhost:6000/trustchain-visualizer
-export TC_SWARM_IMG_LOGSPOUT=localhost:6000/trustchain-logspout
-export TC_SWARM_IMG_PROMETHEUS=localhost:6000/trustchain-prometheus
-export TC_SWARM_IMG_CADVISOR=localhost:6000/trustchain-cadvisor
-export TC_SWARM_IMG_NODEEXPORTER=localhost:6000/trustchain-node-exporter
-export TC_SWARM_IMG_GRAFANA=localhost:6000/trustchain-grafana
-export TC_SWARM_IMG_BUSYBOX=localhost:6000/trustchain-busybox
-export TC_SWARM_IMG_NETSHOOT=localhost:6000/trustchain-netshoot
-export TC_SWARM_IMG_PORTAINERAGENT=localhost:6000/trustchain-portainer-agent
-export TC_SWARM_IMG_PORTAINER=localhost:6000/trustchain-portainer
-export TC_SWARM_IMG_CCENV=localhost:6000/trustchain-fabric-ccenv
-export TC_SWARM_IMG_BASEOS=localhost:6000/trustchain-fabric-baseos
-export TC_SWARM_IMG_NODEENV=localhost:6000/trustchain-fabric-nodeenv
+export TC_SWARM_IMG_PORT=6000
+export TC_SWARM_IMG_COUCHDB=${TC_SWARM_MANAGER1[node]}:${TC_SWARM_IMG_PORT}/trustchain-couchdb
+export TC_SWARM_IMG_CA=${TC_SWARM_MANAGER1[node]}:${TC_SWARM_IMG_PORT}/trustchain-fabric-ca
+export TC_SWARM_IMG_ORDERER=${TC_SWARM_MANAGER1[node]}:${TC_SWARM_IMG_PORT}/trustchain-fabric-orderer:latest
+export TC_SWARM_IMG_PEER=${TC_SWARM_MANAGER1[node]}:${TC_SWARM_IMG_PORT}/trustchain-fabric-peer
+export TC_SWARM_IMG_TOOLS=${TC_SWARM_MANAGER1[node]}:${TC_SWARM_IMG_PORT}/trustchain-fabric-tools
+export TC_SWARM_IMG_VISUALIZER=${TC_SWARM_MANAGER1[node]}:${TC_SWARM_IMG_PORT}/trustchain-visualizer
+export TC_SWARM_IMG_LOGSPOUT=${TC_SWARM_MANAGER1[node]}:${TC_SWARM_IMG_PORT}/trustchain-logspout
+export TC_SWARM_IMG_PROMETHEUS=${TC_SWARM_MANAGER1[node]}:${TC_SWARM_IMG_PORT}/trustchain-prometheus
+export TC_SWARM_IMG_CADVISOR=${TC_SWARM_MANAGER1[node]}:${TC_SWARM_IMG_PORT}/trustchain-cadvisor
+export TC_SWARM_IMG_NODEEXPORTER=${TC_SWARM_MANAGER1[node]}:${TC_SWARM_IMG_PORT}/trustchain-node-exporter
+export TC_SWARM_IMG_GRAFANA=${TC_SWARM_MANAGER1[node]}:${TC_SWARM_IMG_PORT}/trustchain-grafana
+export TC_SWARM_IMG_BUSYBOX=${TC_SWARM_MANAGER1[node]}:${TC_SWARM_IMG_PORT}/trustchain-busybox
+export TC_SWARM_IMG_NETSHOOT=${TC_SWARM_MANAGER1[node]}:${TC_SWARM_IMG_PORT}/trustchain-netshoot
+export TC_SWARM_IMG_PORTAINERAGENT=${TC_SWARM_MANAGER1[node]}:${TC_SWARM_IMG_PORT}/trustchain-portainer-agent
+export TC_SWARM_IMG_PORTAINER=${TC_SWARM_MANAGER1[node]}:${TC_SWARM_IMG_PORT}/trustchain-portainer
+export TC_SWARM_IMG_CCENV=${TC_SWARM_MANAGER1[node]}:${TC_SWARM_IMG_PORT}/trustchain-fabric-ccenv
+export TC_SWARM_IMG_BASEOS=${TC_SWARM_MANAGER1[node]}:${TC_SWARM_IMG_PORT}/trustchain-fabric-baseos
+export TC_SWARM_IMG_NODEENV=${TC_SWARM_MANAGER1[node]}:${TC_SWARM_IMG_PORT}/trustchain-fabric-nodeenv
 
 # endregion: swarm
 # region: gluster
@@ -130,7 +131,7 @@ export TC_COMMON1_DOMAIN=${TC_COMMON1_STACK}.${TC_NETWORK_DOMAIN}
 
 export TC_COMMON1_REGISTRY_NAME=registriy
 export TC_COMMON1_REGISTRY_FQDN=${TC_COMMON1_REGISTRY_NAME}.${TC_COMMON1_DOMAIN}
-export TC_COMMON1_REGISTRY_PORT=6000
+export TC_COMMON1_REGISTRY_PORT=$TC_SWARM_IMG_PORT
 export TC_COMMON1_REGISTRY_DATA=${TC_PATH_WORKBENCH}/${TC_COMMON1_STACK}/${TC_COMMON1_REGISTRY_NAME}
 export TC_COMMON1_REGISTRY_WORKER=${TC_SWARM_MANAGER1[node]}
 

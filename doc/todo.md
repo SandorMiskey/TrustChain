@@ -1,9 +1,9 @@
 # todo
 
 * worker3
-  * docker pull
   * move payload
 * GetBlockByTxID
+  * /peer endpoint...
   * get by tx_id, block# via qscc [https://stackoverflow.com/questions/67263579/retrieve-block-number-and-transaction-id-from-query-to-hyperledger-fabric]
 * orderer restart? stress test
 * put p2s and p3s back in tcChaincodeInit.sh

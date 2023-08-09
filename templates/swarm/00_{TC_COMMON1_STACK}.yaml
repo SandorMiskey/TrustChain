@@ -5,11 +5,11 @@ networks:
     name: ${TC_NETWORK_NAME}
     external: true
 
-secrets:
-  tc_https_cert:
-    external: true
-  tc_https_key:
-    external: true
+# secrets:
+#   tc_https_cert:
+#     external: true
+#   tc_https_key:
+#     external: true
 
 services:
   ${TC_COMMON1_REGISTRY_NAME}:
@@ -20,6 +20,8 @@ services:
     environment:
       - REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY=${TC_COMMON1_REGISTRY_DATA}
       - REGISTRY_HTTP_ADDR=0.0.0.0:${TC_COMMON1_REGISTRY_PORT}
+      - REGISTRY_HTTP_TLS_CERTIFICATE=${TC_COMMON1_REGISTRY_DATA}/${TC_COMMON1_REGISTRY_NAME}.crt
+      - REGISTRY_HTTP_TLS_KEY=${TC_COMMON1_REGISTRY_DATA}/${TC_COMMON1_REGISTRY_NAME}.key
     hostname: ${TC_COMMON1_REGISTRY_FQDN} 
     image: registry:2
     labels:
@@ -33,9 +35,9 @@ services:
     ports:
       - ${TC_COMMON1_REGISTRY_PORT}:${TC_COMMON1_REGISTRY_PORT}
     # restart: always
-    secrets:
-      - tc_https_cert
-      - tc_https_key
+    # secrets:
+    #   - tc_https_cert
+    #   - tc_https_key
     volumes:
       - ${TC_COMMON1_REGISTRY_DATA}:${TC_COMMON1_REGISTRY_DATA}
 
