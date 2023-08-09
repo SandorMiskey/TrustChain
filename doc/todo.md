@@ -1,9 +1,10 @@
 # todo
 
-* remote peers
-  * payload to workers
-    * docker pull on worker3
-    * move payload
+* worker3
+  * docker pull
+  * move payload
+* GetBlockByTxID
+  * get by tx_id, block# via qscc [https://stackoverflow.com/questions/67263579/retrieve-block-number-and-transaction-id-from-query-to-hyperledger-fabric]
 * orderer restart? stress test
 * put p2s and p3s back in tcChaincodeInit.sh
 * move HTTPS cert and key from tcGwInit.sh to templates/swarm/20_{TC_ORG1_STACK}.yaml
@@ -11,7 +12,6 @@
 * SASC leftover (doc/legacy_to_port)
 * swagger
 * common uid/gid on managers and workers on-the-fly
-* get by tx_id, block# via qscc [https://stackoverflow.com/questions/67263579/retrieve-block-number-and-transaction-id-from-query-to-hyperledger-fabric]
 * more dependency check
   * glusterd
   * mount.glusterfs

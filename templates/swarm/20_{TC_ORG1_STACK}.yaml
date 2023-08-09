@@ -326,8 +326,6 @@ services:
 
   ${TC_ORG1_CLI1_NAME}:
     command: /bin/bash
-    # depends_on:
-    #   - ${TC_ORG1_D1_FQDN}
     deploy:
       placement:
         constraints: [ node.hostname == ${TC_ORG1_CLI1_WORKER} ]
@@ -372,7 +370,7 @@ services:
     volumes:
       - ${TC_ORG1_DATA}:${TC_ORG1_DATA}
       # - ${TC_PATH_SCRIPTS}:${TC_PATH_SCRIPTS}
-    working_dir: ${TC_PATH_BASE}
+    working_dir: ${TC_PATH_WORKBENCH}
 
   ${TC_ORG1_G1_NAME}:
     # command: /bin/bash
