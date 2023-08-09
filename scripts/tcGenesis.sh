@@ -206,6 +206,11 @@ _templates() {
 [[ "$TC_EXEC_DRY" == false ]] && commonYN "process templates?" _templates 
 
 # endregion: process templates
+# region: gluster clients
+
+[[ "$TC_EXEC_DRY" == false ]] && commonYN "set cluster filesystem on clients?" ${TC_PATH_SCRIPTS}/tcGlusterClients.sh
+
+# endregion: gluster clients
 # region: swarm init
 
 [[ "$TC_EXEC_DRY" == false ]] && commonYN "prune and reset docker swarm?" ${TC_PATH_SCRIPTS}/tcSwarm.sh

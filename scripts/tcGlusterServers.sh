@@ -20,7 +20,7 @@ commonPP $TC_PATH_SCRIPTS
 
 # endregion: common
 
-function _glusterUmountVolume() {
+function _glusterServerUmountVolume() {
 	commonPrintf " "
 	commonPrintf "umounting shared volume"
 	commonPrintf " "
@@ -30,14 +30,14 @@ function _glusterUmountVolume() {
 		commonPrintf "status: $? $_out"
 	}
 	commonIterate _inner "confirm|umount volume on |array|node|?" "${TC_GLUSTER_MANAGERS[@]}"
-	_inner() {
-		local -n peer=$1
-		local _cmd="sudo umount -f ${peer[mnt]}"
-		commonPrintf "${_cmd} will be issued on ${peer[node]}"
-		local _out=$( ssh ${peer[node]} "$_cmd" 2>&1 )
-		commonPrintf "status: $? $_out"
-	}
-	commonIterate _inner "confirm|umount volume on |array|node|?" "${TC_GLUSTER_MOUNTS[@]}"
+	# _inner() {
+	# 	local -n peer=$1
+	# 	local _cmd="sudo umount -f ${peer[mnt]}"
+	# 	commonPrintf "${_cmd} will be issued on ${peer[node]}"
+	# 	local _out=$( ssh ${peer[node]} "$_cmd" 2>&1 )
+	# 	commonPrintf "status: $? $_out"
+	# }
+	# commonIterate _inner "confirm|umount volume on |array|node|?" "${TC_GLUSTER_MOUNTS[@]}"
 
 	unset _inner _out
 	commonSleep 3 "done"
@@ -98,7 +98,7 @@ function _glusterMkFs() {
 	commonSleep 3 "done"
 }
 
-function _glusterMount() {
+function _glusterServerMount() {
 	commonPrintf " "
 	commonPrintf "mounting block device"
 	commonPrintf " "
@@ -261,7 +261,7 @@ function _glusterLay() {
 
 }
 
-function _glusterFstab() {
+function _glusterServerFstab() {
 	commonPrintf " "
 	commonPrintf "creating fstab entries and mount -a"
 	commonPrintf " "
@@ -280,6 +280,10 @@ function _glusterFstab() {
 		_cmd="sudo sed -i \"/^$( echo ${peer[node]}:/${TC_GLUSTER_BRICK} | sed 's/\//\\\//g' )/d\" /etc/fstab"
 		_out=$(ssh ${peer[node]} "$_cmd" 2>&1 )
 		commonVerify $? "failed to remove ${peer[node]}:/${TC_GLUSTER_BRICK}: $_out" "${peer[node]}:/${TC_GLUSTER_BRICK} removed"
+		commonPrintf "removing consecutive empty lines"
+		_cmd="sudo sed -i '/^$/N;/^\n$/D' /etc/fstab"
+		_out=$(ssh ${peer[node]} "$_cmd" 2>&1 )
+		commonVerify $? "failed to remove consecutive empty lines: $_out" "consecutive empty lines are removed"
 
 		commonPrintf "appending new entries"
 		local backupvol=${server1[node]}
@@ -316,40 +320,40 @@ function _glusterFstab() {
 	# endregion: servers
 	# region: clients
 
-	_inner() {
-		local -n peer=$1
-		local _path=$( echo ${peer[mnt]} | sed s+$TC_PATH_WORKBENCH++ )
+	# _inner() {
+	# 	local -n peer=$1
+	# 	local _path=$( echo ${peer[mnt]} | sed s+$TC_PATH_WORKBENCH++ )
 
-		# _inInner() {
-		# 	local -n server $1
-		# 	_cmd="sudo sed -i \"/^$( echo ${server[node]}:/${_path} | sed 's/\//\\\//g' )/d\" /etc/fstab"
-		# 	_out=$(ssh ${peer[node]} "$_cmd" 2>&1 )
-		# 	commonVerify $? "failed to remove ${peer[node]}:/${TC_GLUSTER_BRICK}: $_out" "${peer[node]}:/${TC_GLUSTER_BRICK} removed"
-		# 	unset _cmd _out
-		# }
-		# commonIterate _inInner "print|removing |array|node| entries on ${peer[node]}" "${TC_GLUSTER_MANAGERS[@]}"
+	# 	# _inInner() {
+	# 	# 	local -n server $1
+	# 	# 	_cmd="sudo sed -i \"/^$( echo ${server[node]}:/${_path} | sed 's/\//\\\//g' )/d\" /etc/fstab"
+	# 	# 	_out=$(ssh ${peer[node]} "$_cmd" 2>&1 )
+	# 	# 	commonVerify $? "failed to remove ${peer[node]}:/${TC_GLUSTER_BRICK}: $_out" "${peer[node]}:/${TC_GLUSTER_BRICK} removed"
+	# 	# 	unset _cmd _out
+	# 	# }
+	# 	# commonIterate _inInner "print|removing |array|node| entries on ${peer[node]}" "${TC_GLUSTER_MANAGERS[@]}"
 
-		# _entry+="${server1[node]}:/${TC_GLUSTER_BRICK}${_path} ${peer[mnt]} glusterfs defaults,_netdev,backupvolfile-server=${server2[node]} 0 0\n"
-		# commonPrintf "appending new entry on ${peer[node]}: $_entry"
-		# _out=$( ssh ${peer[node]} "sudo bash -c 'echo -e \"_$entry\" >> /etc/fstab'" 2>&1 )
-		# commonVerify $? "failed to update fstab: $_out" "fstab update succeeded"
+	# 	# _entry+="${server1[node]}:/${TC_GLUSTER_BRICK}${_path} ${peer[mnt]} glusterfs defaults,_netdev,backupvolfile-server=${server2[node]} 0 0\n"
+	# 	# commonPrintf "appending new entry on ${peer[node]}: $_entry"
+	# 	# _out=$( ssh ${peer[node]} "sudo bash -c 'echo -e \"_$entry\" >> /etc/fstab'" 2>&1 )
+	# 	# commonVerify $? "failed to update fstab: $_out" "fstab update succeeded"
 
-		# commonPrintf "mkdir -p -v ${server1[node]}:${peer[mnt]}"
-		# _out=$( ssh ${server1[node]} "sudo mkdir -p -v ${peer[mnt]}" 2>&1 )
-		# commonVerify $? "failed: $_out" "mkdir -p -v ${peer[mnt]} on ${peer[node]} succeeded"
+	# 	# commonPrintf "mkdir -p -v ${server1[node]}:${peer[mnt]}"
+	# 	# _out=$( ssh ${server1[node]} "sudo mkdir -p -v ${peer[mnt]}" 2>&1 )
+	# 	# commonVerify $? "failed: $_out" "mkdir -p -v ${peer[mnt]} on ${peer[node]} succeeded"
 
-		# commonPrintf "mkdir -p -v ${peer[node]}:${peer[mnt]}"
-		# _out=$( ssh ${peer[node]} "sudo mkdir -p -v ${peer[mnt]}" 2>&1 )
-		# commonVerify $? "failed: $_out" "mkdir -p -v ${peer[mnt]} on ${peer[node]} succeeded"
+	# 	# commonPrintf "mkdir -p -v ${peer[node]}:${peer[mnt]}"
+	# 	# _out=$( ssh ${peer[node]} "sudo mkdir -p -v ${peer[mnt]}" 2>&1 )
+	# 	# commonVerify $? "failed: $_out" "mkdir -p -v ${peer[mnt]} on ${peer[node]} succeeded"
 
-		# commonPrintf "mount -a at ${peer[node]}"
-		# _out=$( ssh ${peer[node]} "sudo mount -a" 2>&1 )
-		# commonVerify $? "failed mount -a: $_out" "mount -a succeeded"
+	# 	# commonPrintf "mount -a at ${peer[node]}"
+	# 	# _out=$( ssh ${peer[node]} "sudo mount -a" 2>&1 )
+	# 	# commonVerify $? "failed mount -a: $_out" "mount -a succeeded"
 
-		unset _entry _out _path
-		# sudo mount -t glusterfs tc2-test-manager1:/TrustChain/organizations/peerOrganizations/supernodes /srv/TrustChain/organizations/peerOrganizations/supernodes
-	}
-	commonIterate _inner "confirm|update fstab and mount -a on client |array|node|?" "${TC_GLUSTER_MOUNTS[@]}"
+	# 	unset _entry _out _path
+	# 	# sudo mount -t glusterfs tc2-test-manager1:/TrustChain/organizations/peerOrganizations/supernodes /srv/TrustChain/organizations/peerOrganizations/supernodes
+	# }
+	# commonIterate _inner "confirm|update fstab and mount -a on client |array|node|?" "${TC_GLUSTER_MOUNTS[@]}"
 
 	# endregion: clients
 
@@ -366,15 +370,15 @@ function _glusterFstab() {
 
 if [[ "$TC_EXEC_DRY" == "false" ]]; then
 	_inner() {
-		commonYN "umount shared wolume on glusterfs servers?" _glusterUmountVolume
+		commonYN "umount shared wolume on glusterfs servers?" _glusterServerUmountVolume
 		commonYN "reset glusterd on glusterfs servers?" _glusterDisable
 		commonYN "umount gluster's dedicated devices?" _glusterUmountDevice
 		commonYN "mkfs on those devices?" _glusterMkFs
-		commonYN "mount filesystems?" _glusterMount
+		commonYN "mount filesystems?" _glusterServerMount
 		commonYN "start and enable glusterd on peers?" _glusterEnable
 		commonYN "configure the trusted pool?" _glusterProbe
 		commonYN "lay the brick?" _glusterLay
-		commonYN "add /etc/fstab entry and mount -a?" _glusterFstab
+		commonYN "add /etc/fstab entry and mount -a?" _glusterServerFstab
 	}
 	force=$COMMON_FORCE
 	COMMON_FORCE=$TC_EXEC_SURE

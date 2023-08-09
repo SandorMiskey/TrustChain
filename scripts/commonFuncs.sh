@@ -261,6 +261,7 @@ function commonJoinArray() {
 function commonIterate() {
 	local func=$1; shift
 
+	local mode prefix type field suffix
 	IFS="|" read -r mode prefix type field suffix <<< "$1"; shift
 	if [ -z $mode ]; then mode=ignore; fi
 

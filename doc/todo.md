@@ -1,15 +1,9 @@
 # todo
 
 * remote peers
-  * tcGlusterClients.sh
-    * after templates done
-    * fstab update
-    * check/create mount point
-    * mount
   * payload to workers
     * docker pull on worker3
     * move payload
-  * update docs/hosts_and_ports.md
 * orderer restart? stress test
 * put p2s and p3s back in tcChaincodeInit.sh
 * move HTTPS cert and key from tcGwInit.sh to templates/swarm/20_{TC_ORG1_STACK}.yaml
