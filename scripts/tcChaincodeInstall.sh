@@ -59,8 +59,8 @@ _deploy() {
 	# region: installing
 
 	commonPrintf "install chaincode on $TC_ORG1_STACK peers"
-	# for port in $TC_ORG1_P1_PORT $TC_ORG1_P2_PORT $TC_ORG1_P3_PORT
-	for port in $TC_ORG1_P1_PORT
+	# for port in $TC_ORG1_P1_PORT
+	for port in $TC_ORG1_P1_PORT $TC_ORG1_P2_PORT $TC_ORG1_P3_PORT
 	do
 		commonPrintf "targeting localhost:${port}"
 		out=$(
@@ -76,8 +76,8 @@ _deploy() {
 	done
 
 	commonPrintf "install chaincode on $TC_ORG2_STACK peers"
-	# for port in $TC_ORG2_P1_PORT $TC_ORG2_P2_PORT $TC_ORG2_P3_PORT
-	for port in $TC_ORG2_P1_PORT
+	# for port in $TC_ORG2_P1_PORT
+	for port in $TC_ORG2_P1_PORT $TC_ORG2_P2_PORT $TC_ORG2_P3_PORT
 	do
 		commonPrintf "targeting localhost:${port}"
 		out=$(
@@ -93,8 +93,8 @@ _deploy() {
 	done
 
 	commonPrintf "install chaincode on $TC_ORG3_STACK peers"
-	# for port in $TC_ORG3_P1_PORT $TC_ORG3_P2_PORT $TC_ORG3_P3_PORT
-	for port in $TC_ORG3_P1_PORT
+	# for port in $TC_ORG3_P1_PORT
+	for port in $TC_ORG3_P1_PORT $TC_ORG3_P2_PORT $TC_ORG3_P3_PORT
 	do
 		commonPrintf "targeting localhost:${port}"
 		out=$(

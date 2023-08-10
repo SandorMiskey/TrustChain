@@ -1,7 +1,6 @@
 # todo
 
 * orderer restart? stress test
-* put p2s and p3s back in tcChaincodeInit.sh
 * worker3
   * move payload
 
