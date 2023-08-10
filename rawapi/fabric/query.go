@@ -5,6 +5,8 @@ package fabric
 import (
 	"encoding/json"
 	"fmt"
+	"io"
+	"os/exec"
 
 	"github.com/SandorMiskey/TEx-kit/log"
 	"github.com/SandorMiskey/TrustChain/rawapi/http"
@@ -49,18 +51,19 @@ func (setup *OrgSetup) Query(ctx *fasthttp.RequestCtx) {
 	// region: form values
 
 	request.form = &form{
-		Chaincode: string(ctx.FormValue("chaincode")),
-		Channel:   string(ctx.FormValue("channel")),
-		Function:  string(ctx.FormValue("function")),
-		raw:       ctx.QueryArgs(),
+		Chaincode:   string(ctx.FormValue("chaincode")),
+		Channel:     string(ctx.FormValue("channel")),
+		Function:    string(ctx.FormValue("function")),
+		ProtoDecode: string(ctx.FormValue("proto_decode")),
+		raw:         ctx.QueryArgs(),
 	}
 	request.form.raw.VisitAll(func(k, v []byte) {
 		if string(k) == "args" {
 			request.form.Args = append(request.form.Args, string(v))
 		}
 	})
-	logger(log.LOG_INFO, fmt.Sprintf("%v: query request chaincode -> %s, channel -> %s, function -> %s, args -> %s", ctx.ID, request.form.Chaincode, request.form.Channel, request.form.Function, request.form.Args))
-	logger(log.LOG_DEBUG, fmt.Sprintf("%v: query request with raw args %#v", ctx.ID, request))
+	logger(log.LOG_INFO, ctx.ID(), fmt.Sprintf("query request chaincode -> %s, channel -> %s, function -> %s, args -> %s", request.form.Chaincode, request.form.Channel, request.form.Function, request.form.Args))
+	logger(log.LOG_DEBUG, ctx.ID(), fmt.Sprintf("query request with raw args %#v", request))
 
 	// TODO: validate values
 
@@ -75,9 +78,7 @@ func (setup *OrgSetup) Query(ctx *fasthttp.RequestCtx) {
 		request.error(err)
 		return
 	}
-	logger(log.LOG_DEBUG, ctx.ID, fmt.Sprintf("result type -> %T", []byte(resultByte)))
-	// logger(log.LOG_DEBUG, ctx.ID, fmt.Sprintf("result -> %s", []byte(resultByte)))
-	// logger(log.LOG_DEBUG, ctx.ID, fmt.Sprintf(result -> %s", string(resultByte)))
+	logger(log.LOG_DEBUG, ctx.ID(), fmt.Sprintf("result type -> %T", []byte(resultByte)))
 
 	// endregion: fetch result
 	// region: prepare message
@@ -92,36 +93,48 @@ func (setup *OrgSetup) Query(ctx *fasthttp.RequestCtx) {
 	// endregion: prepare message
 	// region: deconstruct result
 
-	// var resultMap map[string]interface{}
-	// err = json.Unmarshal([]byte(resultByte), &resultMap)
-	// if err != nil {
-	// 	var rawData json.RawMessage
-	// 	err := json.Unmarshal([]byte(resultByte), &rawData)
-	// 	if err != nil {
-	// 		logger(log.LOG_ERR, "error processing result into even json.RawMessage -> %s -> %s", resultByte, err)
-	// 		resultMsg.Result = nil
-	// 		return
-	// 	} else {
-	// 		resultMsg.Result = rawData
-	// 	}
-	// } else {
-	// 	resultMsg.Result = resultMap
-	// }
-	// logger(log.LOG_DEBUG, fmt.Sprintf("%v: result -> %#v", ctx.ID, resultMap))
+	if len(request.form.ProtoDecode) > 0 {
+		logger(log.LOG_DEBUG, response.CTX.ID(), "ProtoDecode", request.form.ProtoDecode)
+
+		cmd := exec.Command("configtxlator", "proto_decode", "--input=/dev/stdin", "--type="+request.form.ProtoDecode)
+		cmdIn, err := cmd.StdinPipe()
+		if err != nil {
+			logger(log.LOG_ERR, response.CTX.ID(), err)
+			request.error(err)
+			return
+		}
+		cmdOut, err := cmd.StdoutPipe()
+		if err != nil {
+			logger(log.LOG_ERR, response.CTX.ID(), err)
+			request.error(err)
+			return
+		}
+		cmd.Start()
+		cmdIn.Write(resultByte)
+		cmdIn.Close()
+		cmdBytes, err := io.ReadAll(cmdOut)
+		if err != nil {
+			logger(log.LOG_ERR, response.CTX.ID(), err)
+			request.error(err)
+			return
+		}
+		cmd.Wait()
+		resultByte = cmdBytes
+	}
 
 	var rawData json.RawMessage
 
 	err = json.Unmarshal([]byte(resultByte), &rawData)
 	if err != nil {
-		logger(log.LOG_ERR, fmt.Sprintf("error processing result into even json.RawMessage -> %s -> %s", resultByte, err))
-		resultMsg.Result = nil
-		// request.error(err)
-		// return
+		// logger(log.LOG_WARNING, ctx.ID(), fmt.Sprintf("error processing result into even json.RawMessage -> %s -> %s", resultByte, err))
+		logger(log.LOG_WARNING, response.CTX.ID(), fmt.Sprintf("error processing result into even json.RawMessage -> %s", err))
+		request.error(err)
+		return
 	} else {
 		resultMsg.Result = rawData
 	}
 
-	logger(log.LOG_DEBUG, ctx.ID, fmt.Sprintf("result -> %s", rawData))
+	logger(log.LOG_DEBUG, ctx.ID(), fmt.Sprintf("result -> %s", rawData))
 
 	// endregion: deconstruct
 	// region: closing

@@ -1786,7 +1786,7 @@ _buildRaw() {
 	local out
 
 	commonPrintf "building raw api"
-	commonPP ${TC_PATH_BASE}/rawapi
+	commonPP ${TC_PATH_RAWAPI}
 	out=$( go mod tidy 2>&1 )
 	commonVerify $? "failed: $out"
 	out=$( CGO_ENABLED=0 go build main.go 2>&1 )

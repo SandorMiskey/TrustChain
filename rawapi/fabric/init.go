@@ -77,10 +77,10 @@ func (setup *OrgSetup) validate(response *http.Response) error {
 	if setup.Logger == nil || setup.gateway == nil {
 		return errors.New("fabric.OrgSetup.Invoke() needs a logger and a gateway, fabric.OrgSetup.Init() first")
 
-		response.Status = 500
-		response.Message = "fabric.OrgSetup.Invoke() needs a logger and a gateway, fabric.OrgSetup.Init() first"
-		response.Send(nil)
-		return errors.New(response.Message.(string))
+		// response.Status = 500
+		// response.Message = "fabric.OrgSetup.Invoke() needs a logger and a gateway, fabric.OrgSetup.Init() first"
+		// response.Send(nil)
+		// return errors.New(response.Message.(string))
 	}
 	return nil
 }

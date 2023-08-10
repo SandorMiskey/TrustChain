@@ -62,21 +62,21 @@ func (r *Response) Send(msg interface{}) error {
 
 		switch v := r.Message.(type) {
 		case string:
-			logger(log.LOG_DEBUG, fmt.Sprintf("%v: r.Message type is string: %s", r.CTX.ID, r.Message.(string)))
+			logger(log.LOG_DEBUG, r.CTX.ID(), fmt.Sprintf("r.Message type is string: %s", r.Message.(string)))
 			r.CTX.SetBodyString(r.Message.(string))
 		case error:
-			logger(log.LOG_DEBUG, fmt.Sprintf("%v: r.Message type is error: %s", r.CTX.ID, r.Message.(error).Error()))
+			logger(log.LOG_DEBUG, r.CTX.ID(), fmt.Sprintf("r.Message type is error: %s", r.Message.(error).Error()))
 			r.CTX.SetBodyString(r.Message.(error).Error())
 		case []byte:
-			logger(log.LOG_DEBUG, fmt.Sprintf("%v: r.Message type is []byte: %s", r.CTX.ID, r.Message.([]byte)))
+			logger(log.LOG_DEBUG, r.CTX.ID(), fmt.Sprintf("r.Message type is []byte: %s", r.Message.([]byte)))
 			r.CTX.SetBody(r.Message.([]byte))
 		default:
-			err := fmt.Errorf("%v: unexpected type of content: %T (%s)", r.CTX.ID, v, r.Message)
+			err := fmt.Errorf("%v: unexpected type of content: %T (%s)", r.CTX.ID(), v, r.Message)
 			r.error(err)
 			return r.err
 		}
 
-		logger(log.LOG_INFO, fmt.Sprintf("%v: response is given with content type: %s, status: %v", r.CTX.ID, r.ContentType, r.Status))
+		logger(log.LOG_INFO, r.CTX.ID(), fmt.Sprintf("response is given with content type: %s, status: %v", r.ContentType, r.Status))
 		return nil
 	} else {
 		err := fmt.Errorf("no fasthttp.RequestCtx")
@@ -95,7 +95,7 @@ func (r *Response) SendJSON(msg interface{}) error {
 	}
 	r.Message, err = json.Marshal(r.Message)
 	if err != nil {
-		r.error(fmt.Errorf("%v: unable to marshal json: %s (%s)", r.CTX.ID, err, r.Message))
+		r.error(fmt.Errorf("%v: unable to marshal json: %s (%s)", r.CTX.ID(), err, r.Message))
 		return r.err
 	}
 
@@ -109,7 +109,7 @@ func (r *Response) error(err error) {
 	}
 	var msg string
 	if r.CTX != nil {
-		msg = fmt.Sprintf("%v: error in response: %s", r.CTX.ID, r.err)
+		msg = fmt.Sprintf("%v: error in response: %s", r.CTX.ID(), r.err)
 		r.CTX.SetStatusCode(500)
 		r.CTX.SetBodyString(msg)
 	} else {

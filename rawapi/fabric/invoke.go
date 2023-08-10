@@ -54,8 +54,8 @@ func (setup *OrgSetup) Invoke(ctx *fasthttp.RequestCtx) {
 			request.form.Args = append(request.form.Args, string(v))
 		}
 	})
-	logger(log.LOG_INFO, fmt.Sprintf("%v: invoke request chaincode -> %s, channel -> %s, function -> %s, args -> %s", ctx.ID, request.form.Chaincode, request.form.Channel, request.form.Function, request.form.Args))
-	logger(log.LOG_DEBUG, fmt.Sprintf("%v: invoke request raw args %#v\n", ctx.ID, request.form))
+	logger(log.LOG_INFO, ctx.ID(), fmt.Sprintf("invoke request chaincode -> %s, channel -> %s, function -> %s, args -> %s", request.form.Chaincode, request.form.Channel, request.form.Function, request.form.Args))
+	logger(log.LOG_DEBUG, ctx.ID(), fmt.Sprintf("invoke request raw args %#v\n", request.form))
 
 	// TODO: validate values
 
@@ -69,8 +69,8 @@ func (setup *OrgSetup) Invoke(ctx *fasthttp.RequestCtx) {
 		request.error(nil)
 		return
 	}
-	logger(log.LOG_INFO, fmt.Sprintf("%v: invoke request proposal succeeded", ctx.ID))
-	logger(log.LOG_DEBUG, fmt.Sprintf("%v: invoke request details: request -> %#v", ctx.ID, request))
+	logger(log.LOG_INFO, ctx.ID(), "invoke request proposal succeeded")
+	logger(log.LOG_DEBUG, ctx.ID(), fmt.Sprintf("invoke request details: request -> %#v", request))
 
 	// endregion: proposal
 	// region: endorse
@@ -80,8 +80,8 @@ func (setup *OrgSetup) Invoke(ctx *fasthttp.RequestCtx) {
 		request.error(nil)
 		return
 	}
-	logger(log.LOG_INFO, fmt.Sprintf("%v: invoke request proposal endorsed", ctx.ID))
-	logger(log.LOG_DEBUG, fmt.Sprintf("%v: endorsed: request -> %#v", ctx.ID, request))
+	logger(log.LOG_INFO, ctx.ID(), "invoke request proposal endorsed")
+	logger(log.LOG_DEBUG, ctx.ID(), fmt.Sprintf("endorsed: request -> %#v", request))
 
 	// endregion: endorse
 	// region: commit
@@ -91,8 +91,8 @@ func (setup *OrgSetup) Invoke(ctx *fasthttp.RequestCtx) {
 		request.error(nil)
 		return
 	}
-	logger(log.LOG_INFO, fmt.Sprintf("%v: invoke request committed, transaction ID: %s, response: %s", ctx.ID, request.commit.TransactionID(), request.transaction.Result()))
-	logger(log.LOG_DEBUG, fmt.Sprintf("%v: committed: request -> %#v", ctx.ID, request))
+	logger(log.LOG_INFO, ctx.ID(), fmt.Sprintf("invoke request committed, transaction ID: %s, response: %s", request.commit.TransactionID(), request.transaction.Result()))
+	logger(log.LOG_DEBUG, ctx.ID(), fmt.Sprintf("committed: request -> %#v", request))
 
 	// endregion: commit
 	// region: closing
@@ -114,7 +114,7 @@ func (setup *OrgSetup) Invoke(ctx *fasthttp.RequestCtx) {
 	} else {
 		out.Result = rawData
 	}
-	logger(log.LOG_DEBUG, fmt.Sprintf("%v: result -> %s", ctx.ID, rawData))
+	logger(log.LOG_DEBUG, ctx.ID(), fmt.Sprintf("result -> %s", rawData))
 
 	response.Message = out
 	response.SendJSON(nil)

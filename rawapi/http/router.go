@@ -37,7 +37,7 @@ func (setup *RouterSetup) RouterInit() (*RouterSetup, error) {
 			Root:       setup.StaticRoot,
 			IndexNames: []string{setup.StaticIndex},
 			PathNotFound: func(ctx *fasthttp.RequestCtx) {
-				logger(log.LOG_INFO, fmt.Sprintf("%v: dead end: %s", ctx.ID, ctx))
+				logger(log.LOG_INFO, ctx.ID(), fmt.Sprintf("dead end: %s", ctx))
 				ctx.Redirect(setup.StaticError, 303)
 			},
 			Compress:           true,
@@ -47,7 +47,7 @@ func (setup *RouterSetup) RouterInit() (*RouterSetup, error) {
 		httpRouterActual.NotFound = httpFS.NewRequestHandler()
 	} else {
 		httpRouterActual.NotFound = func(ctx *fasthttp.RequestCtx) {
-			logger(log.LOG_INFO, fmt.Sprintf("%v: no such route: %s", ctx.ID, ctx))
+			logger(log.LOG_INFO, ctx.ID(), fmt.Sprintf("no such route: %s", ctx))
 			ctx.SetStatusCode(404)
 			ctx.SetBodyString("Not found")
 		}

@@ -24,11 +24,12 @@ import (
 // endregion: packages
 
 type form struct {
-	Chaincode string         `json:"chaincode"`
-	Channel   string         `json:"channel"`
-	Function  string         `json:"function"`
-	Args      []string       `json:"args"`
-	raw       *fasthttp.Args `json:"-"`
+	Args        []string       `json:"args"`
+	Chaincode   string         `json:"chaincode"`
+	Channel     string         `json:"channel"`
+	Function    string         `json:"function"`
+	ProtoDecode string         `json:"proto_decode"`
+	raw         *fasthttp.Args `json:"-"`
 }
 
 type request struct {
@@ -68,7 +69,7 @@ func (r *request) error(err error) {
 	// region: logger
 
 	logger := r.response.Logger.Out
-	logger(log.LOG_DEBUG, fmt.Sprintf("%v: error in fabric request: %s", r.response.CTX.ID, r.err))
+	logger(log.LOG_DEBUG, r.response.CTX.ID(), fmt.Sprintf("error in fabric request: %s", r.err))
 
 	// endregion: logger
 	// region: new msg
@@ -86,29 +87,29 @@ func (r *request) error(err error) {
 	case *client.EndorseError:
 		msg.message.ID = err.TransactionID
 		msg.message.Status = fmt.Sprintf("%v", status.Code(err))
-		msg.message.Result = fmt.Sprintf("%v: endorse error for transaction %s with gRPC status %v: %s", r.response.CTX.ID, msg.message.ID, msg.message.Status, err)
+		msg.message.Result = fmt.Sprintf("%v: endorse error for transaction %s with gRPC status %v: %s", r.response.CTX.ID(), msg.message.ID, msg.message.Status, err)
 	case *client.SubmitError:
 		msg.message.ID = err.TransactionID
 		// msg.message.Status = fmt.Sprintf("%s", status.Code(r.err))
 		msg.message.Status = status.Code(r.err).String()
-		msg.message.Result = fmt.Sprintf("%v: submit error for transaction %s with gRPC status %v: %s", r.response.CTX.ID, msg.message.ID, msg.message.Status, err)
+		msg.message.Result = fmt.Sprintf("%v: submit error for transaction %s with gRPC status %v: %s", r.response.CTX.ID(), msg.message.ID, msg.message.Status, err)
 	case *client.CommitStatusError:
 		msg.message.ID = err.TransactionID
 		if errors.Is(err, context.DeadlineExceeded) {
 			msg.message.Status = fmt.Sprintf("%s", err)
-			msg.message.Result = fmt.Sprintf("%v: timeout waiting for transaction %s commit status: %s", r.response.CTX.ID, msg.message.ID, err)
+			msg.message.Result = fmt.Sprintf("%v: timeout waiting for transaction %s commit status: %s", r.response.CTX.ID(), msg.message.ID, err)
 		} else {
 			msg.message.Status = status.Code(err).String()
-			msg.message.Result = fmt.Sprintf("%v: error obtaining commit status for transaction %s commit status %s: %s", r.response.CTX.ID, msg.message.ID, msg.message.Status, err)
+			msg.message.Result = fmt.Sprintf("%v: error obtaining commit status for transaction %s commit status %s: %s", r.response.CTX.ID(), msg.message.ID, msg.message.Status, err)
 		}
 	case *client.CommitError:
 		msg.message.ID = err.TransactionID
 		msg.message.Status = fmt.Sprintf("%v", int32(err.Code))
-		msg.message.Result = fmt.Sprintf("%v: transaction %s failed to commit with status %d: %s", r.response.CTX.ID, err.TransactionID, int32(err.Code), err)
+		msg.message.Result = fmt.Sprintf("%v: transaction %s failed to commit with status %d: %s", r.response.CTX.ID(), err.TransactionID, int32(err.Code), err)
 	default:
 		msg.message.ID = "-"
 		msg.message.Status = status.Code(r.err).String()
-		msg.message.Result = fmt.Sprintf("%v: unexpected error type %T: %s", r.response.CTX.ID, err, err)
+		msg.message.Result = fmt.Sprintf("%v: unexpected error type %T: %s", r.response.CTX.ID(), err, err)
 	}
 
 	// endregion: error types
@@ -133,7 +134,7 @@ func (r *request) error(err error) {
 	r.response.Message = msg
 
 	logger(log.LOG_ERR, msg.message.Result)
-	logger(log.LOG_DEBUG, fmt.Sprintf("%v: %#v", r.response.CTX.ID, r))
+	logger(log.LOG_DEBUG, r.response.CTX.ID(), fmt.Sprintf("%#v", r))
 
 	r.response.Status = 400
 	r.response.SendJSON(nil)
