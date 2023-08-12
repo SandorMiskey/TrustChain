@@ -1,9 +1,16 @@
 # todo
 
-* orderer restart? stress test
-* worker3
-  * move payload
+## now
 
+* stress test
+
+## later
+
+* worker3: move payload
+* tcGlusterServers.sh
+  * auth.allow
+  * fstab backupvolfile-server
+* TC_ORDERER1_(O1|O2|O3)_WAL -> GlusterFS
 * SASC leftover (doc/legacy_to_port)
 * swagger
 * common uid/gid on managers and workers on-the-fly

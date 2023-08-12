@@ -20,6 +20,23 @@ commonPP $TC_PATH_SCRIPTS
 
 # endregion: common
 
+function _glusterClientUmountVolume() {
+	commonPrintf " "
+	commonPrintf "umounting shared volume on clients"
+	commonPrintf " "
+	_inner() {
+		local -n peer=$1
+		local _cmd="sudo umount -f ${peer[mnt]}"
+		commonPrintf "${_cmd} will be issued on ${peer[node]}"
+		local _out=$( ssh ${peer[node]} "$_cmd" 2>&1 )
+		commonPrintf "status: $? $_out"
+	}
+	commonIterate _inner "confirm|umount volume on |array|node|?" "${TC_GLUSTER_MOUNTS[@]}"
+
+	unset _inner
+	commonSleep 3 "done"
+}
+
 function _glusterServerUmountVolume() {
 	commonPrintf " "
 	commonPrintf "umounting shared volume"
@@ -237,21 +254,20 @@ function _glusterLay() {
 	commonIterate _inner "||||" "${TC_GLUSTER_MANAGERS[@]}"
 	servers="${servers%|})"
 
-	_inner() {
-		local -n peer=$1
-		local mnt=$( echo ${peer[mnt]} | sed s+$TC_PATH_WORKBENCH++ )
-		servers+=",${mnt}(${peer[ip]})"
-	}
-	commonIterate _inner "||||" "${TC_GLUSTER_MOUNTS[@]}"
+	servers+=",/organizations/peerOrganizations/supernodes(3.77.143.132|185.187.73.203),/organizations/peerOrganizations/masternodes(3.77.143.132|185.187.73.203|18.197.74.200)"
+	# _inner() {
+	# 	local -n peer=$1
+	# 	local mnt=$( echo ${peer[mnt]} | sed s+$TC_PATH_WORKBENCH++ )
+	# 	servers+=",${mnt}(${peer[ip]})"
+	# }
+	# commonIterate _inner "||||" "${TC_GLUSTER_MOUNTS[@]}"
 	commonPrintf "$servers"
 
 	local -n manager=${TC_GLUSTER_MANAGERS[0]}
 	_cmd="sudo gluster volume set $TC_GLUSTER_BRICK auth.allow \"$servers\""
-	commonPrintf "${_cmd} will be issued on ${manager[node]}"
 	_out=$( ssh ${manager[node]} "$_cmd" 2>&1 )
 	commonVerify $? "$_cmd failed: $_out" "$_cmd succeeded: $_out"
 	_cmd="sudo gluster volume info"
-	commonPrintf "${_cmd} will be issued on ${manager[node]}"
 	_out=$( ssh ${manager[node]} "$_cmd" 2>&1 )
 	commonVerify $? "$_cmd failed: $_out" "$_cmd succeeded: $_out"
 	unset _inner _out _cmd
@@ -265,13 +281,14 @@ function _glusterServerFstab() {
 	commonPrintf " "
 	commonPrintf "creating fstab entries and mount -a"
 	commonPrintf " "
-	declare -n server1=${TC_GLUSTER_MANAGERS[0]}
-	declare -n server2=${TC_GLUSTER_MANAGERS[1]}
+	# declare -n server1=${TC_GLUSTER_MANAGERS[0]}
+	# declare -n server2=${TC_GLUSTER_MANAGERS[1]}
+
 
 	# region: servers
 
 	_inner() {
-		local -n peer=$1
+		declare -n peer=$1
 
 		commonPrintf "removing existing entries"
 		_cmd="sudo sed -i \"/^$( echo ${peer[gdev]} | sed 's/\//\\\//g' )/d\" /etc/fstab"
@@ -286,16 +303,13 @@ function _glusterServerFstab() {
 		commonVerify $? "failed to remove consecutive empty lines: $_out" "consecutive empty lines are removed"
 
 		commonPrintf "appending new entries"
-		local backupvol=${server1[node]}
+		backupvol="tc2-test-manager1"
 		if [[ "${peer[node]}" == "$backupvol" ]]; then
-			backupvol=${server2[node]}
+			backupvol="tc2-test-manager2"
 		fi
 		local entry=""
-		# entry+="\n"
-		# entry+="#\n"
-		# entry+="# TC entries\n"
-		# entry+="#\n"
-		entry+="${peer[gdev]} ${peer[gmnt]} xfs defaults 1 2\n"
+		commonPrintf "backupvolfile-server=${backupvol} (${server1[node]} || ${server2[node]})"
+		entry+="${peer[gdev]} ${peer[gmnt]} xfs defaults,noatime,nodiratime,allocsize=64m 1 2\n"
 		entry+="${peer[node]}:/${TC_GLUSTER_BRICK} $TC_PATH_WORKBENCH glusterfs defaults,_netdev,backupvolfile-server=${backupvol} 0 0\n"
 		_out=$( ssh ${peer[node]} "sudo bash -c 'echo -e \"$entry\" >> /etc/fstab'" 2>&1 )
 		commonVerify $? "failed to update fstab: $_out" "fstab update succeeded"
@@ -313,9 +327,9 @@ function _glusterServerFstab() {
 		# commonVerify $? "failed: $_out" "chown $TC_USER_NAME:$TC_USER_GROUP ${TC_PATH_WORKBENCH} succeeded"
 		# _out=$( sudo chmod g+rwx "$TC_PATH_WORKBENCH" )
 		# commonVerify $? $_out
-	
 	}
 	commonIterate _inner "confirm|update fstab and mount -a on server |array|node|?" "${TC_GLUSTER_MANAGERS[@]}"
+	# unset backupvol
 
 	# endregion: servers
 	# region: clients
@@ -370,6 +384,7 @@ function _glusterServerFstab() {
 
 if [[ "$TC_EXEC_DRY" == "false" ]]; then
 	_inner() {
+		commonYN "umount shared wolume on glusterfs clients?" _glusterClientUmountVolume
 		commonYN "umount shared wolume on glusterfs servers?" _glusterServerUmountVolume
 		commonYN "reset glusterd on glusterfs servers?" _glusterDisable
 		commonYN "umount gluster's dedicated devices?" _glusterUmountDevice

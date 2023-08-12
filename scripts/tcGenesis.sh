@@ -72,6 +72,7 @@ _WipePersistent() {
 
 
 	_wipe() {
+		docker service ls --format '{{.ID}}' | xargs -I {} docker service rm {}
 		commonPrintf "removing $TC_PATH_LOCALWORKBENCH symlink to $TC_PATH_WORKBENCH"
 		err=$( sudo rm -f "$TC_PATH_LOCALWORKBENCH" )
 		commonVerify $? $err
@@ -141,7 +142,7 @@ _WipePersistent() {
 # endregion: create user and group
 # region: reset glusterd
 
-# [[ "$TC_EXEC_DRY" == false ]] && commonYN "reset cluster filesystem?" ${TC_PATH_SCRIPTS}/tcGlusterServers.sh
+[[ "$TC_EXEC_DRY" == false ]] && commonYN "reset cluster filesystem?" ${TC_PATH_SCRIPTS}/tcGlusterServers.sh
 
 # endregion: reset glusterd
 # region: process templates
@@ -1560,6 +1561,8 @@ _Orderer1() {
 # region: channels
 
 _channels() {
+
+	# commonSleep $TC_SWARM_DELAY "waiting for remote peers"
 
 	local out
 	local cfpath="${TC_PATH_CHANNELS}"

@@ -20,22 +20,22 @@ commonPP $TC_PATH_SCRIPTS
 
 # endregion: common
 
-function _glusterClientUmountVolume() {
-	commonPrintf " "
-	commonPrintf "umounting shared volume on clients"
-	commonPrintf " "
-	_inner() {
-		local -n peer=$1
-		local _cmd="sudo umount -f ${peer[mnt]}"
-		commonPrintf "${_cmd} will be issued on ${peer[node]}"
-		local _out=$( ssh ${peer[node]} "$_cmd" 2>&1 )
-		commonPrintf "status: $? $_out"
-	}
-	commonIterate _inner "confirm|umount volume on |array|node|?" "${TC_GLUSTER_MOUNTS[@]}"
+# function _glusterClientUmountVolume() {
+# 	commonPrintf " "
+# 	commonPrintf "umounting shared volume on clients"
+# 	commonPrintf " "
+# 	_inner() {
+# 		local -n peer=$1
+# 		local _cmd="sudo umount -f ${peer[mnt]}"
+# 		commonPrintf "${_cmd} will be issued on ${peer[node]}"
+# 		local _out=$( ssh ${peer[node]} "$_cmd" 2>&1 )
+# 		commonPrintf "status: $? $_out"
+# 	}
+# 	commonIterate _inner "confirm|umount volume on |array|node|?" "${TC_GLUSTER_MOUNTS[@]}"
 
-	unset _inner
-	commonSleep 3 "done"
-}
+# 	unset _inner
+# 	commonSleep 3 "done"
+# }
 
 function _glusterClientFstabClear() {
 	commonPrintf " "
@@ -106,7 +106,7 @@ function _glusterClientFstab() {
 }
 
 if [[ "$TC_EXEC_DRY" == "false" ]]; then
-	commonYN "umount shared wolume on glusterfs clients?" _glusterClientUmountVolume
+	# commonYN "umount shared wolume on glusterfs clients?" _glusterClientUmountVolume
 	commonYN "remove Gluster entries and consecutive empty lines?" _glusterClientFstabClear
 	commonYN "add /etc/fstab entry and mount -a?" _glusterClientFstab
 

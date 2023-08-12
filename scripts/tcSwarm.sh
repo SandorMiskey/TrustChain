@@ -51,11 +51,13 @@ _swarmPrune() {
 		status=$( ssh ${peer[node]} "docker system prune --all -f" 2>&1 )
 		commonVerify $? "$status" "swarm status: $status"
 		# status=$( ssh ${peer[node]} "docker volume rm $(docker volume ls -q)" 2>&1 )
+		# commonPrintf "volume rm: `echo $status`"
 		# commonVerify $? "$status" "volume rm: `echo $status`"
 	}
 
 	commonPrintfBold " "
-	commonPrintfBold "remember: this will remove all local stuff CURRENTLY not used by at least one container!"
+	# commonPrintfBold "remember: this will remove all local stuff CURRENTLY not used by at least one container!"
+	commonPrintfBold "remember: this will remove all local images, volumes, networks...!"
 	commonPrintfBold " "
 	commonIterate _prune "confirm|system prune --all -f @ |array|node|?" "${TC_SWARM_WORKERS[@]}" "${TC_SWARM_MANAGERS[@]}"
 
