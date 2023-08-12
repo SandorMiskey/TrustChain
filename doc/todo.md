@@ -10,6 +10,7 @@
 * tcGlusterServers.sh
   * auth.allow
   * fstab backupvolfile-server
+  * mkdir WAL
 * TC_ORDERER1_(O1|O2|O3)_WAL -> GlusterFS
 * SASC leftover (doc/legacy_to_port)
 * swagger

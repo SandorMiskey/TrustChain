@@ -125,6 +125,8 @@ function _glusterServerMount() {
 		commonVerify $? "failed: $_out" "mkdir -p -v ${peer[gmnt]} on ${peer[node]} succeeded"
 		_out=$( ssh ${peer[node]} "sudo mount ${peer[gdev]} ${peer[gmnt]}" 2>&1 )
 		commonVerify $? "failed: $_out" "mount ${peer[gdev]} ${peer[gmnt]} on ${peer[node]} succeeded" 
+		_out=$( ssh ${peer[node]} "sudo mkdir -p -v ${peer[gmnt]}/WAL" 2>&1 )
+		commonVerify $? "failed: $_out" "sudo mkdir -p -v ${peer[gmnt]}/WAL on ${peer[node]} succeeded" 
 	}
 	commonIterate _inner "print|mount on |array|node|:" "${TC_GLUSTER_MANAGERS[@]}" 
 	unset _inner _out
