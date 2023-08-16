@@ -340,6 +340,8 @@ func (t *Chaincode) BundleValidate(ctx contractapi.TransactionContextInterface, 
 	// endregion: parse json
 	// region: decode the base64 encoded string
 
+	bundleIn.DataBase64 = strings.Replace(bundleIn.DataBase64, " ", "+", -1)
+
 	decodedBytes, err := base64.StdEncoding.DecodeString(bundleIn.DataBase64)
 	if err != nil {
 		msg := fmt.Errorf("t.BundleValidate: unable to decode bundleIn.DataBase64: %s (%s)", err, bundleIn.DataBase64)

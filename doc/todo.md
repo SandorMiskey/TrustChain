@@ -12,7 +12,7 @@
   * fstab backupvolfile-server
   * mkdir WAL
 * TC_ORDERER1_(O1|O2|O3)_WAL -> GlusterFS
-* SASC leftover (doc/legacy_to_port)
+* SASC leftover (doc/legacy_to_port), backport github/common.sh
 * swagger
 * common uid/gid on managers and workers on-the-fly
 * more dependency check

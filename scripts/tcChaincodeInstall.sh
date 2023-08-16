@@ -22,7 +22,7 @@ commonPP $TC_PATH_SCRIPTS
 # region: check params
 
 export chaincode=$1
-export version=$3
+export version=$2
 
 [[ -d "${TC_PATH_CHAINCODE}/${chaincode}" ]] || commonVerify 1 "${chaincode}: no such directory under $TC_PATH_CHAINCODE"
 [[ -z "$version" ]] && export version="1" 
