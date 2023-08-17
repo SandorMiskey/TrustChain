@@ -587,8 +587,10 @@ func (t *Chaincode) SetLogger(ctx contractapi.TransactionContextInterface, prefi
 		priority = syslog.LOG_NOTICE
 	case "debug":
 		priority = syslog.LOG_DEBUG
+	case "info":
+		priority = syslog.LOG_INFO
 	default:
-		Logger.Out(log.LOG_ERR, fmt.Sprintf("t.SetLogger could not match %s to syslog priority", logLevel))
+		Logger.Out(log.LOG_ERR, fmt.Sprintf("t.SetLogger could not match %s to syslog priority, falling back to syslog.LOG_INFO", logLevel))
 	}
 	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.SetLogger new prefix -> %s priority -> %v", prefix, priority))
 
