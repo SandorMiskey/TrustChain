@@ -57,12 +57,12 @@ func (setup *RouterSetup) RouterInit() (*RouterSetup, error) {
 
 	httpRouterPre := fasthttprouter.New()
 	httpRouterPre.NotFound = func(ctx *fasthttp.RequestCtx) {
-		logger(log.LOG_DEBUG, ctx.ID, fmt.Sprintf("%s request on %s from %s with content type '%s' and body '%s' (%s)", ctx.Method(), ctx.Path(), ctx.RemoteAddr(), ctx.Request.Header.Peek("Content-Type"), ctx.PostBody(), ctx))
-		logger(log.LOG_INFO, ctx.ID, ctx)
+		logger(log.LOG_DEBUG, ctx.ID(), fmt.Sprintf("%s request on %s from %s with content type '%s' and body '%s' (%s)", ctx.Method(), ctx.Path(), ctx.RemoteAddr(), ctx.Request.Header.Peek("Content-Type"), ctx.PostBody(), ctx))
+		logger(log.LOG_INFO, ctx.ID(), ctx)
 
-		logger(log.LOG_DEBUG, ctx.ID, fmt.Sprintf("supplied X-API-Key: %s", ctx.Request.Header.Peek("X-API-Key")))
+		logger(log.LOG_DEBUG, ctx.ID(), fmt.Sprintf("supplied X-API-Key: %s", ctx.Request.Header.Peek("X-API-Key")))
 		if setup.Key != "" && (string(ctx.Request.Header.Peek("X-API-Key")) != setup.Key) {
-			logger(log.LOG_WARNING, ctx.ID, "missing or mismatched X-API-Key")
+			logger(log.LOG_WARNING, ctx.ID(), "missing or mismatched X-API-Key")
 			ctx.SetStatusCode(403)
 			ctx.SetBodyString("Access denied!")
 			return
