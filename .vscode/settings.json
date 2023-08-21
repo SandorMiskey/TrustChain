@@ -23,6 +23,7 @@
     "KEYPATH",
     "Loglevel",
     "logspout",
+    "masternodes",
     "mgmt",
     "MSPID",
     "multierr",
@@ -39,9 +40,13 @@
     "rawapi",
     "sampleconfig",
     "signcerts",
+    "supernodes",
     "syslogd",
+    "tlsca",
     "TLSCERTPATH",
-    "workerx"
+    "trustchain",
+    "workerx",
+    "xlarge"
   ],
   "cSpell.ignoreWords": [
     "Atoi",

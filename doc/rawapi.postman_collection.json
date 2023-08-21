@@ -4,7 +4,7 @@
 		"name": "Raw API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "12083801",
-		"_collection_link": "https://te-food.postman.co/workspace/TrustChain~043e5534-fcad-475e-82d9-779492236604/collection/12083801-98c88a64-8dec-4787-a088-2ab1b6f0ab68?action=share&creator=12083801&source=collection_link"
+		"_collection_link": "https://te-food.postman.co/workspace/TrustChain~043e5534-fcad-475e-82d9-779492236604/collection/12083801-98c88a64-8dec-4787-a088-2ab1b6f0ab68?action=share&source=collection_link&creator=12083801"
 	},
 	"item": [
 		{
@@ -22,6 +22,23 @@
 							],
 							"path": [
 								"hosts_and_ports.md"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "mon.txt",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/mon.txt",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"mon.txt"
 							]
 						}
 					},
@@ -339,12 +356,12 @@
 										},
 										{
 											"key": "args",
-											"value": "--> TE-FOOD-BUNDLES LOG --> --> --> --> --> ",
+											"value": "TE-FOOD-BUNDLES ==>",
 											"type": "text"
 										},
 										{
 											"key": "args",
-											"value": "debug",
+											"value": "info",
 											"type": "text"
 										}
 									]
@@ -422,7 +439,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{baseURL}}/query?channel=trustchain-test&chaincode=qscc&function=GetBlockByNumber&args=trustchain-test&args=3&proto_decode=common.Block",
+									"raw": "{{baseURL}}/query?channel=trustchain-test&chaincode=qscc&function=GetBlockByNumber&args=trustchain-test&args=20&proto_decode=common.Block",
 									"host": [
 										"{{baseURL}}"
 									],
@@ -448,7 +465,7 @@
 										},
 										{
 											"key": "args",
-											"value": "3"
+											"value": "20"
 										},
 										{
 											"key": "proto_decode",
@@ -465,7 +482,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{baseURL}}/query?channel=trustchain-test&chaincode=qscc&function=GetBlockByTxID&args=trustchain-test&args=0e5ef79f2ccceb9bc7f05a76e6acb5af6105575746cd60c9689dbe7fac3f450a&proto_decode=common.Block",
+									"raw": "{{baseURL}}/query?channel=trustchain-test&chaincode=qscc&function=GetBlockByTxID&args=trustchain-test&args=ef776a4535b8565ca4aae11d45a5812eaa328927bc15d09a55b58444d59da679&proto_decode=common.Block",
 									"host": [
 										"{{baseURL}}"
 									],
@@ -491,7 +508,7 @@
 										},
 										{
 											"key": "args",
-											"value": "0e5ef79f2ccceb9bc7f05a76e6acb5af6105575746cd60c9689dbe7fac3f450a"
+											"value": "ef776a4535b8565ca4aae11d45a5812eaa328927bc15d09a55b58444d59da679"
 										},
 										{
 											"key": "proto_decode",
