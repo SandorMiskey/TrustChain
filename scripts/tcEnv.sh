@@ -5,7 +5,7 @@
 #
 
 #
-# An example of what environment variables should be set, which are better not to be included in the repo.
+# An example of what environment variables should be set in your .env, which are better not to be included in the repo.
 #
 
 # region: init
