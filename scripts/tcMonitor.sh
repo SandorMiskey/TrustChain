@@ -38,31 +38,29 @@ function _df() {
 $out"
 }
 
-while true; do
-	commonPrintf " "
-	commonPrintf "$( date --rfc-3339=seconds )"
+commonPrintf " "
+commonPrintf "$( date --rfc-3339=seconds )"
 
-	commonPrintf " "
-	commonPrintf "nodes"
-	commonPrintf "
+commonPrintf " "
+commonPrintf "nodes"
+commonPrintf "
 $( docker node ls --format 'table{{.Hostname}}\t{{.Status}}\t{{.ManagerStatus}}' )"
 
-	commonPrintf " "
-	commonPrintf "services"
-	commonPrintf "
+commonPrintf " "
+commonPrintf "services"
+commonPrintf "
 $( docker service ls --format 'table{{.Name}}\t{{.Mode}}\t{{.Replicas}}' )"
 
-	commonPrintf " "
-	commonPrintf "uptimes"
-	commonPrintf " "
-	commonIterate _uptime "ignore|checking |array|node|:" "${TC_SWARM_MANAGERS[@]}" "${TC_SWARM_WORKERS[@]}"
+commonPrintf " "
+commonPrintf "uptimes"
+commonPrintf " "
+commonIterate _uptime "ignore|checking |array|node|:" "${TC_SWARM_MANAGERS[@]}" "${TC_SWARM_WORKERS[@]}"
 
-	commonPrintf " "
-	commonPrintf "df"
-	commonPrintf " "
-	commonIterate _df "ignore|checking |array|node|:" "${TC_SWARM_MANAGERS[@]}" "${TC_SWARM_WORKERS[@]}"
+commonPrintf " "
+commonPrintf "df"
+commonPrintf " "
+commonIterate _df "ignore|checking |array|node|:" "${TC_SWARM_MANAGERS[@]}" "${TC_SWARM_WORKERS[@]}"
 
-	commonSleep 300
-done
+commonSleep 10
 
-unset _uptime _df _inner
+unset _uptime _df
