@@ -12,9 +12,11 @@ networks:
 services:
   ${TC_COMMON2_S1_NAME}:
     deploy:
-      mode: global
+      mode: replicated
+      # mode: global
+      replicas: 1
       placement:
-        constraints: [node.platform.os == linux]
+        constraints: [node.role == manager]
     image: $TC_SWARM_IMG_VISUALIZER
     networks:
       ${TC_NETWORK_NAME}:
