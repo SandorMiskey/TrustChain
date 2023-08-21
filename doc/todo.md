@@ -2,11 +2,11 @@
 
 ## now
 
-* mainnet -> .dir/sshconfig
-* ebs prepare
-  * 5x 16TB cold hdd
-    * 3x gluster for TC2
-    * 2x in mirror for backup
+* redo tc2mw2 in availability zone B
+  * ssh, hostname, ebs devices
+* tc2mw3 in zone C
+* gw2 on manager2
+* gw3 on manager3
 * site specific config -> .env
 * prerequisites
   * trustchain user
