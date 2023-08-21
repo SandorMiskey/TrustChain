@@ -52,7 +52,6 @@
 
 ## later
 
-* worker3: move payload
 * tcGlusterServers.sh
   * auth.allow
   * fstab backupvolfile-server
