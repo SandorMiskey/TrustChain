@@ -2,31 +2,28 @@
 
 ## now
 
-* prerequisites
-  * checkout TrustChain
-  * fabric binaries
-  * set .env
-    * m1
-      * tlsca
-      * registry
-      * orderer ca
-      * orderer 1
-      * endorsers ca
-      * endorsers peer1 + db
-    * m2
-      * orderer 2
-      * supernodes ca
-      * supernodes peer1 + db
-    * m3
-      * orderer 3
-      * masternodes ca
-      * masternodes peer1 + db
-    * w1
-      * masternodes peer2 + db
-      * masternodes peer3 + db
-    * w2
-      * supernodes peer2 + db
-      * supernodes peer3 + db
+* set .env
+  * m1
+    * tlsca
+    * registry
+    * orderer ca
+    * orderer 1
+    * endorsers ca
+    * endorsers peer1 + db
+  * m2
+    * orderer 2
+    * supernodes ca
+    * supernodes peer1 + db
+  * m3
+    * orderer 3
+    * masternodes ca
+    * masternodes peer1 + db
+  * w1
+    * masternodes peer2 + db
+    * masternodes peer3 + db
+  * w2
+    * supernodes peer2 + db
+    * supernodes peer3 + db
 * backup
   * GlusterFS backup volume
     * create volume on w1+w2
