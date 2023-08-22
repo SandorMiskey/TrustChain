@@ -4,6 +4,11 @@
 # Copyright TE-FOOD International GmbH., All Rights Reserved
 #
 
+# region: load .env if any
+
+[[ -f .env ]] && source .env
+
+# endregion: .env
 # region: base paths
 
 # get them from .env 
@@ -26,7 +31,7 @@ export PATH=${TC_PATH_BIN}:${TC_PATH_SCRIPTS}:$PATH
 # dirs under workbench
 export TC_PATH_WORKBENCH=/srv/TrustChain
 export TC_PATH_SWARM=${TC_PATH_WORKBENCH}/swarm
-export TC_PATH_ORGS=${TC_PATH_WORKBENCH}/organizations
+export TC_PATH_ORGS=${TC_PATH_WORKBENCH}
 export TC_PATH_CHANNELS=${TC_PATH_WORKBENCH}/channels
 export TC_PATH_CHAINCODE=${TC_PATH_WORKBENCH}/chaincode
 
@@ -69,21 +74,14 @@ export TC_CHANNEL2_NAME=trustchain
 # endregion: network and channel
 # region: swarm
 
-# 3.77.27.176		tc2-test-manager1
-# 3.125.250.181		tc2-test-manager2
-# 54.93.194.71		tc2-test-manager3
-# 3.77.143.132		tc2-test-worker1
-# 185.187.73.203	tc2-test-worker2
-# 18.197.74.200		tc2-test-worker3
+declare -A TC_SWARM_MANAGER1=( [node]=tc2-test-manager1 [ip]=1.1.1.1 [gdev]=/dev/nvme1n1p1 [gmnt]=/srv/GlusterData )
+declare -A TC_SWARM_MANAGER2=( [node]=tc2-test-manager2 [ip]=2.2.2.2 [gdev]=/dev/nvme1n1p1 [gmnt]=/srv/GlusterData )
+declare -A TC_SWARM_MANAGER3=( [node]=tc2-test-manager3 [ip]=3.3.3.3 [gdev]=/dev/nvme1n1p1 [gmnt]=/srv/GlusterData )
+export TC_SWARM_MANAGERS=("TC_SWARM_MANAGER1" "TC_SWARM_MANAGER2" "TC_SWARM_MANAGER3")
 
-declare -A TC_SWARM_MANAGER1=( [node]=tc2-test-manager1 [ip]=3.77.27.176 [gdev]=/dev/nvme1n1p1 [gmnt]=/srv/GlusterData )
-declare -A TC_SWARM_MANAGER2=( [node]=tc2-test-manager2 [ip]=3.125.250.181 [gdev]=/dev/nvme1n1p1 [gmnt]=/srv/GlusterData )
-declare -A TC_SWARM_MANAGER3=( [node]=tc2-test-manager3 [ip]=54.93.194.71 [gdev]=/dev/nvme1n1p1 [gmnt]=/srv/GlusterData )
-TC_SWARM_MANAGERS=("TC_SWARM_MANAGER1" "TC_SWARM_MANAGER2" "TC_SWARM_MANAGER3")
-
-declare -A TC_SWARM_WORKER1=( [node]=tc2-test-worker1 [ip]=3.77.143.132 [mnt]="/x" )
-declare -A TC_SWARM_WORKER2=( [node]=tc2-test-worker2 [ip]=185.187.73.203 [mnt]="/x" )
-TC_SWARM_WORKERS=("TC_SWARM_WORKER1" "TC_SWARM_WORKER2")
+declare -A TC_SWARM_WORKER1=( [node]=tc2-test-worker1 [ip]=4.4.4.4 [mnt]="/x" )
+declare -A TC_SWARM_WORKER2=( [node]=tc2-test-worker2 [ip]=5.5.5.5 [mnt]="/x" )
+export TC_SWARM_WORKERS=("TC_SWARM_WORKER1" "TC_SWARM_WORKER2")
 
 export TC_SWARM_PATH=$TC_PATH_SWARM
 export TC_SWARM_PUBLIC=${TC_SWARM_MANAGER1[ip]}
@@ -116,11 +114,11 @@ export TC_SWARM_IMG_NODEENV=${TC_SWARM_MANAGER1[node]}:${TC_SWARM_IMG_PORT}/trus
 # endregion: swarm
 # region: gluster
 
-TC_GLUSTER_BRICK=TrustChain
-TC_GLUSTER_MANAGERS=("TC_SWARM_MANAGER1" "TC_SWARM_MANAGER2" "TC_SWARM_MANAGER3")
-TC_GLUSTER_MOUNTS=()
-TC_GLUSTER_DISPERSE=3
-TC_GLUSTER_REDUNDANCY=1
+export TC_GLUSTER_BRICK=TrustChain
+export TC_GLUSTER_MANAGERS=("TC_SWARM_MANAGER1" "TC_SWARM_MANAGER2" "TC_SWARM_MANAGER3")
+export TC_GLUSTER_MOUNTS=()
+export TC_GLUSTER_DISPERSE=3
+export TC_GLUSTER_REDUNDANCY=1
 
 # endregion: gluster
 # region: infra
@@ -145,8 +143,6 @@ export TC_COMMON1_C1_DATA=${TC_PATH_WORKBENCH}/${TC_COMMON1_STACK}/${TC_COMMON1_
 export TC_COMMON1_C1_HOME=${TC_COMMON1_C1_DATA}
 export TC_COMMON1_C1_DEBUG=false
 export TC_COMMON1_C1_EXP=3153600000
-
-
 
 # endregion: tls ca
 # region: orgs
@@ -404,30 +400,72 @@ export TC_COMMON1_C1_EXP=3153600000
 		# endregion: org1 p3
 		
 		# endregion: org1 peers
-		# region: org1 g1
+		# region: org1 gw1,2,3
 
-		export TC_ORG1_G1_NAME=gw1
-		export TC_ORG1_G1_FQDN=${TC_ORG1_G1_NAME}.${TC_ORG1_DOMAIN}
-		export TC_ORG1_G1_WORKER=${TC_SWARM_MANAGER1[node]}
-		export TC_ORG1_G1_PORT1=5088
-		export TC_ORG1_G1_PORT2=5089
-		export TC_ORG1_G1_DATA=${TC_ORG1_DATA}/${TC_ORG1_G1_NAME}
+		export TC_ORG1_GW1_NAME=gw1
+		export TC_ORG1_GW1_FQDN=${TC_ORG1_GW1_NAME}.${TC_ORG1_DOMAIN}
+		export TC_ORG1_GW1_WORKER=${TC_SWARM_MANAGER1[node]}
+		export TC_ORG1_GW1_PORT1=5088
+		export TC_ORG1_GW1_PORT2=5089
+		export TC_ORG1_GW1_DATA=${TC_ORG1_DATA}/${TC_ORG1_GW1_NAME}
 
-		export TC_ORG1_G1_TLS_NAME=$TC_ORG1_STACK-$TC_ORG1_G1_NAME
-		export TC_ORG1_G1_TLS_PW=$TC_ORG1_G1_TLS_PW
-		export TC_ORG1_G1_CA_NAME=${TC_ORG1_G1_NAME}-${TC_ORG1_STACK}
-		export TC_ORG1_G1_CA_PW=$TC_ORG1_G1_CA_PW
+		export TC_ORG1_GW1_TLS_NAME=$TC_ORG1_STACK-$TC_ORG1_GW1_NAME
+		export TC_ORG1_GW1_TLS_PW=$TC_ORG1_GW1_TLS_PW
+		export TC_ORG1_GW1_CA_NAME=${TC_ORG1_GW1_NAME}-${TC_ORG1_STACK}
+		export TC_ORG1_GW1_CA_PW=$TC_ORG1_GW1_CA_PW
 
-		export TC_ORG1_G1_MSP=${TC_ORG1_G1_DATA}/msp
-		export TC_ORG1_G1_TLSMSP=${TC_ORG1_G1_DATA}/tls-msp
-		export TC_ORG1_G1_ASSETS_DIR=${TC_ORG1_G1_DATA}/assets
-		export TC_ORG1_G1_ASSETS_STATIC=${TC_ORG1_G1_ASSETS_DIR}/docs
-		export TC_ORG1_G1_ASSETS_CACERT=${TC_ORG1_G1_ASSETS_DIR}/${TC_ORG1_C1_FQDN}/ca-cert.pem
-		export TC_ORG1_G1_ASSETS_TLSCERT=${TC_ORG1_G1_ASSETS_DIR}/${TC_COMMON1_C1_FQDN}/ca-cert.pem
-		# export TC_ORG1_G1_ASSETS_CHAINSUBDIR=chaincode
-		# export TC_ORG1_G1_ASSETS_CHAINCODE=${TC_ORG1_G1_ASSETS_DIR}/${TC_ORG1_G1_ASSETS_CHAINSUBDIR}
+		export TC_ORG1_GW1_MSP=${TC_ORG1_GW1_DATA}/msp
+		export TC_ORG1_GW1_TLSMSP=${TC_ORG1_GW1_DATA}/tls-msp
+		export TC_ORG1_GW1_ASSETS_DIR=${TC_ORG1_GW1_DATA}/assets
+		export TC_ORG1_GW1_ASSETS_STATIC=${TC_ORG1_GW1_ASSETS_DIR}/docs
+		export TC_ORG1_GW1_ASSETS_CACERT=${TC_ORG1_GW1_ASSETS_DIR}/${TC_ORG1_C1_FQDN}/ca-cert.pem
+		export TC_ORG1_GW1_ASSETS_TLSCERT=${TC_ORG1_GW1_ASSETS_DIR}/${TC_COMMON1_C1_FQDN}/ca-cert.pem
+		# export TC_ORG1_GW1_ASSETS_CHAINSUBDIR=chaincode
+		# export TC_ORG1_GW1_ASSETS_CHAINCODE=${TC_ORG1_GW1_ASSETS_DIR}/${TC_ORG1_GW1_ASSETS_CHAINSUBDIR}
 
-		# endregion: org1 g1
+		export TC_ORG1_GW2_NAME=gw2
+		export TC_ORG1_GW2_FQDN=${TC_ORG1_GW2_NAME}.${TC_ORG1_DOMAIN}
+		export TC_ORG1_GW2_WORKER=${TC_SWARM_MANAGER2[node]}
+		export TC_ORG1_GW2_PORT1=5086
+		export TC_ORG1_GW2_PORT2=5087
+		export TC_ORG1_GW2_DATA=${TC_ORG1_DATA}/${TC_ORG1_GW2_NAME}
+
+		export TC_ORG1_GW2_TLS_NAME=$TC_ORG1_STACK-$TC_ORG1_GW2_NAME
+		export TC_ORG1_GW2_TLS_PW=$TC_ORG1_GW2_TLS_PW
+		export TC_ORG1_GW2_CA_NAME=${TC_ORG1_GW2_NAME}-${TC_ORG1_STACK}
+		export TC_ORG1_GW2_CA_PW=$TC_ORG1_GW2_CA_PW
+
+		export TC_ORG1_GW2_MSP=${TC_ORG1_GW2_DATA}/msp
+		export TC_ORG1_GW2_TLSMSP=${TC_ORG1_GW2_DATA}/tls-msp
+		export TC_ORG1_GW2_ASSETS_DIR=${TC_ORG1_GW2_DATA}/assets
+		export TC_ORG1_GW2_ASSETS_STATIC=${TC_ORG1_GW2_ASSETS_DIR}/docs
+		export TC_ORG1_GW2_ASSETS_CACERT=${TC_ORG1_GW2_ASSETS_DIR}/${TC_ORG1_C1_FQDN}/ca-cert.pem
+		export TC_ORG1_GW2_ASSETS_TLSCERT=${TC_ORG1_GW2_ASSETS_DIR}/${TC_COMMON1_C1_FQDN}/ca-cert.pem
+		# export TC_ORG1_GW2_ASSETS_CHAINSUBDIR=chaincode
+		# export TC_ORG1_GW2_ASSETS_CHAINCODE=${TC_ORG1_GW2_ASSETS_DIR}/${TC_ORG1_GW2_ASSETS_CHAINSUBDIR}
+
+		export TC_ORG1_GW3_NAME=gw3
+		export TC_ORG1_GW3_FQDN=${TC_ORG1_GW3_NAME}.${TC_ORG1_DOMAIN}
+		export TC_ORG1_GW3_WORKER=${TC_SWARM_MANAGER3[node]}
+		export TC_ORG1_GW3_PORT1=5084
+		export TC_ORG1_GW3_PORT2=5085
+		export TC_ORG1_GW3_DATA=${TC_ORG1_DATA}/${TC_ORG1_GW3_NAME}
+
+		export TC_ORG1_GW3_TLS_NAME=$TC_ORG1_STACK-$TC_ORG1_GW3_NAME
+		export TC_ORG1_GW3_TLS_PW=$TC_ORG1_GW3_TLS_PW
+		export TC_ORG1_GW3_CA_NAME=${TC_ORG1_GW3_NAME}-${TC_ORG1_STACK}
+		export TC_ORG1_GW3_CA_PW=$TC_ORG1_GW3_CA_PW
+
+		export TC_ORG1_GW3_MSP=${TC_ORG1_GW3_DATA}/msp
+		export TC_ORG1_GW3_TLSMSP=${TC_ORG1_GW3_DATA}/tls-msp
+		export TC_ORG1_GW3_ASSETS_DIR=${TC_ORG1_GW3_DATA}/assets
+		export TC_ORG1_GW3_ASSETS_STATIC=${TC_ORG1_GW3_ASSETS_DIR}/docs
+		export TC_ORG1_GW3_ASSETS_CACERT=${TC_ORG1_GW3_ASSETS_DIR}/${TC_ORG1_C1_FQDN}/ca-cert.pem
+		export TC_ORG1_GW3_ASSETS_TLSCERT=${TC_ORG1_GW3_ASSETS_DIR}/${TC_COMMON1_C1_FQDN}/ca-cert.pem
+		# export TC_ORG1_GW3_ASSETS_CHAINSUBDIR=chaincode
+		# export TC_ORG1_GW3_ASSETS_CHAINCODE=${TC_ORG1_GW3_ASSETS_DIR}/${TC_ORG1_GW3_ASSETS_CHAINSUBDIR}
+		
+		# endregion: org1 gw
 		# region: org1 cli
 		
 		export TC_ORG1_CLI1_NAME=cli1
@@ -846,13 +884,13 @@ export TC_COMMON1_C1_EXP=3153600000
 # export TC_RAWAPI_KEY=$TC_RAWAPI_KEY
 export TC_RAWAPI_HTTP_ENABLED=true
 export TC_RAWAPI_HTTP_NAME="TrustChain backend"
-export TC_RAWAPI_HTTP_PORT=$TC_ORG1_G1_PORT1
+export TC_RAWAPI_HTTP_PORT=$TC_ORG1_GW1_PORT1
 export TC_RAWAPI_HTTP_STATIC_ENABLED=true
-export TC_RAWAPI_HTTP_STATIC_ROOT=$TC_ORG1_G1_ASSETS_STATIC
+export TC_RAWAPI_HTTP_STATIC_ROOT=$TC_ORG1_GW1_ASSETS_STATIC
 export TC_RAWAPI_HTTP_STATIC_INDEX="index.html"
 export TC_RAWAPI_HTTP_STATIC_ERROR="index.html"
 export TC_RAWAPI_HTTPS_ENABLED=true
-export TC_RAWAPI_HTTPS_PORT=$TC_ORG1_G1_PORT2
+export TC_RAWAPI_HTTPS_PORT=$TC_ORG1_GW1_PORT2
 # export TC_RAWAPI_HTTPS_CERT=""
 # export TC_RAWAPI_HTTPS_CERT_FILE=""
 # export TC_RAWAPI_HTTPS_KEY=""
@@ -865,7 +903,7 @@ export TC_RAWAPI_ORGNAME=$TC_ORG1_STACK
 export TC_RAWAPI_MSPID=${TC_ORG1_STACK}MSP
 export TC_RAWAPI_CERTPATH="${TC_ORG1_CLIENTMSP}/signcerts/cert.pem"
 export TC_RAWAPI_KEYPATH="${TC_ORG1_CLIENTMSP}/keystore/"
-export TC_RAWAPI_TLSCERTPATH=${TC_ORG1_G1_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_COMMON1_C1_PORT}.pem
+export TC_RAWAPI_TLSCERTPATH=${TC_ORG1_GW1_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_COMMON1_C1_PORT}.pem
 export TC_RAWAPI_PEERENDPOINT=${TC_ORG1_P1_FQDN}:${TC_ORG1_P1_PORT}
 export TC_RAWAPI_GATEWAYPEER=${TC_ORG1_P1_FQDN}
 

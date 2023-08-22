@@ -2,12 +2,6 @@
 
 ## now
 
-* redo tc2mw2 in availability zone B
-  * ssh, hostname, ebs devices
-* tc2mw3 in zone C
-* gw2 on manager2
-* gw3 on manager3
-* site specific config -> .env
 * prerequisites
   * trustchain user
   * install:
@@ -18,6 +12,7 @@
   * trustchain user groups: docker, sudo
   * sudo no-password
   * authorized_hosts
+  * apt update/upgrade
 * balance
   * m1
     * tlsca

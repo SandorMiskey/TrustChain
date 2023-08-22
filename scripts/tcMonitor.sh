@@ -61,6 +61,4 @@ commonPrintf "df"
 commonPrintf " "
 commonIterate _df "ignore|checking |array|node|:" "${TC_SWARM_MANAGERS[@]}" "${TC_SWARM_WORKERS[@]}"
 
-commonSleep 10
-
 unset _uptime _df
