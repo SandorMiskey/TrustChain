@@ -270,7 +270,7 @@ function commonIterate() {
 		if [ ! -z $type ]; then
 			case $type in
 				"array")
-					local array
+					# local array
 					declare -n array=$k
 					if [ ! -z $field ]; then
 						dump+="[$field]->${array[$field]}"
