@@ -64,8 +64,8 @@ export TC_DEPS_BINS=('awk' 'bash' 'curl' 'git' 'go' 'jq' 'configtxgen' 'yq')
 # endregion: environment
 # region: network and channel
 
-export TC_NETWORK_NAME=trustchain-test
-export TC_NETWORK_DOMAIN=${TC_NETWORK_NAME}.te-food.com
+export TC_NETWORK_NAME=$TC_NETWORK_NAME
+export TC_NETWORK_DOMAIN=$TC_NETWORK_DOMAIN
 
 export TC_CHANNEL_PROFILE="DefaultProfile"
 export TC_CHANNEL1_NAME=trustchain-test
@@ -74,14 +74,14 @@ export TC_CHANNEL2_NAME=trustchain
 # endregion: network and channel
 # region: swarm
 
-declare -A TC_SWARM_MANAGER1=( [node]=tc2-test-manager1 [ip]=1.1.1.1 [gdev]=/dev/nvme1n1p1 [gmnt]=/srv/GlusterData )
-declare -A TC_SWARM_MANAGER2=( [node]=tc2-test-manager2 [ip]=2.2.2.2 [gdev]=/dev/nvme1n1p1 [gmnt]=/srv/GlusterData )
-declare -A TC_SWARM_MANAGER3=( [node]=tc2-test-manager3 [ip]=3.3.3.3 [gdev]=/dev/nvme1n1p1 [gmnt]=/srv/GlusterData )
-export TC_SWARM_MANAGERS=("TC_SWARM_MANAGER1" "TC_SWARM_MANAGER2" "TC_SWARM_MANAGER3")
+# declare -A TC_SWARM_MANAGER1=( [node]=tc2-test-manager1 [ip]=1.1.1.1 [gdev]=/dev/nvme1n1p1 [gmnt]=/srv/GlusterData )
+# declare -A TC_SWARM_MANAGER2=( [node]=tc2-test-manager2 [ip]=2.2.2.2 [gdev]=/dev/nvme1n1p1 [gmnt]=/srv/GlusterData )
+# declare -A TC_SWARM_MANAGER3=( [node]=tc2-test-manager3 [ip]=3.3.3.3 [gdev]=/dev/nvme1n1p1 [gmnt]=/srv/GlusterData )
+# export TC_SWARM_MANAGERS=("TC_SWARM_MANAGER1" "TC_SWARM_MANAGER2" "TC_SWARM_MANAGER3")
 
-declare -A TC_SWARM_WORKER1=( [node]=tc2-test-worker1 [ip]=4.4.4.4 [mnt]="/x" )
-declare -A TC_SWARM_WORKER2=( [node]=tc2-test-worker2 [ip]=5.5.5.5 [mnt]="/x" )
-export TC_SWARM_WORKERS=("TC_SWARM_WORKER1" "TC_SWARM_WORKER2")
+# declare -A TC_SWARM_WORKER1=( [node]=tc2-test-worker1 [ip]=4.4.4.4 [mnt]="/x" )
+# declare -A TC_SWARM_WORKER2=( [node]=tc2-test-worker2 [ip]=5.5.5.5 [mnt]="/x" )
+# export TC_SWARM_WORKERS=("TC_SWARM_WORKER1" "TC_SWARM_WORKER2")
 
 export TC_SWARM_PATH=$TC_PATH_SWARM
 export TC_SWARM_PUBLIC=${TC_SWARM_MANAGER1[ip]}

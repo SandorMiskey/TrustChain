@@ -11,11 +11,13 @@
 # region: init
 
 export CGO_ENABLED=0 
+
 export TC_PATH_BASE=/basedirectory/TrustChain
 export TC_PATH_RC=${TC_PATH_BASE}/scripts/tcConf.sh
-export COMMON_FUNCS=${TC_PATH_BASE}/scripts/commonFuncs.sh
+export TC_NETWORK_NAME=xxx
+export TC_NETWORK_DOMAIN=${TC_NETWORK_NAME}.foobar.com
 
-source $TC_PATH_RC
+export COMMON_FUNCS=${TC_PATH_BASE}/scripts/commonFuncs.sh
 
 # endregion: init
 # region: passwords
