@@ -2,13 +2,6 @@
 
 ## now
 
-* backup
-  * GlusterFS backup volume
-    * create volume on w1+w2
-    * mount volume on m1 under m1:/srv/backup
-  * rsync
-    * /srv/TrustChain -> /srv/Backup
-    * 3x /mnt/GlusterData/WAL -> /srv/Backup
 * trustchain-test -> testnet
   * network and domain in .env
 * CSV processor
