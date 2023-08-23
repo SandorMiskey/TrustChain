@@ -2,8 +2,6 @@
 
 ## now
 
-* trustchain-test -> testnet
-  * network and domain in .env
 * CSV processor
 * stress test
 
