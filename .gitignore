@@ -3,6 +3,7 @@ chaincode/te-food-bundles/vendor
 doc/fabric-samples
 doc/fabric-samples.tgz
 doc/legacy_to_port/SASC.tgz
+migration/
 rawapi/vendor
 scripts/.env.sh
 scripts/worksheet.sh
