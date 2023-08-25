@@ -2,6 +2,7 @@
 
 ## now
 
+* tcRawapiBatch.sh -> resubmit
 * stress test
 
 ## later

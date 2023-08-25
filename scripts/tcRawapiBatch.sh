@@ -24,16 +24,15 @@ setArgs[apikey]="X-API-Key: $TC_HTTP_API_KEY"
 setArgs[bundle]="./bundle.csv"
 setArgs[cc]="te-food-bundles"
 setArgs[channel]="trustchain-test"
-setArgs[confirm]=true
 setArgs[host]="http://localhost:5088"
 setArgs[func]="CreateBundle"
 setArgs[inplace]=false
 setArgs[invoke]="/invoke"
 setArgs[key]=".bundle_id"
+setArgs[mode]=false
 setArgs[position]=0
 setArgs[output]="/dev/stdout"
 setArgs[query]="/query"
-setArgs[submit]=false
 setArgs[txid]=".tx_id"
 setArgs[txidpat]="^[a-fA-F0-9]{64}$"
 setArgs[verbose]=false
@@ -72,17 +71,18 @@ function _help() {
 # region: mode
 
 case "$1" in
-	"submit")
-		setArgs[confirm]=false
-		setArgs[submit]=true
-		;;
 	"confirm")
-		setArgs[confirm]=true
-		setArgs[submit]=false
+		setArgs[mode]=$1
 		;;
 	"help")
 		_help
 		exit 0
+		;;
+	"resubmit")
+		setArgs[mode]=$1
+		;;
+	"submit")
+		setArgs[mode]=$1
 		;;
 	*)
 		commonVerify 1 "${0}: unrecognized mode '$1', see \`$0 --help\` for instructions"
@@ -181,21 +181,19 @@ done
 # region: in/out
 
 # input
-if [[ ! -r "${setArgs[bundle]}" ]] && [[ "${setArgs[submit]}" == "true" ]]; then
-	commonVerify 1 "${0}: unable to read '${setArgs[bundle]}'"
-fi
+[[ ! -r "${setArgs[bundle]}" ]] && commonVerify 1 "${0}: unable to read '${setArgs[bundle]}'"
 
 # output
 touch ${setArgs[output]}
 commonVerify $? "${0}: unable to write '${setArgs[output]}'"
 
 # submit input/output
-if [ "${setArgs[submit]}" = true ] && [ "${setArgs[bundle]}" = "${setArgs[output]}" ]; then
+if [[ "${setArgs[mode]}" == "submit" ]] && [ "${setArgs[bundle]}" = "${setArgs[output]}" ]; then
 	commonVerify 1 "${0}: input and output cannot be the same in 'submit' mode, in-place update is not available"
 fi
 
 # in-place update
-if [ "${setArgs[confirm]}" = true ] && [ "${setArgs[bundle]}" = "${setArgs[output]}" ]; then
+if [[ ! "${setArgs[mode]}" == "submit" ]] && [ "${setArgs[bundle]}" = "${setArgs[output]}" ]; then
 	setArgs[inplace]=true
 	setArgs[output]=$( mktemp "${TMPDIR:-/tmp/}$(basename "$0").XXXXXXXXXXXX" )
 fi
@@ -204,7 +202,7 @@ fi
 # endregion: in/out
 # region: key position
 
-if [[ (! "${setArgs[position]}" =~ ^[0-9]+$ ) || ( "${setArgs[position]}" -lt 0 ) ]] && [[ "${setArgs[submit]}" == "true" ]]; then
+if [[ (! "${setArgs[position]}" =~ ^[0-9]+$ ) || ( "${setArgs[position]}" -lt 0 ) ]] && [[ "${setArgs[mode]}" != "confirm" ]]; then
 	commonVerify 1 "${0}: -p must be a positive integer, see \`$0 --help\` for instructions"
 fi
 
@@ -212,23 +210,9 @@ fi
 # region: dump
 
 if [[ "${setArgs[verbose]}" == "true" ]]; then
-
-	# mode
-
-	_sorted=("confirm" "submit")
-	_args=()
-	for _key in "${_sorted[@]}"; do
-		_args+=("$_key -> ${setArgs[$_key]}")
-	done
-	commonPrintf "set mode: $(commonJoinArray _args "\n%s" "")"
-
-	# opts
-
 	_sorted=($(echo "${!setArgs[@]}" | tr ' ' '\n' | sort))
 	_args=()
 	for _key in "${_sorted[@]}"; do
-		[[ "$_key" == "confirm" ]] && continue
-		[[ "$_key" == "submit" ]] && continue
 		_args+=("$_key -> ${setArgs[$_key]}")
 	done
 	commonPrintf "set args: $(commonJoinArray _args "\n%s" "")"
@@ -241,236 +225,205 @@ fi
 # endregion: settings
 # region: submit
 
-function _submit() {
-
-	local cnt=0
-	local sum="-"
+function submit() {
 	
-	_inner() {
+	# region: prepare
 
-		# region: prepare
+	# progress
+	((cnt++)); local progress="_submit(): ${cnt}/${sum} ->"
 
-		# progress
-		((cnt++)); local progress="_submit(): ${cnt}/${sum} ->"
+	# output -> [0]: status [1]: key [2]: tx_id [3]: response [4]: payload
+	local output=()
 
-		# output -> [0]: status [1]: key [2]: tx_id [3]: response [4]: payload
-		local output=()
+	# args
+	local args=()
+	IFS="|" read -ra args <<< "$1"
+	output[4]=$( commonJoinArray args "%s|" "|" )
 
-		# args
-		local args=()
-		IFS="|" read -ra args <<< "$1"
-		output[4]=$( commonJoinArray args "%s|" "|" )
+	# endregion: prepare
+	# region: key
 
-		# endregion: prepare
-		# region: key
-
-		output[1]=$( echo "${args[${setArgs[position]}]}" | jq -r ${setArgs[key]}  2>&1 )
-		if [ $? -ne 0 ] || [ -z ${output[1]} ] || [ "${output[1]}" == "null" ]; then
-			output[0]="SUBMIT_ERROR_KEY"
-			output[2]=""
-			output[3]=""
-			echo $( commonJoinArray output "%s|" "|" ) >> ${setArgs[output]}
-			[[ "${setArgs[verbose]}" == "true" ]] && commonPrintf "$progress no ${setArgs[key]} found in ${args[${setArgs[position]}]}"
-			return
-		fi
-
-		# endregion: key
-		# region: submit
-
-		local data=$( commonJoinArray args "args=%s&" "&")
-		local response
-		response=$( curl	-s -S -w "\n%{http_code}" -X POST									\
-							--header "Content-Type: application/x-www-form-urlencoded"	\
-							--header "${setArgs[apikey]}"								\
-							--data-urlencode "chaincode=${setArgs[cc]}"					\
-							--data-urlencode "channel=${setArgs[channel]}"				\
-							--data-urlencode "function=${setArgs[func]}"				\
-							--data-urlencode "$data"									\
-							${setArgs[host]}${setArgs[invoke]} 2>&1 )
-		if [[ $? -ne 0 ]]; then
-			output[0]="SUBMIT_ERROR_CONNECT"
-			output[2]=""
-			output[3]=${response//$'\n'/}
-			echo $( commonJoinArray output "%s|" "|" ) >> ${setArgs[output]}
-			[[ "${setArgs[verbose]}" == "true" ]] && commonPrintf "$progress unable to connect ${setArgs[host]}"
-			return
-		fi
-		
-		# endregion: submit
-		# region: process
-
-		# split the response into status_code and content
-		output[0]=$( echo "$response" | tail -n 1 )
-		output[3]=$( echo "$response" | sed '$d' ); body="${body//$'\n'/ }"
-
-		# get tx_id
-		output[2]=$(echo "${output[3]}" | jq -r ${setArgs[txid]} 2>&1 )
-		if [ $? -ne 0 ] || [[ ! ${output[2]} =~ ${setArgs[txidpat]} ]]; then
-			output[0]="SUBMIT_ERROR_TXID_"${output[0]}
-			echo $( commonJoinArray output "%s|" "|" ) >> ${setArgs[output]}
-			[[ "${setArgs[verbose]}" == "true" ]] && commonPrintf "$progress ${status}, no ${setArgs[txid]} found"
-			return	
-		fi
-
-		# success
-		output[0]="SUBMIT_"${output[0]}
+	output[1]=$( echo "${args[${setArgs[position]}]}" | jq -r ${setArgs[key]}  2>&1 )
+	if [ $? -ne 0 ] || [ -z ${output[1]} ] || [ "${output[1]}" == "null" ]; then
+		output[0]="SUBMIT_ERROR_KEY"
+		output[2]=""
+		output[3]=""
 		echo $( commonJoinArray output "%s|" "|" ) >> ${setArgs[output]}
-		output=("${output[@]:0:3}")
-		[[ "${setArgs[verbose]}" == "true" ]] && commonPrintf "$progress `echo $( commonJoinArray output "%s -> " "" )` success"
-
-		# endregion: process
-
-	}
-
-	# region: loop
-
-	if [[ "${setArgs[bundle]}" == "/dev/stdin" ]]; then
-		while IFS= read -r _line; do
-			_inner "$_line"
-		done
-	else
-		local sum=$( wc -l ${setArgs[bundle]} | sed 's/ .*$//' )
-		while IFS= read -r _line; do
-			_inner "$_line"
-		done < "${setArgs[bundle]}" 
-	fi 
-
-	if [[ "${setArgs[verbose]}" == "true" ]]; then	
-		commonPrintf ""
-		commonPrintf "_submit() is done"
-		commonPrintf ""
+		[[ "${setArgs[verbose]}" == "true" ]] && commonPrintf "$progress no ${setArgs[key]} found in ${args[${setArgs[position]}]}"
+		return
 	fi
 
-	# endregion: loop
+	# endregion: key
+	# region: submit
+
+	local data=$( commonJoinArray args "args=%s&" "&")
+	local response
+	response=$( curl	-s -S -w "\n%{http_code}" -X POST									\
+						--header "Content-Type: application/x-www-form-urlencoded"	\
+						--header "${setArgs[apikey]}"								\
+						--data-urlencode "chaincode=${setArgs[cc]}"					\
+						--data-urlencode "channel=${setArgs[channel]}"				\
+						--data-urlencode "function=${setArgs[func]}"				\
+						--data-urlencode "$data"									\
+						${setArgs[host]}${setArgs[invoke]} 2>&1 )
+	if [[ $? -ne 0 ]]; then
+		output[0]="SUBMIT_ERROR_CONNECT"
+		output[2]=""
+		output[3]=${response//$'\n'/}
+		echo $( commonJoinArray output "%s|" "|" ) >> ${setArgs[output]}
+		[[ "${setArgs[verbose]}" == "true" ]] && commonPrintf "$progress unable to connect ${setArgs[host]}"
+		return
+	fi
+		
+	# endregion: submit
+	# region: process
+
+	# split the response into status_code and content
+	output[0]=$( echo "$response" | tail -n 1 )
+	output[3]=$( echo "$response" | sed '$d' ); body="${body//$'\n'/ }"
+
+	# get tx_id
+	output[2]=$(echo "${output[3]}" | jq -r ${setArgs[txid]} 2>&1 )
+	if [ $? -ne 0 ] || [[ ! ${output[2]} =~ ${setArgs[txidpat]} ]]; then
+		output[0]="SUBMIT_ERROR_TXID_"${output[0]}
+		echo $( commonJoinArray output "%s|" "|" ) >> ${setArgs[output]}
+		[[ "${setArgs[verbose]}" == "true" ]] && commonPrintf "$progress ${status}, no ${setArgs[txid]} found"
+		return	
+	fi
+
+	# success
+	output[0]="SUBMIT_"${output[0]}
+	echo $( commonJoinArray output "%s|" "|" ) >> ${setArgs[output]}
+	output=("${output[@]:0:3}")
+	[[ "${setArgs[verbose]}" == "true" ]] && commonPrintf "$progress `echo $( commonJoinArray output "%s -> " "" )` success"
+
+	# endregion: process
 
 }
-[[ "${setArgs[submit]}" == "true" ]] && _submit
-unset _inner _submit _line
 
 # endregion: submit
+# region: resubmit
+
+# endregion: resubmit
 # region: confirm
 
-function _confirm() {
+function confirm() {
 
-	local cnt=0
-	local sum="-"
-	
-	_inner() {
+	# region: prepare
 
-		# region: prepare
+	# progress
+	((cnt++)); local progress="_submit(): ${cnt}/${sum} ->"
 
-		# progress
-		((cnt++)); local progress="_submit(): ${cnt}/${sum} ->"
+	# output -> [0]: status [1]: key [2]: tx_id [3]: response [4->]: original payload
+	local output=()
+	IFS="|" read -ra output <<< "$1"
 
-		# output -> [0]: status [1]: key [2]: tx_id [3]: response [4->]: original payload
-		local output=()
-		IFS="|" read -ra output <<< "$1"
+	# endregion: prepare
+	# region: status
 
-		# endregion: prepare
-		# region: status
-
-		if [ "${output[0]}" != "SUBMIT_200" ] && [[ ! "${output[0]}" =~ ^CONFIRM_ERROR_ ]]; then
-			echo $( commonJoinArray output "%s|" "|" ) >> ${setArgs[output]}
-			[[ "${setArgs[verbose]}" == "true" ]] && commonPrintf "$progress bypassed status (${output[0]})"
-			return	
-		fi
-
-		# endregion: status
-		# region: txid
-
-		if [[ ! ${output[2]} =~ ${setArgs[txidpat]} ]]; then
-			output[0]="CONFIRM_ERROR_TXID"
-			echo $( commonJoinArray output "%s|" "|" ) >> ${setArgs[output]}
-			[[ "${setArgs[verbose]}" == "true" ]] && commonPrintf "$progress ${output[0]} (${output[2]})"
-			return	
-		fi
-
-		# endregion: txid
-		# region: request
-
-		local url="${setArgs[host]}${setArgs[query]}?"
-		url+="channel=${setArgs[channel]}&"
-		url+="chaincode=qscc&function=GetBlockByTxID&"
-		url+="args=${setArgs[channel]}&"
-		url+="args=${output[2]}&"
-		url+="proto_decode=common.Block"
-
-		local response
-		response=$( curl -s -S -w "\n%{http_code}" --header "${setArgs[apikey]}" "$url" 2>&1 )
-		if [[ $? -ne 0 ]]; then
-			output[0]="CONFIRM_ERROR_CONNECT"
-			output[3]=${response//$'\n'/}
-			echo $( commonJoinArray output "%s|" "|" ) >> ${setArgs[output]}
-			[[ "${setArgs[verbose]}" == "true" ]] && commonPrintf "$progress ${output[0]} (${output[3]})"
-			return
-		fi
-
-		# endregion: request
-		# region: process
-
-		# split the response into status_code and content
-		local status=$( echo "$response" | tail -n 1 )
-		output[3]=$( echo "$response" | sed '$d' | tr -d '\n' )
-
-		# check status
-		if [[ "$status" != "200" ]]; then
-			output[0]="CONFIRM_ERROR_${status}"
-			echo $( commonJoinArray output "%s|" "|" ) >> ${setArgs[output]}
-			[[ "${setArgs[verbose]}" == "true" ]] && commonPrintf "$progress ${output[0]} (${output[3]})"
-			return
-		fi
-
-		# check for header
-		output[3]=$( echo ${output[3]} | jq -r -c .result.header 2>&1 )
-		if [ $? -ne 0 ] || [ -z ${output[3]} ] || [ "${output[3]}" = "null" ]; then
-			output[0]="CONFIRM_ERROR_HEADER"
-			output[3]=$( echo ${output[3]} | tr -d '\n' )
-			echo $( commonJoinArray output "%s|" "|" ) >> ${setArgs[output]}
-			[[ "${setArgs[verbose]}" == "true" ]] && commonPrintf "$progress ${output[0]} (${output[3]})"
-			return	
-		fi
-
-		# done
-		output[0]="CONFIRM_${status}"
+	if [ "${output[0]}" != "SUBMIT_200" ] && [[ ! "${output[0]}" =~ ^CONFIRM_ERROR_ ]]; then
 		echo $( commonJoinArray output "%s|" "|" ) >> ${setArgs[output]}
-		output=("${output[@]:0:3}")
-		[[ "${setArgs[verbose]}" == "true" ]] && commonPrintf "$progress `echo $( commonJoinArray output "%s -> " "" )` success"
-
-		# endregion: process
-
-	}
-
-	# region: loop
-
-	if [[ "${setArgs[bundle]}" == "/dev/stdin" ]]; then
-		while IFS= read -r _line; do
-			_inner "$_line"
-		done
-	else
-		local sum=$( wc -l ${setArgs[bundle]} | sed 's/ .*$//' )
-		while IFS= read -r _line; do
-			_inner "$_line"
-		done < "${setArgs[bundle]}" 
-	fi 
-	
-	if [[ "${setArgs[verbose]}" == "true" ]]; then	
-		commonPrintf ""
-		commonPrintf "_confirm() is done"
-		commonPrintf ""
+		[[ "${setArgs[verbose]}" == "true" ]] && commonPrintf "$progress bypassed status (${output[0]})"
+		return	
 	fi
 
-	# endregion: loop
-	# region: in-place
+	# endregion: status
+	# region: txid
 
-	if [[ "${setArgs[inplace]}" == "true" ]]; then
-		local replace
-		replace=$( mv ${setArgs[output]} ${setArgs[bundle]} 2>&1 )
-		commonVerify $? "failed to update in-place confirmed batch: $replace"
+	if [[ ! ${output[2]} =~ ${setArgs[txidpat]} ]]; then
+		output[0]="CONFIRM_ERROR_TXID"
+		echo $( commonJoinArray output "%s|" "|" ) >> ${setArgs[output]}
+		[[ "${setArgs[verbose]}" == "true" ]] && commonPrintf "$progress ${output[0]} (${output[2]})"
+		return	
 	fi
 
-	# endregion: in-place
+	# endregion: txid
+	# region: request
+
+	local url="${setArgs[host]}${setArgs[query]}?"
+	url+="channel=${setArgs[channel]}&"
+	url+="chaincode=qscc&function=GetBlockByTxID&"
+	url+="args=${setArgs[channel]}&"
+	url+="args=${output[2]}&"
+	url+="proto_decode=common.Block"
+
+	local response
+	response=$( curl -s -S -w "\n%{http_code}" --header "${setArgs[apikey]}" "$url" 2>&1 )
+	if [[ $? -ne 0 ]]; then
+		output[0]="CONFIRM_ERROR_CONNECT"
+		output[3]=${response//$'\n'/}
+		echo $( commonJoinArray output "%s|" "|" ) >> ${setArgs[output]}
+		[[ "${setArgs[verbose]}" == "true" ]] && commonPrintf "$progress ${output[0]} (${output[3]})"
+		return
+	fi
+
+	# endregion: request
+	# region: process
+
+	# split the response into status_code and content
+	local status=$( echo "$response" | tail -n 1 )
+	output[3]=$( echo "$response" | sed '$d' | tr -d '\n' )
+
+	# check status
+	if [[ "$status" != "200" ]]; then
+		output[0]="CONFIRM_ERROR_${status}"
+		echo $( commonJoinArray output "%s|" "|" ) >> ${setArgs[output]}
+		[[ "${setArgs[verbose]}" == "true" ]] && commonPrintf "$progress ${output[0]} (${output[3]})"
+		return
+	fi
+
+	# check for header
+	output[3]=$( echo ${output[3]} | jq -r -c .result.header 2>&1 )
+	if [ $? -ne 0 ] || [ -z ${output[3]} ] || [ "${output[3]}" = "null" ]; then
+		output[0]="CONFIRM_ERROR_HEADER"
+		output[3]=$( echo ${output[3]} | tr -d '\n' )
+		echo $( commonJoinArray output "%s|" "|" ) >> ${setArgs[output]}
+		[[ "${setArgs[verbose]}" == "true" ]] && commonPrintf "$progress ${output[0]} (${output[3]})"
+		return	
+	fi
+
+	# done
+	output[0]="CONFIRM_${status}"
+	echo $( commonJoinArray output "%s|" "|" ) >> ${setArgs[output]}
+	output=("${output[@]:0:3}")
+	[[ "${setArgs[verbose]}" == "true" ]] && commonPrintf "$progress `echo $( commonJoinArray output "%s -> " "" )` success"
+
+	# endregion: process
+
 }
-[[ "${setArgs[confirm]}" == "true" ]] && _confirm
-unset _inner _confirm _line
 
 # endregion: confirm
+# region: loop
+
+cnt=0
+
+if [[ "${setArgs[bundle]}" == "/dev/stdin" ]]; then
+	sum="-"
+	while IFS= read -r line; do
+		${setArgs[mode]} "$line"
+	done
+else
+	sum=$( wc -l ${setArgs[bundle]} | sed 's/ .*$//' )
+	while IFS= read -r line; do
+		${setArgs[mode]} "$line"
+	done < "${setArgs[bundle]}" 
+fi
+
+# endregion: loopt
+# region: in-place
+
+if [[ "${setArgs[inplace]}" == "true" ]]; then
+	replace=$( mv ${setArgs[output]} ${setArgs[bundle]} 2>&1 )
+	commonVerify $? "failed to update in-place confirmed batch: $replace"
+fi
+
+# endregion: in-place
+# region: out
+
+if [[ "${setArgs[verbose]}" == "true" ]]; then	
+	commonPrintf ""
+	commonPrintf "${setArgs[mode]} is done"
+	commonPrintf ""
+fi
+
+# endregion: out
