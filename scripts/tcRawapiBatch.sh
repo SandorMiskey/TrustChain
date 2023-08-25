@@ -238,7 +238,7 @@ function submit() {
 	# region: prepare
 
 	# progress
-	((cnt++)); local progress="_submit(): ${cnt}/${sum} ->"
+	((cnt++)); local progress="$FUNCNAME: ${cnt}/${sum} ->"
 
 	# output -> [0]: status [1]: key [2]: tx_id [3]: response [4]: payload
 	local output=()
@@ -266,7 +266,7 @@ function submit() {
 
 	local data=$( commonJoinArray args "args=%s&" "&")
 	local response
-	response=$( curl	-s -S -w "\n%{http_code}" -X POST									\
+	response=$( curl	-s -S -w "\n%{http_code}" -X POST							\
 						--header "Content-Type: application/x-www-form-urlencoded"	\
 						--header "${setArgs[apikey]}"								\
 						--data-urlencode "chaincode=${setArgs[cc]}"					\
@@ -312,6 +312,75 @@ function submit() {
 # endregion: submit
 # region: resubmit
 
+function resubmit() {
+
+	# region: prepare
+
+	# progress
+	((cnt++)); local progress="$FUNCNAME: ${cnt}/${sum} ->"
+
+	# output -> [0]: status [1]: key [2]: tx_id [3]: response [4->]: original payload
+	local output=()
+	IFS="|" read -ra output <<< "$1"
+
+	# endregion: prepare
+	# region: status
+
+	if [ "${output[0]}" != "SUBMIT_400" ] && [ "${output[0]}" != "SUBMIT_ERROR_CONNECT" ] && [[ ! "${output[0]}" =~ ^SUBMIT_ERROR_TXID_ ]]; then
+		dump output
+		[[ "${setArgs[verbose]}" == "true" ]] && commonPrintf "$progress bypassed status (${output[0]})"
+		return	
+	fi
+
+	# endregion: status
+	# region: submit
+
+	local args=(); for ((i=4; i<${#output[@]}; i++)); do args+=("${output[i]}"); done
+	local data=$( commonJoinArray args "args=%s&" "&")
+	local response
+	response=$( curl	-s -S -w "\n%{http_code}" -X POST							\
+						--header "Content-Type: application/x-www-form-urlencoded"	\
+						--header "${setArgs[apikey]}"								\
+						--data-urlencode "chaincode=${setArgs[cc]}"					\
+						--data-urlencode "channel=${setArgs[channel]}"				\
+						--data-urlencode "function=${setArgs[func]}"				\
+						--data-urlencode "$data"									\
+						${setArgs[host]}${setArgs[invoke]} 2>&1 )
+	if [[ $? -ne 0 ]]; then
+		output[0]="SUBMIT_ERROR_CONNECT"
+		output[2]=""
+		output[3]=${response//$'\n'/}
+		dump output
+		[[ "${setArgs[verbose]}" == "true" ]] && commonPrintf "$progress unable to connect ${setArgs[host]}"
+		return
+	fi
+		
+	# endregion: submit
+	# region: process
+
+	# split the response into status_code and content
+	output[0]=$( echo "$response" | tail -n 1 )
+	output[3]=$( echo "$response" | sed '$d' ); body="${body//$'\n'/ }"
+
+	# get tx_id
+	output[2]=$(echo "${output[3]}" | jq -r ${setArgs[txid]} 2>&1 )
+	if [ $? -ne 0 ] || [[ ! ${output[2]} =~ ${setArgs[txidpat]} ]]; then
+		output[0]="SUBMIT_ERROR_TXID_"${output[0]}
+		dump output
+		[[ "${setArgs[verbose]}" == "true" ]] && commonPrintf "$progress ${status}, no ${setArgs[txid]} found"
+		return	
+	fi
+
+	# success
+	output[0]="SUBMIT_"${output[0]}
+	dump output
+	output=("${output[@]:0:3}")
+	[[ "${setArgs[verbose]}" == "true" ]] && commonPrintf "$progress `echo $( commonJoinArray output "%s -> " "" )` success"
+
+	# endregion: process
+
+}
+
 # endregion: resubmit
 # region: confirm
 
@@ -320,7 +389,7 @@ function confirm() {
 	# region: prepare
 
 	# progress
-	((cnt++)); local progress="_submit(): ${cnt}/${sum} ->"
+	((cnt++)); local progress="$FUNCNAME: ${cnt}/${sum} ->"
 
 	# output -> [0]: status [1]: key [2]: tx_id [3]: response [4->]: original payload
 	local output=()

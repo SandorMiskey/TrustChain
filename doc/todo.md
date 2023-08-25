@@ -3,6 +3,7 @@
 ## now
 
 * tcRawapiBatch.sh -> resubmit
+* submit/resubmit common
 * stress test
 
 ## later
