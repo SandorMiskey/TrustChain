@@ -190,7 +190,7 @@ touch ${setArgs[output]}
 commonVerify $? "${0}: unable to write '${setArgs[output]}'"
 
 # submit input/output
-if [ "${setArgs[submit]}" = true ] && [ "${setArgs[confirm]}" = "${setArgs[confirm]}" ]; then
+if [ "${setArgs[submit]}" = true ] && [ "${setArgs[bundle]}" = "${setArgs[output]}" ]; then
 	commonVerify 1 "${0}: input and output cannot be the same in 'submit' mode, in-place update is not available"
 fi
 
