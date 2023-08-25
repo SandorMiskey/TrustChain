@@ -223,6 +223,14 @@ fi
 # endregion: dump
 
 # endregion: settings
+# region: common functions
+
+function dump() {
+	local -n _dump=$1
+	echo $( commonJoinArray _dump "%s|" "|" ) >> ${setArgs[output]}
+}
+
+# endregion: common functions
 # region: submit
 
 function submit() {
@@ -248,7 +256,7 @@ function submit() {
 		output[0]="SUBMIT_ERROR_KEY"
 		output[2]=""
 		output[3]=""
-		echo $( commonJoinArray output "%s|" "|" ) >> ${setArgs[output]}
+		dump output
 		[[ "${setArgs[verbose]}" == "true" ]] && commonPrintf "$progress no ${setArgs[key]} found in ${args[${setArgs[position]}]}"
 		return
 	fi
@@ -270,7 +278,7 @@ function submit() {
 		output[0]="SUBMIT_ERROR_CONNECT"
 		output[2]=""
 		output[3]=${response//$'\n'/}
-		echo $( commonJoinArray output "%s|" "|" ) >> ${setArgs[output]}
+		dump output
 		[[ "${setArgs[verbose]}" == "true" ]] && commonPrintf "$progress unable to connect ${setArgs[host]}"
 		return
 	fi
@@ -286,14 +294,14 @@ function submit() {
 	output[2]=$(echo "${output[3]}" | jq -r ${setArgs[txid]} 2>&1 )
 	if [ $? -ne 0 ] || [[ ! ${output[2]} =~ ${setArgs[txidpat]} ]]; then
 		output[0]="SUBMIT_ERROR_TXID_"${output[0]}
-		echo $( commonJoinArray output "%s|" "|" ) >> ${setArgs[output]}
+		dump output
 		[[ "${setArgs[verbose]}" == "true" ]] && commonPrintf "$progress ${status}, no ${setArgs[txid]} found"
 		return	
 	fi
 
 	# success
 	output[0]="SUBMIT_"${output[0]}
-	echo $( commonJoinArray output "%s|" "|" ) >> ${setArgs[output]}
+	dump output
 	output=("${output[@]:0:3}")
 	[[ "${setArgs[verbose]}" == "true" ]] && commonPrintf "$progress `echo $( commonJoinArray output "%s -> " "" )` success"
 
@@ -322,7 +330,7 @@ function confirm() {
 	# region: status
 
 	if [ "${output[0]}" != "SUBMIT_200" ] && [[ ! "${output[0]}" =~ ^CONFIRM_ERROR_ ]]; then
-		echo $( commonJoinArray output "%s|" "|" ) >> ${setArgs[output]}
+		dump output
 		[[ "${setArgs[verbose]}" == "true" ]] && commonPrintf "$progress bypassed status (${output[0]})"
 		return	
 	fi
@@ -332,7 +340,7 @@ function confirm() {
 
 	if [[ ! ${output[2]} =~ ${setArgs[txidpat]} ]]; then
 		output[0]="CONFIRM_ERROR_TXID"
-		echo $( commonJoinArray output "%s|" "|" ) >> ${setArgs[output]}
+		dump output
 		[[ "${setArgs[verbose]}" == "true" ]] && commonPrintf "$progress ${output[0]} (${output[2]})"
 		return	
 	fi
@@ -352,7 +360,7 @@ function confirm() {
 	if [[ $? -ne 0 ]]; then
 		output[0]="CONFIRM_ERROR_CONNECT"
 		output[3]=${response//$'\n'/}
-		echo $( commonJoinArray output "%s|" "|" ) >> ${setArgs[output]}
+		dump output
 		[[ "${setArgs[verbose]}" == "true" ]] && commonPrintf "$progress ${output[0]} (${output[3]})"
 		return
 	fi
@@ -367,7 +375,7 @@ function confirm() {
 	# check status
 	if [[ "$status" != "200" ]]; then
 		output[0]="CONFIRM_ERROR_${status}"
-		echo $( commonJoinArray output "%s|" "|" ) >> ${setArgs[output]}
+		dump output
 		[[ "${setArgs[verbose]}" == "true" ]] && commonPrintf "$progress ${output[0]} (${output[3]})"
 		return
 	fi
@@ -377,14 +385,14 @@ function confirm() {
 	if [ $? -ne 0 ] || [ -z ${output[3]} ] || [ "${output[3]}" = "null" ]; then
 		output[0]="CONFIRM_ERROR_HEADER"
 		output[3]=$( echo ${output[3]} | tr -d '\n' )
-		echo $( commonJoinArray output "%s|" "|" ) >> ${setArgs[output]}
+		dump output
 		[[ "${setArgs[verbose]}" == "true" ]] && commonPrintf "$progress ${output[0]} (${output[3]})"
 		return	
 	fi
 
 	# done
 	output[0]="CONFIRM_${status}"
-	echo $( commonJoinArray output "%s|" "|" ) >> ${setArgs[output]}
+	dump output
 	output=("${output[@]:0:3}")
 	[[ "${setArgs[verbose]}" == "true" ]] && commonPrintf "$progress `echo $( commonJoinArray output "%s -> " "" )` success"
 
