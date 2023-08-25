@@ -2,7 +2,6 @@
 
 ## now
 
-* CSV processor
 * stress test
 
 ## later
