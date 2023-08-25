@@ -177,23 +177,28 @@ done
 # region: validate and dump settings
 
 # input
+
 if [[ ! -r "${setArgs[bundle]}" ]] && [[ "${setArgs[submit]}" == "true" ]]; then
 	commonVerify 1 "${0}: unable to read '${setArgs[bundle]}'"
 fi
 
 # output
+
 touch ${setArgs[output]}
 commonVerify $? "${0}: unable to write '${setArgs[output]}'"
 
 # key position
+
 if [[ (! "${setArgs[position]}" =~ ^[0-9]+$ ) || ( "${setArgs[position]}" -lt 0 ) ]] && [[ "${setArgs[submit]}" == "true" ]]; then
 	commonVerify 1 "${0}: -p must be a positive integer, see \`$0 --help\` for instructions"
 fi
 
 # dump
+
 if [[ "${setArgs[verbose]}" == "true" ]]; then
 
 	# mode
+
 	_sorted=("confirm" "submit")
 	_args=()
 	for _key in "${_sorted[@]}"; do
@@ -202,6 +207,7 @@ if [[ "${setArgs[verbose]}" == "true" ]]; then
 	commonPrintf "set mode: $(commonJoinArray _args "\n%s" "")"
 
 	# opts
+
 	_sorted=($(echo "${!setArgs[@]}" | tr ' ' '\n' | sort))
 	_args=()
 	for _key in "${_sorted[@]}"; do
@@ -227,16 +233,30 @@ function _submit() {
 		# progress
 		((cnt++)); local progress="_submit() ${cnt}/${sum}"
 
+		# output
+		# 0: status
+		# 1: key
+		# 2: tx_id
+		# 3: response
+		# 4: payload
+		local output=()
+
 		# args
 		IFS="|" read -ra _args <<< "$1"
+		output[4]=$( commonJoinArray _args "%s|" "|" )
 
 		# set unique id
-		_id=$( echo "${_args[${setArgs[position]}]}" | jq -r ${setArgs[key]}  2>&1 )
-		if [ $? -ne 0 ] || [ -z $_id ] || [ "$_id" = "null" ]; then
-			echo "NO_KEY_FOUND|||${line}" >> ${setArgs[output]} 
-			[[ "${setArgs[verbose]}" == "true" ]] && commonPrintf "$progress: no ${setArgs[key]} found"
+		output[1]=$( echo "${_args[${setArgs[position]}]}" | jq -r ${setArgs[key]}  2>&1 )
+		if [ $? -ne 0 ] || [ -z ${output[1]} ] || [ "${output[1]}" == "null" ]; then
+			echo "vvvvvv"
+			output[0]="SUBMIT_NO_KEY_FOUND"
+			echo ${output[@]}
+			echo $( commonJoinArray output "%s|" "|" ) >> ${setArgs[output]}
+			# echo "SUBMIT_NO_KEY_FOUND|-|-|-|${_line}" >> ${setArgs[output]} 
+			[[ "${setArgs[verbose]}" == "true" ]] && commonPrintf "$progress: no ${setArgs[key]} found in ${_args[${setArgs[position]}]}"
 			return
 		fi
+		return
 
 		# submit
 		local data=$( commonJoinArray _args "args=%s&" "&")
@@ -249,7 +269,7 @@ function _submit() {
 							--data-urlencode "$data"							\
 							${setArgs[host]}${setArgs[invoke]} 2>&1 )
 		if [[ $? -ne 0 ]]; then
-			echo "UNABLE_TO_CONNECT|${_id}||${line}" >> ${setArgs[output]}
+			echo "SUBMIT_UNABLE_TO_CONNECT|${_id}|-|-|${line}" >> ${setArgs[output]}
 			[[ "${setArgs[verbose]}" == "true" ]] && commonPrintf "$progress: unable to connect ${setArgs[host]}"
 			return
 		fi
@@ -280,7 +300,7 @@ function _submit() {
 		done
 	else
 		local sum=$( wc -l ${setArgs[bundle]} | sed 's/ .*$//' )
-		while IFS= read -r line; do
+		while IFS= read -r _line; do
 			_inner "$_line"
 		done < "${setArgs[bundle]}" 
 	fi 
@@ -316,7 +336,7 @@ function _confirm() {
 
 		# status
 		if [ -z "$status" ] || [ "$status" != "200" ]; then
-			[[ "${setArgs[verbose]}" == "true" ]] && commonPrintf "$progress: status != 200"
+			[[ "${setArgs[verbose]}" == "true" ]] && commonPrintf "$progress: status != 200 (${status})"
 			return	
 		fi
 
@@ -334,7 +354,6 @@ function _confirm() {
 		url+="args=${setArgs[channel]}&"
 		url+="args=${txid}&"
 		url+="proto_decode=common.Block"
-		commonPrintfBold $url
 		_response=$( curl -s -w "\n%{http_code}" --header "${setArgs[apikey]}" "$url" 2>&1 )
 		if [[ $? -ne 0 ]]; then
 			echo "UNABLE_TO_CONNECT|${key}|${txid}|${data}" >> ${setArgs[output]}
@@ -355,7 +374,7 @@ function _confirm() {
 			return	
 		fi
 
-		success
+		# success
 		echo "${status}|${key}|${txid}|${_header}" >> ${setArgs[output]}
 		[[ "${setArgs[verbose]}" == "true" ]] && commonPrintf "$progress: ${status}, $txid"
 
@@ -368,7 +387,7 @@ function _confirm() {
 		done
 	else
 		local sum=$( wc -l ${setArgs[bundle]} | sed 's/ .*$//' )
-		while IFS= read -r line; do
+		while IFS= read -r _line; do
 			_inner "$_line"
 		done < "${setArgs[bundle]}" 
 	fi 
