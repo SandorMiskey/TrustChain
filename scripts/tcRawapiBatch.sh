@@ -27,6 +27,7 @@ setArgs[channel]="trustchain-test"
 setArgs[confirm]=true
 setArgs[host]="http://localhost:5088"
 setArgs[func]="CreateBundle"
+setArgs[inplace]=false
 setArgs[invoke]="/invoke"
 setArgs[key]=".bundle_id"
 setArgs[position]=0
@@ -177,24 +178,38 @@ done
 # endregion: parse $@
 # region: validate and dump settings
 
-# input
+# region: in/out
 
+# input
 if [[ ! -r "${setArgs[bundle]}" ]] && [[ "${setArgs[submit]}" == "true" ]]; then
 	commonVerify 1 "${0}: unable to read '${setArgs[bundle]}'"
 fi
 
 # output
-
 touch ${setArgs[output]}
 commonVerify $? "${0}: unable to write '${setArgs[output]}'"
 
-# key position
+# submit input/output
+if [ "${setArgs[submit]}" = true ] && [ "${setArgs[confirm]}" = "${setArgs[confirm]}" ]; then
+	commonVerify 1 "${0}: input and output cannot be the same in 'submit' mode, in-place update is not available"
+fi
+
+# in-place update
+if [ "${setArgs[confirm]}" = true ] && [ "${setArgs[bundle]}" = "${setArgs[output]}" ]; then
+	setArgs[inplace]=true
+	setArgs[output]=$( mktemp "${TMPDIR:-/tmp/}$(basename "$0").XXXXXXXXXXXX" )
+fi
+
+
+# endregion: in/out
+# region: key position
 
 if [[ (! "${setArgs[position]}" =~ ^[0-9]+$ ) || ( "${setArgs[position]}" -lt 0 ) ]] && [[ "${setArgs[submit]}" == "true" ]]; then
 	commonVerify 1 "${0}: -p must be a positive integer, see \`$0 --help\` for instructions"
 fi
 
-# dump
+# endregion: key position
+# region: dump
 
 if [[ "${setArgs[verbose]}" == "true" ]]; then
 
@@ -220,6 +235,8 @@ if [[ "${setArgs[verbose]}" == "true" ]]; then
 
 	unset _sorted _args _key
 fi
+
+# endregion: dump
 
 # endregion: settings
 # region: submit
@@ -340,8 +357,6 @@ function _confirm() {
 	
 	_inner() {
 
-		# output -> [0]: status [1]: key [2]: tx_id [3]: response [4]: payload
-
 		# region: prepare
 
 		# progress
@@ -445,7 +460,15 @@ function _confirm() {
 	fi
 
 	# endregion: loop
+	# region: in-place
 
+	if [[ "${setArgs[inplace]}" == "true" ]]; then
+		local replace
+		replace=$( mv ${setArgs[output]} ${setArgs[bundle]} 2>&1 )
+		commonVerify $? "failed to update in-place confirmed batch: $replace"
+	fi
+
+	# endregion: in-place
 }
 [[ "${setArgs[confirm]}" == "true" ]] && _confirm
 unset _inner _confirm _line

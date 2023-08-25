@@ -2,9 +2,6 @@
 
 ## now
 
-* CSV
-  * submit: check if in and out is the same
-  * check: if in and out is the same then in-place update
 * stress test
 
 ## later
