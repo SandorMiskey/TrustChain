@@ -12,7 +12,7 @@ source $TC_PATH_RC
 if [[ ${TC_PATH_SCRIPTS:-"unset"} == "unset" ]]; then
 	commonVerify 1 "TC_PATH_SCRIPTS is unset"
 fi
-commonPP $TC_PATH_SCRIPTS
+# commonPP $TC_PATH_SCRIPTS
 
 # endregion: common
 # region: defaults
