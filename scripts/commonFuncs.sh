@@ -69,14 +69,15 @@ function commonPrintf() {
 	[[ "$COMMON_SILENT" == true ]] && return 0
 	[[ "$COMMON_VERBOSE" == true ]] || return 0
 	[[ ${2:-"unset"} == "unset" ]] && local format="%s\n" || local format=$2
-	printf $format "${COMMON_PREFIX}$( printf "%s\n" "$1" | head -n 1 )" 
+	[[ ${3:-"unset"} == "unset" ]] && local out="/dev/stdout" || local out=$3
+	printf $format "${COMMON_PREFIX}$( printf "%s\n" "$1" | head -n 1 )" >> $out
 	# printf $format "${TExPREFIX}$1"
 
 	local lines=$( printf "%s\n" "$1" | wc -l )
 	local cnt=2
 	if [ $lines -gt 1 ]; then
 		while [ $cnt -le $lines ] ; do
-			printf $format "${COMMON_SUBPREFIX}$( printf "%s\n" "$1" | tail -n +$cnt | head -n 1 )" 
+			printf $format "${COMMON_SUBPREFIX}$( printf "%s\n" "$1" | tail -n +$cnt | head -n 1 )" >> $out 
 			cnt=$(expr $cnt + 1)
 		done
 	fi
@@ -84,9 +85,10 @@ function commonPrintf() {
 
 function commonPrintfBold() {
 	[[ ${2:-"unset"} == "unset" ]] && format="%s\n" || format=$2
+	[[ ${3:-"unset"} == "unset" ]] && out="/dev/stdout" || out=$3
 	local verbose=$COMMON_VERBOSE
 	COMMON_VERBOSE=true
-	commonPrintf "$1" "${COMMON_BOLD}$format${COMMON_NORM}"
+	commonPrintf "$1" "${COMMON_BOLD}$format${COMMON_NORM}" "$out"
 	COMMON_VERBOSE=$verbose
 }
 
@@ -129,13 +131,13 @@ function commonVerify() {
 	if [ $1 -ne 0 ]
 	then
 		# >&2 commonPrintfBold "$2" "\b${COMMON_BOLD}%s${COMMON_NORM}\n"
-		[[ -z "$2" ]] || >&2 commonPrintfBold "$2"
+		[[ -z "$2" ]] || >&2 commonPrintfBold "$2" "%s\n" "/dev/stderr"
 		if [[ "$COMMON_PANIC" == true ]]; then
 			if [ ! "$COMMON_SHELL" = "bash" ] && [ ! "$COMMON_SHELL" = "zsh" ]; then
-				commonPrintfBold "commonVerify(): COMMON_PANIC set to 'true' and no interactive shell ($COMMON_SHELL) detected, leaving..."
+				commonPrintfBold "commonVerify(): COMMON_PANIC set to 'true' and no interactive shell detected, leaving..." "%s\n" "/dev/stderr"
 				exit 1
 			fi
-			commonPrintfBold "commonVerify(): COMMON_PANIC set to 'true' but shell seems to be interactive ($COMMON_SHELL), so keep rolling..."
+			commonPrintfBold "commonVerify(): COMMON_PANIC set to 'true' but shell seems to be interactive ($COMMON_SHELL), so keep rolling..." "%s\n" "/dev/stderr"
 		fi
 	else
 		if [ -z ${3+x} ]; then echo -n ""; else commonPrintf "$3"; fi
