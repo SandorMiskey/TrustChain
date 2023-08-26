@@ -2,6 +2,7 @@
 
 ## now
 
+* tcRawapiBatch.sh reconfirm?
 * stress test
   * LOG_DEBUG off, 2 thread
 

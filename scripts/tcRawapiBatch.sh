@@ -195,7 +195,7 @@ fi
 # in-place update
 if [[ ! "${setArgs[mode]}" == "submit" ]] && [ "${setArgs[bundle]}" = "${setArgs[output]}" ]; then
 	setArgs[inplace]=true
-	setArgs[output]=$( mktemp "${TMPDIR:-/tmp/}$(basename "$0").XXXXXXXXXXXX" )
+	setArgs[output]=$( mktemp "${TMPDIR:-/tmp/}$(basename "$0")_${setArgs[mode]}.XXXXXXXXXXXX" )
 fi
 
 
