@@ -3,6 +3,7 @@
 ## now
 
 * stress test
+  * LOG_DEBUG off, 2 thread
 
 ## later
 
