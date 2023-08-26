@@ -230,6 +230,61 @@ function dump() {
 	echo $( commonJoinArray _dump "%s|" "|" ) >> ${setArgs[output]}
 }
 
+function submitCommon() {
+
+	# region: prepare
+
+	local _progress=$1
+	local _data=$2
+	local -n _output=$3
+
+	# endregion: prepare
+	# region: submit
+
+	local response
+	response=$( curl	-s -S -w "\n%{http_code}" -X POST							\
+						--header "Content-Type: application/x-www-form-urlencoded"	\
+						--header "${setArgs[apikey]}"								\
+						--data-urlencode "chaincode=${setArgs[cc]}"					\
+						--data-urlencode "channel=${setArgs[channel]}"				\
+						--data-urlencode "function=${setArgs[func]}"				\
+						--data-urlencode "$_data"									\
+						${setArgs[host]}${setArgs[invoke]} 2>&1 )
+	if [[ $? -ne 0 ]]; then
+		_output[0]="SUBMIT_ERROR_CONNECT"
+		_output[2]=""
+		_output[3]=${response//$'\n'/}
+		dump _output
+		[[ "${setArgs[verbose]}" == "true" ]] && commonPrintf "$_progress unable to connect ${setArgs[host]}"
+		return
+	fi
+		
+	# endregion: submit
+	# region: process
+
+	# split the response into status_code and content
+	_output[0]=$( echo "$response" | tail -n 1 )
+	_output[3]=$( echo "$response" | sed '$d' | tr -d '\n' )
+
+	# get tx_id
+	_output[2]=$(echo "${_output[3]}" | jq -r ${setArgs[txid]} 2>&1 )
+	if [ $? -ne 0 ] || [[ ! ${_output[2]} =~ ${setArgs[txidpat]} ]]; then
+		_output[0]="SUBMIT_ERROR_TXID_"${_output[0]}
+		dump _output
+		[[ "${setArgs[verbose]}" == "true" ]] && commonPrintf "$_progress ${_output[0]}, no ${setArgs[txid]} found"
+		return	
+	fi
+
+	# success
+	_output[0]="SUBMIT_"${_output[0]}
+	dump _output
+	_output=("${_output[@]:0:3}")
+	[[ "${setArgs[verbose]}" == "true" ]] && commonPrintf "$_progress `echo $( commonJoinArray _output "%s -> " "" )` success"
+
+	# endregion: process
+
+}
+
 # endregion: common functions
 # region: submit
 
@@ -241,7 +296,7 @@ function submit() {
 	((cnt++)); local progress="$FUNCNAME: ${cnt}/${sum} ->"
 
 	# output -> [0]: status [1]: key [2]: tx_id [3]: response [4]: payload
-	local output=()
+	output=()
 
 	# args
 	local args=()
@@ -265,47 +320,9 @@ function submit() {
 	# region: submit
 
 	local data=$( commonJoinArray args "args=%s&" "&")
-	local response
-	response=$( curl	-s -S -w "\n%{http_code}" -X POST							\
-						--header "Content-Type: application/x-www-form-urlencoded"	\
-						--header "${setArgs[apikey]}"								\
-						--data-urlencode "chaincode=${setArgs[cc]}"					\
-						--data-urlencode "channel=${setArgs[channel]}"				\
-						--data-urlencode "function=${setArgs[func]}"				\
-						--data-urlencode "$data"									\
-						${setArgs[host]}${setArgs[invoke]} 2>&1 )
-	if [[ $? -ne 0 ]]; then
-		output[0]="SUBMIT_ERROR_CONNECT"
-		output[2]=""
-		output[3]=${response//$'\n'/}
-		dump output
-		[[ "${setArgs[verbose]}" == "true" ]] && commonPrintf "$progress unable to connect ${setArgs[host]}"
-		return
-	fi
-		
+	submitCommon "$progress" "$data" output
+
 	# endregion: submit
-	# region: process
-
-	# split the response into status_code and content
-	output[0]=$( echo "$response" | tail -n 1 )
-	output[3]=$( echo "$response" | sed '$d' ); body="${body//$'\n'/ }"
-
-	# get tx_id
-	output[2]=$(echo "${output[3]}" | jq -r ${setArgs[txid]} 2>&1 )
-	if [ $? -ne 0 ] || [[ ! ${output[2]} =~ ${setArgs[txidpat]} ]]; then
-		output[0]="SUBMIT_ERROR_TXID_"${output[0]}
-		dump output
-		[[ "${setArgs[verbose]}" == "true" ]] && commonPrintf "$progress ${status}, no ${setArgs[txid]} found"
-		return	
-	fi
-
-	# success
-	output[0]="SUBMIT_"${output[0]}
-	dump output
-	output=("${output[@]:0:3}")
-	[[ "${setArgs[verbose]}" == "true" ]] && commonPrintf "$progress `echo $( commonJoinArray output "%s -> " "" )` success"
-
-	# endregion: process
 
 }
 
@@ -337,47 +354,9 @@ function resubmit() {
 
 	local args=(); for ((i=4; i<${#output[@]}; i++)); do args+=("${output[i]}"); done
 	local data=$( commonJoinArray args "args=%s&" "&")
-	local response
-	response=$( curl	-s -S -w "\n%{http_code}" -X POST							\
-						--header "Content-Type: application/x-www-form-urlencoded"	\
-						--header "${setArgs[apikey]}"								\
-						--data-urlencode "chaincode=${setArgs[cc]}"					\
-						--data-urlencode "channel=${setArgs[channel]}"				\
-						--data-urlencode "function=${setArgs[func]}"				\
-						--data-urlencode "$data"									\
-						${setArgs[host]}${setArgs[invoke]} 2>&1 )
-	if [[ $? -ne 0 ]]; then
-		output[0]="SUBMIT_ERROR_CONNECT"
-		output[2]=""
-		output[3]=${response//$'\n'/}
-		dump output
-		[[ "${setArgs[verbose]}" == "true" ]] && commonPrintf "$progress unable to connect ${setArgs[host]}"
-		return
-	fi
-		
+	submitCommon "$progress" "$data" output
+
 	# endregion: submit
-	# region: process
-
-	# split the response into status_code and content
-	output[0]=$( echo "$response" | tail -n 1 )
-	output[3]=$( echo "$response" | sed '$d' ); body="${body//$'\n'/ }"
-
-	# get tx_id
-	output[2]=$(echo "${output[3]}" | jq -r ${setArgs[txid]} 2>&1 )
-	if [ $? -ne 0 ] || [[ ! ${output[2]} =~ ${setArgs[txidpat]} ]]; then
-		output[0]="SUBMIT_ERROR_TXID_"${output[0]}
-		dump output
-		[[ "${setArgs[verbose]}" == "true" ]] && commonPrintf "$progress ${status}, no ${setArgs[txid]} found"
-		return	
-	fi
-
-	# success
-	output[0]="SUBMIT_"${output[0]}
-	dump output
-	output=("${output[@]:0:3}")
-	[[ "${setArgs[verbose]}" == "true" ]] && commonPrintf "$progress `echo $( commonJoinArray output "%s -> " "" )` success"
-
-	# endregion: process
 
 }
 
