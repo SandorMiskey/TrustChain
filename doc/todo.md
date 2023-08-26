@@ -2,7 +2,6 @@
 
 ## now
 
-* submit/resubmit common
 * stress test
 
 ## later
