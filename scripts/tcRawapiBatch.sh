@@ -45,9 +45,10 @@ function _help() {
 	commonPrintf "  $0 [mode] <options>"
 	commonPrintf ""
 	commonPrintf "modes:"
-	commonPrintf "  submit     iterate over input batch and submit line by line"
-	commonPrintf "  confirm    iterate over input batch and query for block number and data hash against qscc's GetBlockByTxID()"
+	commonPrintf "  confirm    iterates over the output of submit/resubmit and query for block number and data hash against qscc's GetBlockByTxID()"
 	commonPrintf "  help       prints this quits"
+	commonPrintf "  resubmit   iterates over the output of submit and resubmits unsuccessful submits"
+	commonPrintf "  submit     iterates over input batch and submit line by line"
 	commonPrintf ""
 	commonPrintf "options:"
 	commonPrintf "  -a --apikey [string]   api key in header, default: \"X-API-Key: \$TC_HTTP_API_KEY\""
@@ -74,7 +75,7 @@ case "$1" in
 	"confirm")
 		setArgs[mode]=$1
 		;;
-	"help")
+	"help" | "-h" | "--help")
 		_help
 		exit 0
 		;;
@@ -85,7 +86,7 @@ case "$1" in
 		setArgs[mode]=$1
 		;;
 	*)
-		commonVerify 1 "${0}: unrecognized mode '$1', see \`$0 --help\` for instructions"
+		commonVerify 1 "${0}: unrecognized mode '$1', see \`$0 help\` for instructions"
 		;;
 esac
 shift
@@ -96,7 +97,7 @@ shift
 _opts="a:b:c:C:f:hH:i:k:o:p:q:t:v"
 _lopts="apikey:,bundle:,channel:,chaincode:,func:,help,host:,invoke:,key:,output:,position:,query:,txid:,verbose"
 _args=$(getopt -n $0 -o $_opts -l $_lopts -a -Q -- "$@" 2>&1 )
-commonVerify $? "${_args}, see \`$0 --help\` for instructions" 
+commonVerify $? "${_args}, see \`$0 help\` for instructions" 
 # _args=$(getopt -n $0 -o $_opts -l $_lopts -a -q -- "$@" 2>&1 )
 # eval set -- "$_args"
 unset _opts _lopts _args
@@ -167,7 +168,7 @@ while [ : ]; do
 			break
 			;;
 		-*)
-			commonVerify 1 "${0}: unrecognized option '${1}', see \`$0 --help\` for instructions"
+			commonVerify 1 "${0}: unrecognized option '${1}', see \`$0 help\` for instructions"
 			;;
 		*)
 			break
@@ -187,23 +188,19 @@ done
 touch ${setArgs[output]}
 commonVerify $? "${0}: unable to write '${setArgs[output]}'"
 
-# submit input/output
-if [[ "${setArgs[mode]}" == "submit" ]] && [ "${setArgs[bundle]}" = "${setArgs[output]}" ]; then
-	commonVerify 1 "${0}: input and output cannot be the same in 'submit' mode, in-place update is not available"
-fi
-
 # in-place update
-if [[ ! "${setArgs[mode]}" == "submit" ]] && [ "${setArgs[bundle]}" = "${setArgs[output]}" ]; then
+
+if [[ "${setArgs[bundle]}" -ef "${setArgs[output]}" ]]; then
+	[[ "${setArgs[mode]}" == "submit" ]] && commonVerify 1 "${0}: input and output cannot be the same in 'submit' mode, in-place update is not available"
 	setArgs[inplace]=true
 	setArgs[output]=$( mktemp "${TMPDIR:-/tmp/}$(basename "$0")_${setArgs[mode]}.XXXXXXXXXXXX" )
 fi
-
 
 # endregion: in/out
 # region: key position
 
 if [[ (! "${setArgs[position]}" =~ ^[0-9]+$ ) || ( "${setArgs[position]}" -lt 0 ) ]] && [[ "${setArgs[mode]}" != "confirm" ]]; then
-	commonVerify 1 "${0}: -p must be a positive integer, see \`$0 --help\` for instructions"
+	commonVerify 1 "${0}: -p must be a positive integer, see \`$0 help\` for instructions"
 fi
 
 # endregion: key position

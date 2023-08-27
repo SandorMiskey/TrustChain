@@ -2,12 +2,9 @@
 
 ## now
 
-* tcRawapiBatch.sh reconfirm?
-* stress test
-  * LOG_DEBUG off, 2 thread
-
 ## later
 
+* tcRawapiBatch.sh reconfirm?
 * tcGlusterServers.sh
   * auth.allow
   * fstab backupvolfile-server
