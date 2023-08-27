@@ -16,9 +16,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseURL}}/hosts_and_ports.md",
+							"raw": "{{env_baseURL}}/hosts_and_ports.md",
 							"host": [
-								"{{baseURL}}"
+								"{{env_baseURL}}"
 							],
 							"path": [
 								"hosts_and_ports.md"
@@ -33,9 +33,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseURL}}/mon.txt",
+							"raw": "{{env_baseURL}}/mon.txt",
 							"host": [
-								"{{baseURL}}"
+								"{{env_baseURL}}"
 							],
 							"path": [
 								"mon.txt"
@@ -50,9 +50,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseURL}}/index.html",
+							"raw": "{{env_baseURL}}/index.html",
 							"host": [
-								"{{baseURL}}"
+								"{{env_baseURL}}"
 							],
 							"path": [
 								"index.html"
@@ -67,9 +67,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseURL}}/error",
+							"raw": "{{env_baseURL}}/error",
 							"host": [
-								"{{baseURL}}"
+								"{{env_baseURL}}"
 							],
 							"path": [
 								"error"
@@ -137,9 +137,9 @@
 									]
 								},
 								"url": {
-									"raw": "{{baseURL}}/invoke",
+									"raw": "{{env_baseURL}}/invoke",
 									"host": [
-										"{{baseURL}}"
+										"{{env_baseURL}}"
 									],
 									"path": [
 										"invoke"
@@ -161,17 +161,17 @@
 									"script": {
 										"exec": [
 											"// Check if the \"bundleID\" variable exists; if not, initialize it with 1 (as an integer)",
-											"if (pm.environment.has(\"bundleID\")) {",
+											"if (pm.globals.has(\"global_bundleID\")) {",
 											"    // Convert \"bundleID\" from string to integer and then increment by 1",
-											"    let currentBundleID = parseInt(pm.environment.get(\"bundleID\"));",
-											"    pm.environment.set(\"bundleID\", currentBundleID + 1);",
+											"    let currentBundleID = parseInt(pm.globals.get(\"global_bundleID\"));",
+											"    pm.globals.set(\"global_bundleID\", currentBundleID + 1);",
 											"} else {",
 											"    // Initialize \"bundleID\" with 1 (as an integer)",
-											"    pm.environment.set(\"bundleID\", 1);",
+											"    pm.globals.set(\"global_bundleID\", 1);",
 											"}",
 											"",
 											"// Log the \"bundleID\" environment variable as an integer",
-											"console.log(pm.environment.get(\"bundleID\"));"
+											"console.log(pm.globals.get(\"global_bundleID\"));"
 										],
 										"type": "text/javascript"
 									}
@@ -200,7 +200,7 @@
 										},
 										{
 											"key": "args",
-											"value": "{\n\t\"system_id\": \"7\",\n\t\"external_flag\": \"2\",\n\t\"confidential_flag\": \"2\",\n\t\"legacy_flag\": \"2\",\n\t\"number_of_operations\": 50,\n\t\"transaction_type_id\": \"29\",\n\t\"bundle_id\": {{bundleID}},\n\t\"data_base64\": \"ewoJImZvbyI6IDEKfQ==\",\n\t\"data_hash\": \"5936fee60e0930c8a8e47fadf8bec5b5868642ad179003fec555fa81203cbc52\"\n}",
+											"value": "{\n\t\"system_id\": \"7\",\n\t\"external_flag\": \"2\",\n\t\"confidential_flag\": \"2\",\n\t\"legacy_flag\": \"2\",\n\t\"number_of_operations\": 50,\n\t\"transaction_type_id\": \"29\",\n\t\"bundle_id\": {{global_bundleID}},\n\t\"data_base64\": \"ewoJImZvbyI6IDEKfQ==\",\n\t\"data_hash\": \"5936fee60e0930c8a8e47fadf8bec5b5868642ad179003fec555fa81203cbc52\"\n}",
 											"description": "valid",
 											"type": "text"
 										},
@@ -217,13 +217,19 @@
 											"description": "invalid base64",
 											"type": "text",
 											"disabled": true
+										},
+										{
+											"key": "args",
+											"value": "",
+											"type": "text",
+											"disabled": true
 										}
 									]
 								},
 								"url": {
-									"raw": "{{baseURL}}/invoke",
+									"raw": "{{env_baseURL}}/invoke",
 									"host": [
-										"{{baseURL}}"
+										"{{env_baseURL}}"
 									],
 									"path": [
 										"invoke"
@@ -263,9 +269,9 @@
 									]
 								},
 								"url": {
-									"raw": "{{baseURL}}/invoke",
+									"raw": "{{env_baseURL}}/invoke",
 									"host": [
-										"{{baseURL}}"
+										"{{env_baseURL}}"
 									],
 									"path": [
 										"invoke"
@@ -320,9 +326,9 @@
 									]
 								},
 								"url": {
-									"raw": "{{baseURL}}/invoke",
+									"raw": "{{env_baseURL}}/invoke",
 									"host": [
-										"{{baseURL}}"
+										"{{env_baseURL}}"
 									],
 									"path": [
 										"invoke"
@@ -367,9 +373,9 @@
 									]
 								},
 								"url": {
-									"raw": "{{baseURL}}/invoke",
+									"raw": "{{env_baseURL}}/invoke",
 									"host": [
-										"{{baseURL}}"
+										"{{env_baseURL}}"
 									],
 									"path": [
 										"invoke"
@@ -394,9 +400,9 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{baseURL}}/query?channel=trustchain-test&chaincode=basic&function=ReadAsset&args=1",
+									"raw": "{{env_baseURL}}/query?channel=trustchain-test&chaincode=basic&function=ReadAsset&args=1",
 									"host": [
-										"{{baseURL}}"
+										"{{env_baseURL}}"
 									],
 									"path": [
 										"query"
@@ -439,9 +445,9 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{baseURL}}/query?channel=trustchain-test&chaincode=qscc&function=GetBlockByNumber&args=trustchain-test&args=20&proto_decode=common.Block",
+									"raw": "{{env_baseURL}}/query?channel=trustchain-test&chaincode=qscc&function=GetBlockByNumber&args=trustchain-test&args=20&proto_decode=common.Block",
 									"host": [
-										"{{baseURL}}"
+										"{{env_baseURL}}"
 									],
 									"path": [
 										"query"
@@ -482,9 +488,9 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{baseURL}}/query?channel=trustchain-test&chaincode=qscc&function=GetBlockByTxID&args=trustchain-test&args=ef776a4535b8565ca4aae11d45a5812eaa328927bc15d09a55b58444d59da679&proto_decode=common.Block",
+									"raw": "{{env_baseURL}}/query?channel=trustchain-test&chaincode=qscc&function=GetBlockByTxID&args=trustchain-test&args=20ece6f387de398398586a82d514f1b1682015037e167ce5da0d595dfbdcfb60&proto_decode=common.Block",
 									"host": [
-										"{{baseURL}}"
+										"{{env_baseURL}}"
 									],
 									"path": [
 										"query"
@@ -508,7 +514,7 @@
 										},
 										{
 											"key": "args",
-											"value": "ef776a4535b8565ca4aae11d45a5812eaa328927bc15d09a55b58444d59da679"
+											"value": "20ece6f387de398398586a82d514f1b1682015037e167ce5da0d595dfbdcfb60"
 										},
 										{
 											"key": "proto_decode",
@@ -525,9 +531,9 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{baseURL}}/query?channel=trustchain-test&chaincode=qscc&function=GetTransactionByID&args=trustchain-test&args=11d71657a184bddfe3e6a329ea3b040022a72e3ac42217317706ebe533375a60&proto_decode=common.Block",
+									"raw": "{{env_baseURL}}/query?channel=trustchain-test&chaincode=qscc&function=GetTransactionByID&args=trustchain-test&args=11d71657a184bddfe3e6a329ea3b040022a72e3ac42217317706ebe533375a60&proto_decode=common.Block",
 									"host": [
-										"{{baseURL}}"
+										"{{env_baseURL}}"
 									],
 									"path": [
 										"query"
@@ -573,9 +579,9 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{baseURL}}/query?channel=trustchain-test&chaincode=te-food-bundles&function=BundleExists&args=7",
+									"raw": "{{env_baseURL}}/query?channel=trustchain-test&chaincode=te-food-bundles&function=BundleExists&args=7",
 									"host": [
-										"{{baseURL}}"
+										"{{env_baseURL}}"
 									],
 									"path": [
 										"query"
@@ -613,9 +619,9 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{baseURL}}/query?channel=trustchain-test&chaincode=te-food-bundles&function=BundleGet&args={{bundleID}}",
+									"raw": "{{env_baseURL}}/query?channel=trustchain-test&chaincode=te-food-bundles&function=BundleGet&args={{global_bundleID}}",
 									"host": [
-										"{{baseURL}}"
+										"{{env_baseURL}}"
 									],
 									"path": [
 										"query"
@@ -635,7 +641,7 @@
 										},
 										{
 											"key": "args",
-											"value": "{{bundleID}}"
+											"value": "{{global_bundleID}}"
 										},
 										{
 											"key": "args",
@@ -653,9 +659,9 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{baseURL}}/query?channel=trustchain-test&chaincode=te-food-bundles&function=BundleGetRange&args=3&args=7",
+									"raw": "{{env_baseURL}}/query?channel=trustchain-test&chaincode=te-food-bundles&function=BundleGetRange&args=3&args=7",
 									"host": [
-										"{{baseURL}}"
+										"{{env_baseURL}}"
 									],
 									"path": [
 										"query"
@@ -692,9 +698,9 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{baseURL}}/query?channel=trustchain-test&chaincode=te-food-bundles&function=BundleGetRangeWithPagination&args=1&args=2&args=3&args",
+									"raw": "{{env_baseURL}}/query?channel=trustchain-test&chaincode=te-food-bundles&function=BundleGetRangeWithPagination&args=1&args=2&args=3&args",
 									"host": [
-										"{{baseURL}}"
+										"{{env_baseURL}}"
 									],
 									"path": [
 										"query"
@@ -744,9 +750,9 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{baseURL}}/query?channel=trustchain-test&chaincode=te-food-bundles&function=BundleHistory&args=7",
+									"raw": "{{env_baseURL}}/query?channel=trustchain-test&chaincode=te-food-bundles&function=BundleHistory&args=7",
 									"host": [
-										"{{baseURL}}"
+										"{{env_baseURL}}"
 									],
 									"path": [
 										"query"
@@ -791,9 +797,9 @@
 									"formdata": []
 								},
 								"url": {
-									"raw": "{{baseURL}}/query?channel=trustchain-test&chaincode=te-food-bundles&function=BundleQuery&args={\n\t\"selector\": {\n\t\t\"doc_type\": \"bundle\",\n\t\t\"$and\": [{\n\t\t\t\t\"bundle_id\": {\n\t\t\t\t\t\"$gt\": 7\n\t\t\t\t}\n\t\t\t},\n\t\t\t{\n\t\t\t\t\"bundle_id\": {\n\t\t\t\t\t\"$lt\": 21\n\t\t\t\t}\n\t\t\t}\n\t\t]\n\n\n\t},\n\t\"sort\": [{\n\t\t\"bundle_id\": \"desc\"\n\t}],\n\t\"use_index\": \"_design/indexBundleIDDoc\"\n}",
+									"raw": "{{env_baseURL}}/query?channel=trustchain-test&chaincode=te-food-bundles&function=BundleQuery&args={\n\t\"selector\": {\n\t\t\"doc_type\": \"bundle\",\n\t\t\"$and\": [{\n\t\t\t\t\"bundle_id\": {\n\t\t\t\t\t\"$gt\": 7\n\t\t\t\t}\n\t\t\t},\n\t\t\t{\n\t\t\t\t\"bundle_id\": {\n\t\t\t\t\t\"$lt\": 21\n\t\t\t\t}\n\t\t\t}\n\t\t]\n\n\n\t},\n\t\"sort\": [{\n\t\t\"bundle_id\": \"desc\"\n\t}],\n\t\"use_index\": \"_design/indexBundleIDDoc\"\n}",
 									"host": [
-										"{{baseURL}}"
+										"{{env_baseURL}}"
 									],
 									"path": [
 										"query"
@@ -856,9 +862,9 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{baseURL}}/query?channel=trustchain-test&chaincode=te-food-bundles&function=BundleQueryWithPagination&args={\n\t\"selector\": {\n\t\t\"doc_type\": \"bundle\",\n\t\t\"$and\": [{\n\t\t\t\t\"bundle_id\": {\n\t\t\t\t\t\"$gt\": 7\n\t\t\t\t}\n\t\t\t},\n\t\t\t{\n\t\t\t\t\"bundle_id\": {\n\t\t\t\t\t\"$lt\": 21\n\t\t\t\t}\n\t\t\t}\n\t\t]\n\t},\n\t\"sort\": [{\n\t\t\"bundle_id\": \"desc\"\n\t}],\n\t\"use_index\": \"_design/indexBundleIDDoc\"\n}&args=4&args=",
+									"raw": "{{env_baseURL}}/query?channel=trustchain-test&chaincode=te-food-bundles&function=BundleQueryWithPagination&args={\n\t\"selector\": {\n\t\t\"doc_type\": \"bundle\",\n\t\t\"$and\": [{\n\t\t\t\t\"bundle_id\": {\n\t\t\t\t\t\"$gt\": 7\n\t\t\t\t}\n\t\t\t},\n\t\t\t{\n\t\t\t\t\"bundle_id\": {\n\t\t\t\t\t\"$lt\": 21\n\t\t\t\t}\n\t\t\t}\n\t\t]\n\t},\n\t\"sort\": [{\n\t\t\"bundle_id\": \"desc\"\n\t}],\n\t\"use_index\": \"_design/indexBundleIDDoc\"\n}&args=4&args=",
 									"host": [
-										"{{baseURL}}"
+										"{{env_baseURL}}"
 									],
 									"path": [
 										"query"
@@ -934,9 +940,9 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{baseURL}}/query?channel=trustchain-test&chaincode=te-food-bundles&function=BundleValidate&args={\n\t\"data_base64\": \"ewoJImZvbyI6IDEKfQ==\",\n\t\"data_hash\": \"5936fee60e0930c8a8e47fadf8bec5b5868642ad179003fec555fa81203cbc52\"\n}",
+									"raw": "{{env_baseURL}}/query?channel=trustchain-test&chaincode=te-food-bundles&function=BundleValidate&args={\n\t\"data_base64\": \"ewoJImZvbyI6IDEKfQ==\",\n\t\"data_hash\": \"5936fee60e0930c8a8e47fadf8bec5b5868642ad179003fec555fa81203cbc52\"\n}",
 									"host": [
-										"{{baseURL}}"
+										"{{env_baseURL}}"
 									],
 									"path": [
 										"query"
@@ -986,9 +992,9 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{baseURL}}/debug",
+					"raw": "{{env_baseURL}}/debug",
 					"host": [
-						"{{baseURL}}"
+						"{{env_baseURL}}"
 					],
 					"path": [
 						"debug"
@@ -1003,9 +1009,9 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{baseURL}}/dummy",
+					"raw": "{{env_baseURL}}/dummy",
 					"host": [
-						"{{baseURL}}"
+						"{{env_baseURL}}"
 					],
 					"path": [
 						"dummy"
@@ -1023,7 +1029,7 @@
 				"exec": [
 					"pm.request.headers.add({ ",
 					"    key: \"X-API-Key\",",
-					"    value: \"{{apiKey}}\" ",
+					"    value: \"{{env_apiKey}}\" ",
 					"});"
 				]
 			}

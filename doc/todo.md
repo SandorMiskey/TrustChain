@@ -2,6 +2,8 @@
 
 ## now
 
+* rawapi batch process
+
 ## later
 
 * tcRawapiBatch.sh reconfirm?
