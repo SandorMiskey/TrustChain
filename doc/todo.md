@@ -2,7 +2,11 @@
 
 ## now
 
+* no "form" in rawapi responses
 * rawapi batch process
+  * query
+  * invoke
+  * MaxRequestBodySize: math.MaxInt32
 
 ## later
 

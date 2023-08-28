@@ -47,7 +47,8 @@ type message struct {
 	ID     string      `json:"tx_id"`
 	Status string      `json:"status"`
 	Result interface{} `json:"result"`
-	Form   *form       `json:"form"`
+	Form   *form       `json:"-"`
+	// Form   *form       `json:"form"`
 }
 
 type messageError struct {
