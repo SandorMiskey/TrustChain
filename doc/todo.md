@@ -7,6 +7,12 @@
   * query
   * invoke
   * MaxRequestBodySize: math.MaxInt32
+* delete tc2-test-worker2
+* delete legacy FoodChain
+  * Contabo
+  * AWS (all availability zones)
+  * Vultr
+  * OVH
 
 ## later
 

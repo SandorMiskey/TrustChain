@@ -9,6 +9,7 @@
     "CHPORT",
     "configtxgen",
     "configtxlator",
+    "Contabo",
     "contractapi",
     "erba",
     "fasthttprouter",
@@ -45,6 +46,7 @@
     "tlsca",
     "TLSCERTPATH",
     "trustchain",
+    "Vultr",
     "workerx",
     "xlarge"
   ],
