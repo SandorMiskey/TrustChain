@@ -426,7 +426,7 @@ function confirm() {
 	fi
 
 	# check for header
-	output[3]=$( echo ${output[3]} | jq -r -c .result.header 2>&1 )
+	output[3]=$( echo ${output[3]} | jq -r -c '.result.header + {timestamp: .result.data.data[0].payload.header.channel_header.timestamp} + {length: .result.data.data | length}' 2>&1 )
 	if [ $? -ne 0 ] || [ -z ${output[3]} ] || [ "${output[3]}" = "null" ]; then
 		output[0]="CONFIRM_ERROR_HEADER"
 		output[3]=$( echo ${output[3]} | tr -d '\n' )
