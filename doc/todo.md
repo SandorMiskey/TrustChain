@@ -2,12 +2,10 @@
 
 ## now
 
-* no "form" in rawapi responses
 * rawapi batch process
   * query
   * invoke
   * MaxRequestBodySize: math.MaxInt32
-* delete tc2-test-worker2
 * delete legacy FoodChain
   * Contabo
   * AWS (all availability zones)
@@ -37,9 +35,3 @@
   * operations certs in localMSP dirs
 * CSR in fabric-ca-server config (and in -client config?)
 * what if orderer1-admin not admin @tls-ca
-* renames?
-  * Cn -> CAn
-  * Dn -> DBn
-  * Pn -> PEERn
-  * On -> ORDERERn
-  * Sn -> SERVICEn

@@ -59,6 +59,11 @@ commonPrintf "
 $( docker service ls --format 'table{{.Name}}\t{{.Mode}}\t{{.Replicas}}' )"
 
 commonPrintf " "
+commonPrintf "services per node"
+commonPrintf " "
+for node in `docker node ls --format "{{.Hostname}}"`; do docker node ps $node --format "table{{.Node}}\t{{.Name}}\t{{.CurrentState}}"; echo; done
+
+commonPrintf " "
 commonPrintf "loads"
 commonPrintf " "
 commonIterate _load "ignore|checking |array|node|:" "${TC_SWARM_MANAGERS[@]}" "${TC_SWARM_WORKERS[@]}"
