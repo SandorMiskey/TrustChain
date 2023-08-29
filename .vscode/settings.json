@@ -32,7 +32,10 @@
     "ORGNAME",
     "PEERENDPOINT",
     "protobuf",
+    "protofile",
     "protolator",
+    "protoreflect",
+    "protoregistry",
     "qscc",
     "Rasa",
     "rasaexec",
@@ -46,8 +49,10 @@
     "tlsca",
     "TLSCERTPATH",
     "trustchain",
+    "unmarshalling",
     "Vultr",
     "workerx",
+    "Wrapf",
     "xlarge"
   ],
   "cSpell.ignoreWords": [

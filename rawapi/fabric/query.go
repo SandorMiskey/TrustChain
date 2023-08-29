@@ -10,13 +10,7 @@ import (
 
 	"github.com/SandorMiskey/TEx-kit/log"
 	"github.com/SandorMiskey/TrustChain/rawapi/http"
-
 	"github.com/valyala/fasthttp"
-	// "google.golang.org/protobuf/proto"
-	// pb "github.com/hyperledger/fabric-protos-go/peer"
-	// "github.com/golang/protobuf/dynamic"
-	// "github.com/golang/protobuf/proto"
-	// "github.com/hyperledger/fabric-gateway/pkg/client"
 )
 
 // endregion: packages
@@ -95,6 +89,45 @@ func (setup *OrgSetup) Query(ctx *fasthttp.RequestCtx) {
 
 	if len(request.form.ProtoDecode) > 0 {
 		logger(log.LOG_DEBUG, response.CTX.ID(), "ProtoDecode", request.form.ProtoDecode)
+
+		// os.WriteFile("protofile", resultByte, 0644)
+		// err := errors.New("dump")
+		// request.error(err)
+		// return
+
+		// mt, err := protoregistry.GlobalTypes.FindMessageByName(protoreflect.FullName(request.form.ProtoDecode))
+		// if err != nil {
+		// 	errors.Wrapf(err, "error encode input")
+		// 	request.error(err)
+		// 	return
+		// }
+
+		// msgType := reflect.TypeOf(proto.MessageV1(mt.Zero().Interface()))
+
+		// if msgType == nil {
+		// 	err = errors.Errorf("message of type %s unknown", msgType)
+		// 	request.error(err)
+		// 	return
+		// }
+		// msg := reflect.New(msgType.Elem()).Interface().(proto.Message)
+
+		// err = proto.Unmarshal(resultByte, msg)
+		// if err != nil {
+		// 	errors.Wrapf(err, "error unmarshalling")
+		// 	request.error(err)
+		// 	return
+		// }
+
+		// var output io.Writer
+		// err = protolator.DeepMarshalJSON(output, msg)
+		// if err != nil {
+		// 	errors.Wrapf(err, "error encoding output")
+		// 	request.error(err)
+		// 	return
+		// }
+
+		// err = errors.New("checkpoint")
+		// request.error(err)
 
 		cmd := exec.Command("configtxlator", "proto_decode", "--input=/dev/stdin", "--type="+request.form.ProtoDecode)
 		cmdIn, err := cmd.StdinPipe()

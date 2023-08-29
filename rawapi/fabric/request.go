@@ -10,16 +10,11 @@ import (
 	"github.com/SandorMiskey/TEx-kit/log"
 	"github.com/SandorMiskey/TrustChain/rawapi/http"
 	"github.com/hyperledger/fabric-gateway/pkg/client"
+
 	"github.com/hyperledger/fabric-protos-go-apiv2/gateway"
 	"github.com/valyala/fasthttp"
 	"google.golang.org/grpc/status"
 )
-
-// 	"github.com/SandorMiskey/TEx-kit/log"
-// 	"github.com/hyperledger/fabric-gateway/pkg/client"
-// 	"github.com/hyperledger/fabric-protos-go-apiv2/gateway"
-// 	"github.com/valyala/fasthttp"
-// 	"google.golang.org/grpc/status"
 
 // endregion: packages
 
