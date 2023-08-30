@@ -95,40 +95,6 @@ func (setup *OrgSetup) Query(ctx *fasthttp.RequestCtx) {
 		// request.error(err)
 		// return
 
-		// mt, err := protoregistry.GlobalTypes.FindMessageByName(protoreflect.FullName(request.form.ProtoDecode))
-		// if err != nil {
-		// 	errors.Wrapf(err, "error encode input")
-		// 	request.error(err)
-		// 	return
-		// }
-
-		// msgType := reflect.TypeOf(proto.MessageV1(mt.Zero().Interface()))
-
-		// if msgType == nil {
-		// 	err = errors.Errorf("message of type %s unknown", msgType)
-		// 	request.error(err)
-		// 	return
-		// }
-		// msg := reflect.New(msgType.Elem()).Interface().(proto.Message)
-
-		// err = proto.Unmarshal(resultByte, msg)
-		// if err != nil {
-		// 	errors.Wrapf(err, "error unmarshalling")
-		// 	request.error(err)
-		// 	return
-		// }
-
-		// var output io.Writer
-		// err = protolator.DeepMarshalJSON(output, msg)
-		// if err != nil {
-		// 	errors.Wrapf(err, "error encoding output")
-		// 	request.error(err)
-		// 	return
-		// }
-
-		// err = errors.New("checkpoint")
-		// request.error(err)
-
 		cmd := exec.Command("configtxlator", "proto_decode", "--input=/dev/stdin", "--type="+request.form.ProtoDecode)
 		cmdIn, err := cmd.StdinPipe()
 		if err != nil {

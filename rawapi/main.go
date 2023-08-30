@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/syslog"
 	"os"
+	"os/exec"
 	"sync"
 
 	"github.com/SandorMiskey/TEx-kit/cfg"
@@ -75,6 +76,11 @@ func main() {
 		"tc_rawapi_http_logAllErrors":       {Desc: "enable http", Type: "bool", Def: true},
 		"tc_rawapi_http_maxRequestBodySize": {Desc: "http max request body size ", Type: "int", Def: 4 * 1024 * 1024},
 		"tc_rawapi_http_networkProto":       {Desc: "network protocol must be 'tcp', 'tcp4', 'tcp6', 'unix' or 'unixpacket'", Type: "string", Def: "tcp"},
+
+		"tc_rawapi_lator_which":   {Desc: "path to configtxlator", Type: "string", Def: "/usr/local/bin/configtxlator"},
+		"tc_rawapi_lator_bind":    {Desc: "address to bind configtxlator's rest api to", Type: "string", Def: "127.0.0.1"},
+		"tc_rawapi_lator_port":    {Desc: "port where configtxlator will listen", Type: "int", Def: 9999},
+		"tc_rawapi_lator_enabled": {Desc: "enable configtxlator rest api", Type: "bool", Def: true},
 
 		"tc_rawapi_LogLevel": {Desc: "Logger min severity", Type: "int", Def: 7},
 
@@ -151,6 +157,22 @@ func main() {
 	Logger.Out(LOG_DEBUG, fmt.Sprintf("OrgInstance: %+v\n", OrgInstance))
 
 	// endregion: fabric gw
+	// region: configtxlator
+
+	if Config.Entries["tc_rawapi_lator_enabled"].Value.(bool) {
+		bin := Config.Entries["tc_rawapi_lator_which"].Value.(string)
+		adr := fmt.Sprintf("--hostname=%s", Config.Entries["tc_rawapi_lator_bind"].Value.(string))
+		prt := fmt.Sprintf("--port=%d", Config.Entries["tc_rawapi_lator_port"].Value.(int))
+		cmd := exec.Command(bin, "start", adr, prt)
+		err := cmd.Start()
+		if err != nil {
+			Logger.Out(LOG_EMERG, fmt.Sprintf("error initializing configtxlator: %s", err))
+			panic(err)
+		}
+		Logger.Out(LOG_INFO, fmt.Sprintf("%s (%d) initialized wiht %s and %s", bin, cmd.Process.Pid, adr, prt))
+	}
+
+	// endregion: configtxlator
 	// region: http routing
 
 	// region: router
