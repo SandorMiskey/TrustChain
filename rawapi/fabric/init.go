@@ -18,42 +18,57 @@ import (
 )
 
 type OrgSetup struct {
-	OrgName      string          `json:"OrgName"`
-	MSPID        string          `json:"MSPID"`
-	CertPath     string          `json:"CertPath"`
-	KeyPath      string          `json:"KeyPath"`
-	TLSCertPath  string          `json:"TLSCertPath"`
-	PeerEndpoint string          `json:"PeerEndpoint"`
-	GatewayPeer  string          `json:"GatewayPeer"`
-	gateway      *client.Gateway `json:"-"`
-	Logger       *log.Logger     `json:"-"`
+	CertPath     string      `json:"CertPath"`
+	GatewayPeer  string      `json:"GatewayPeer"`
+	KeyPath      string      `json:"KeyPath"`
+	Lator        *Lator      `json:"Lator"`
+	Logger       *log.Logger `json:"-"`
+	MSPID        string      `json:"MSPID"`
+	OrgName      string      `json:"OrgName"`
+	PeerEndpoint string      `json:"PeerEndpoint"`
+	TLSCertPath  string      `json:"TLSCertPath"`
+
+	gateway *client.Gateway `json:"-"`
 }
 
 // Initialize the setup for the organization.
-func (setup *OrgSetup) Init() (*OrgSetup, error) {
+func (s *OrgSetup) Init() (*OrgSetup, error) {
 
-	// region: check for logger
+	// region: logger
 
-	if setup.Logger == nil {
-		return setup, errors.New("OrgSetup.Init() needs a logger")
+	if s.Logger == nil {
+		return s, errors.New("OrgSetup.Init() needs a logger")
 	}
-	logger := setup.Logger.Out
+	logger := s.Logger.Out
+	logger(log.LOG_INFO, fmt.Sprintf("initializing connection for %s...", s.OrgName))
 
 	// endregion: logger
+	// region: configtxlator
 
-	logger(log.LOG_INFO, fmt.Sprintf("initializing connection for %s...", setup.OrgName))
+	if s.Lator.Exe == nil {
+		_, err := s.Lator.Init()
+		if err != nil {
+			logger(log.LOG_EMERG, "error initializing configtxlator instance", err, s.Lator)
+			panic(err)
+		}
+		logger(log.LOG_DEBUG, "configtxlator instance", s.Lator)
 
-	clientConnection, err := setup.newGrpcConnection()
-	if err != nil {
-		return setup, err
 	}
-	id, err := setup.newIdentity()
+
+	// endregion: configtxlator
+	// region: connection and gateway
+
+	clientConnection, err := s.newGrpcConnection()
 	if err != nil {
-		return setup, err
+		return s, err
 	}
-	sign, err := setup.newSign()
+	id, err := s.newIdentity()
 	if err != nil {
-		return setup, err
+		return s, err
+	}
+	sign, err := s.newSign()
+	if err != nil {
+		return s, err
 	}
 
 	gateway, err := client.Connect(
@@ -66,11 +81,18 @@ func (setup *OrgSetup) Init() (*OrgSetup, error) {
 		client.WithCommitStatusTimeout(1*time.Minute),
 	)
 	if err != nil {
-		return setup, err
+		return s, err
 	}
-	setup.gateway = gateway
+	s.gateway = gateway
+
+	// endregion: connection and gateway
+	// region: out
+
 	logger(log.LOG_INFO, "initialization complete")
-	return setup, nil
+	return s, nil
+
+	// endregion: out
+
 }
 
 func (setup *OrgSetup) validate(response *http.Response) error {

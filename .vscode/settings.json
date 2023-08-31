@@ -18,6 +18,7 @@
     "Gluster",
     "glusterd",
     "glusterfs",
+    "Inited",
     "instancelist",
     "instanceregister",
     "instanceroot",

@@ -17,6 +17,8 @@ commonPP $TC_PATH_SCRIPTS
 # endregion: config
 
 export TC_RAWAPI_LATOR_WHICH=${TC_PATH_BIN}/configtxlator
+# export TC_RAWAPI_LATOR_WHICH=""
+# export TC_RAWAPI_LATOR_BIND=""
 export TC_RAWAPI_KEY=$TC_HTTP_API_KEY
 export TC_RAWAPI_HTTPS_CERT=$TC_HTTPS_CERT
 export TC_RAWAPI_HTTPS_KEY=$TC_HTTPS_KEY

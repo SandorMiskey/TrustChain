@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log/syslog"
 	"os"
-	"os/exec"
 	"sync"
 
 	"github.com/SandorMiskey/TEx-kit/cfg"
@@ -20,15 +19,15 @@ import (
 )
 
 // endregion: packages
-// region: global variables
+// region: global, const
 
 var (
 	// Db     *db.Db
-	Config         cfg.Config
-	Logger         log.Logger
-	OrgInstance    fabric.OrgSetup
-	ServerInstance http.ServerSetup
-	RouterInstance http.RouterSetup
+	config cfg.Config
+	logger log.Logger
+	org    fabric.OrgSetup
+	server http.ServerSetup
+	router http.RouterSetup
 )
 
 const (
@@ -39,14 +38,14 @@ const (
 	LOG_EMERG  syslog.Priority = log.LOG_EMERG
 )
 
-// endregion: globals
+// endregion: const
 
 func main() {
 
 	// region: config and cli flags
 
-	Config = *cfg.NewConfig(os.Args[0])
-	flagSet := Config.NewFlagSet(os.Args[0])
+	config := *cfg.NewConfig(os.Args[0])
+	flagSet := config.NewFlagSet(os.Args[0])
 	flagSet.Entries = map[string]cfg.Entry{
 		// "dbAddr":        {Desc: "database address", Type: "string", Def: "/app/mgmt.db"},
 		// "dbName":        {Desc: "database name", Type: "string", Def: "mgmt"},
@@ -77,10 +76,9 @@ func main() {
 		"tc_rawapi_http_maxRequestBodySize": {Desc: "http max request body size ", Type: "int", Def: 4 * 1024 * 1024},
 		"tc_rawapi_http_networkProto":       {Desc: "network protocol must be 'tcp', 'tcp4', 'tcp6', 'unix' or 'unixpacket'", Type: "string", Def: "tcp"},
 
-		"tc_rawapi_lator_which":   {Desc: "path to configtxlator", Type: "string", Def: "/usr/local/bin/configtxlator"},
-		"tc_rawapi_lator_bind":    {Desc: "address to bind configtxlator's rest api to", Type: "string", Def: "127.0.0.1"},
-		"tc_rawapi_lator_port":    {Desc: "port where configtxlator will listen", Type: "int", Def: 9999},
-		"tc_rawapi_lator_enabled": {Desc: "enable configtxlator rest api", Type: "bool", Def: true},
+		"tc_rawapi_lator_which": {Desc: "path to configtxlator (if empty, will dump protobuf as base64 encoded string)", Type: "string", Def: "/usr/local/bin/configtxlator"},
+		"tc_rawapi_lator_bind":  {Desc: "address to bind configtxlator's rest api to", Type: "string", Def: "127.0.0.1"},
+		"tc_rawapi_lator_port":  {Desc: "port where configtxlator will listen", Type: "int", Def: 1337},
 
 		"tc_rawapi_LogLevel": {Desc: "Logger min severity", Type: "int", Def: 7},
 
@@ -101,11 +99,11 @@ func main() {
 	// endregion: cli flags
 	// region: logger
 
-	logLevel := syslog.Priority(Config.Entries["tc_rawapi_LogLevel"].Value.(int))
+	logLevel := syslog.Priority(config.Entries["tc_rawapi_LogLevel"].Value.(int))
 
-	Logger = *log.NewLogger()
-	defer Logger.Close()
-	_, _ = Logger.NewCh(log.ChConfig{Severity: &logLevel})
+	logger = *log.NewLogger()
+	defer logger.Close()
+	_, _ = logger.NewCh(log.ChConfig{Severity: &logLevel})
 
 	// endregion: logger
 	// region: db
@@ -135,77 +133,77 @@ func main() {
 	*/
 
 	// endregion: db
-	// region: fabric gw
-
-	OrgInstance = fabric.OrgSetup{
-		OrgName:      Config.Entries["tc_rawapi_orgName"].Value.(string),
-		MSPID:        Config.Entries["tc_rawapi_MSPID"].Value.(string),
-		CertPath:     Config.Entries["tc_rawapi_certPath"].Value.(string),
-		KeyPath:      Config.Entries["tc_rawapi_keyPath"].Value.(string),
-		TLSCertPath:  Config.Entries["tc_rawapi_TLSCertPath"].Value.(string),
-		PeerEndpoint: Config.Entries["tc_rawapi_peerEndpoint"].Value.(string),
-		GatewayPeer:  Config.Entries["tc_rawapi_gatewayPeer"].Value.(string),
-		Logger:       &Logger,
-	}
-	Logger.Out(LOG_DEBUG, fmt.Sprintf("OrgSetup: %+v\n", OrgInstance))
-
-	_, err = OrgInstance.Init()
-	if err != nil {
-		Logger.Out(LOG_EMERG, fmt.Sprintf("error initializing setup for %s: %s", OrgInstance.OrgName, err))
-		panic(err)
-	}
-	Logger.Out(LOG_DEBUG, fmt.Sprintf("OrgInstance: %+v\n", OrgInstance))
-
-	// endregion: fabric gw
 	// region: configtxlator
 
-	if Config.Entries["tc_rawapi_lator_enabled"].Value.(bool) {
-		bin := Config.Entries["tc_rawapi_lator_which"].Value.(string)
-		adr := fmt.Sprintf("--hostname=%s", Config.Entries["tc_rawapi_lator_bind"].Value.(string))
-		prt := fmt.Sprintf("--port=%d", Config.Entries["tc_rawapi_lator_port"].Value.(int))
-		cmd := exec.Command(bin, "start", adr, prt)
-		err := cmd.Start()
-		if err != nil {
-			Logger.Out(LOG_EMERG, fmt.Sprintf("error initializing configtxlator: %s", err))
-			panic(err)
-		}
-		Logger.Out(LOG_INFO, fmt.Sprintf("%s (%d) initialized wiht %s and %s", bin, cmd.Process.Pid, adr, prt))
+	lator := fabric.Lator{
+		Bind:  config.Entries["tc_rawapi_lator_bind"].Value.(string),
+		Port:  config.Entries["tc_rawapi_lator_port"].Value.(int),
+		Which: config.Entries["tc_rawapi_lator_which"].Value.(string),
 	}
+	_, err = lator.Init()
+	if err != nil {
+		logger.Out(LOG_EMERG, "error initializing configtxlator instance", err, lator)
+		panic(err)
+	}
+	logger.Out(LOG_DEBUG, "configtxlator instance", lator)
 
 	// endregion: configtxlator
+	// region: fabric gw
+
+	org = fabric.OrgSetup{
+		CertPath:     config.Entries["tc_rawapi_certPath"].Value.(string),
+		GatewayPeer:  config.Entries["tc_rawapi_gatewayPeer"].Value.(string),
+		KeyPath:      config.Entries["tc_rawapi_keyPath"].Value.(string),
+		Logger:       &logger,
+		Lator:        &lator,
+		MSPID:        config.Entries["tc_rawapi_MSPID"].Value.(string),
+		OrgName:      config.Entries["tc_rawapi_orgName"].Value.(string),
+		PeerEndpoint: config.Entries["tc_rawapi_peerEndpoint"].Value.(string),
+		TLSCertPath:  config.Entries["tc_rawapi_TLSCertPath"].Value.(string),
+	}
+	logger.Out(LOG_DEBUG, "OrgSetup", org)
+
+	_, err = org.Init()
+	if err != nil {
+		logger.Out(LOG_EMERG, fmt.Sprintf("error initializing setup for %s: %s", org.OrgName, err))
+		panic(err)
+	}
+	logger.Out(LOG_DEBUG, fmt.Sprintf("OrgInstance: %+v\n", org))
+
+	// endregion: fabric gw
 	// region: http routing
 
 	// region: router
 
-	RouterInstance = http.RouterSetup{
-		Logger:        &Logger,
-		Key:           Config.Entries["tc_rawapi_key"].Value.(string),
-		StaticEnabled: Config.Entries["tc_rawapi_http_static_enabled"].Value.(bool),
-		StaticRoot:    Config.Entries["tc_rawapi_http_static_root"].Value.(string),
-		StaticIndex:   Config.Entries["tc_rawapi_http_static_index"].Value.(string),
-		StaticError:   Config.Entries["tc_rawapi_http_static_error"].Value.(string),
+	router = http.RouterSetup{
+		Logger:        &logger,
+		Key:           config.Entries["tc_rawapi_key"].Value.(string),
+		StaticEnabled: config.Entries["tc_rawapi_http_static_enabled"].Value.(bool),
+		StaticRoot:    config.Entries["tc_rawapi_http_static_root"].Value.(string),
+		StaticIndex:   config.Entries["tc_rawapi_http_static_index"].Value.(string),
+		StaticError:   config.Entries["tc_rawapi_http_static_error"].Value.(string),
 	}
-	Logger.Out(LOG_DEBUG, fmt.Sprintf("RouterSetup: %+v\n", RouterInstance))
+	logger.Out(LOG_DEBUG, fmt.Sprintf("RouterSetup: %+v\n", router))
 
-	_, err = RouterInstance.RouterInit()
+	_, err = router.RouterInit()
 	if err != nil {
-		Logger.Out(LOG_EMERG, fmt.Sprintf("error in http:RouterInit(): %s (%+v)", err, RouterInstance))
+		logger.Out(LOG_EMERG, fmt.Sprintf("error in http:RouterInit(): %s (%+v)", err, router))
 		panic(err)
 	}
-	Logger.Out(LOG_DEBUG, fmt.Sprintf("RouterInstance: %+v\n", RouterInstance))
+	logger.Out(LOG_DEBUG, fmt.Sprintf("RouterInstance: %+v\n", router))
 
 	// endregion: router
 	// region: routes
 
-	Routes := RouterInstance.Routes
+	Routes := router.Routes
 
-	Routes.POST("/invoke", OrgInstance.Invoke)
-	Routes.GET("/query", OrgInstance.Query)
+	Routes.POST("/invoke", org.Invoke)
+	Routes.GET("/query", org.Query)
 	Routes.GET("/debug", debugSupersetGET)
 	Routes.GET("/dummy", func(ctx *fasthttp.RequestCtx) {
 		r := &http.Response{
 			CTX:     ctx,
-			Logger:  &Logger,
+			Logger:  &logger,
 			Status:  200,
 			Message: fmt.Errorf("dummy text"),
 		}
@@ -219,29 +217,29 @@ func main() {
 
 	var wg sync.WaitGroup
 
-	ServerInstance = http.ServerSetup{
-		HttpEnabled:        Config.Entries["tc_rawapi_http_enabled"].Value.(bool),
-		HttpPort:           Config.Entries["tc_rawapi_http_port"].Value.(int),
-		HttpsEnabled:       Config.Entries["tc_rawapi_https_enabled"].Value.(bool),
-		HttpsPort:          Config.Entries["tc_rawapi_https_port"].Value.(int),
-		HttpsCert:          Config.Entries["tc_rawapi_https_cert"].Value.(string),
-		HttpsKey:           Config.Entries["tc_rawapi_https_key"].Value.(string),
-		LogAllErrors:       Config.Entries["tc_rawapi_http_logAllErrors"].Value.(bool),
-		Logger:             &Logger,
-		MaxRequestBodySize: Config.Entries["tc_rawapi_http_maxRequestBodySize"].Value.(int),
-		Name:               Config.Entries["tc_rawapi_http_name"].Value.(string),
-		NetworkProto:       Config.Entries["tc_rawapi_http_networkProto"].Value.(string),
-		Router:             RouterInstance.Router,
+	server = http.ServerSetup{
+		HttpEnabled:        config.Entries["tc_rawapi_http_enabled"].Value.(bool),
+		HttpPort:           config.Entries["tc_rawapi_http_port"].Value.(int),
+		HttpsEnabled:       config.Entries["tc_rawapi_https_enabled"].Value.(bool),
+		HttpsPort:          config.Entries["tc_rawapi_https_port"].Value.(int),
+		HttpsCert:          config.Entries["tc_rawapi_https_cert"].Value.(string),
+		HttpsKey:           config.Entries["tc_rawapi_https_key"].Value.(string),
+		LogAllErrors:       config.Entries["tc_rawapi_http_logAllErrors"].Value.(bool),
+		Logger:             &logger,
+		MaxRequestBodySize: config.Entries["tc_rawapi_http_maxRequestBodySize"].Value.(int),
+		Name:               config.Entries["tc_rawapi_http_name"].Value.(string),
+		NetworkProto:       config.Entries["tc_rawapi_http_networkProto"].Value.(string),
+		Router:             router.Router,
 		WaitGroup:          &wg,
 	}
-	Logger.Out(LOG_DEBUG, fmt.Sprintf("ServerSetup: %+v\n", ServerInstance))
+	logger.Out(LOG_DEBUG, fmt.Sprintf("ServerSetup: %+v\n", server))
 
-	_, err = ServerInstance.ServerLaunch()
+	_, err = server.ServerLaunch()
 	if err != nil {
-		Logger.Out(LOG_EMERG, fmt.Sprintf("error initializing server for %s: %s", ServerInstance.Name, err))
+		logger.Out(LOG_EMERG, fmt.Sprintf("error initializing server for %s: %s", server.Name, err))
 		panic(err)
 	}
-	Logger.Out(LOG_DEBUG, fmt.Sprintf("ServerInstance: %+v\n", ServerInstance))
+	logger.Out(LOG_DEBUG, fmt.Sprintf("ServerInstance: %+v\n", server))
 
 	wg.Wait()
 
@@ -260,12 +258,12 @@ func debugSupersetGET(ctx *fasthttp.RequestCtx) {
 	}
 	response := &http.Response{
 		Message: &superset{
-			Config: &Config,
-			Org:    &OrgInstance,
-			Server: &ServerInstance,
-			Router: &RouterInstance,
+			Config: &config,
+			Org:    &org,
+			Server: &server,
+			Router: &router,
 		},
-		Logger: &Logger,
+		Logger: &logger,
 		CTX:    ctx,
 	}
 	response.SendJSON(nil)

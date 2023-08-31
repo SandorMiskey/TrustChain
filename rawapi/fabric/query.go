@@ -5,8 +5,6 @@ package fabric
 import (
 	"encoding/json"
 	"fmt"
-	"io"
-	"os/exec"
 
 	"github.com/SandorMiskey/TEx-kit/log"
 	"github.com/SandorMiskey/TrustChain/rawapi/http"
@@ -85,9 +83,10 @@ func (setup *OrgSetup) Query(ctx *fasthttp.RequestCtx) {
 	}
 
 	// endregion: prepare message
-	// region: deconstruct result
+	// region: protobuf decode
 
 	if len(request.form.ProtoDecode) > 0 {
+
 		logger(log.LOG_DEBUG, response.CTX.ID(), "ProtoDecode", request.form.ProtoDecode)
 
 		// os.WriteFile("protofile", resultByte, 0644)
@@ -95,31 +94,20 @@ func (setup *OrgSetup) Query(ctx *fasthttp.RequestCtx) {
 		// request.error(err)
 		// return
 
-		cmd := exec.Command("configtxlator", "proto_decode", "--input=/dev/stdin", "--type="+request.form.ProtoDecode)
-		cmdIn, err := cmd.StdinPipe()
+		res, err := setup.Lator.Exe(resultByte, request.form.ProtoDecode)
+
 		if err != nil {
 			logger(log.LOG_ERR, response.CTX.ID(), err)
 			request.error(err)
 			return
 		}
-		cmdOut, err := cmd.StdoutPipe()
-		if err != nil {
-			logger(log.LOG_ERR, response.CTX.ID(), err)
-			request.error(err)
-			return
-		}
-		cmd.Start()
-		cmdIn.Write(resultByte)
-		cmdIn.Close()
-		cmdBytes, err := io.ReadAll(cmdOut)
-		if err != nil {
-			logger(log.LOG_ERR, response.CTX.ID(), err)
-			request.error(err)
-			return
-		}
-		cmd.Wait()
-		resultByte = cmdBytes
+
+		resultByte = res
+
 	}
+
+	// endregion: protobuf
+	// region: deconstruct result
 
 	var rawData json.RawMessage
 

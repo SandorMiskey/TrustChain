@@ -2,11 +2,12 @@
 
 ## now
 
+* tcRawapiBatch -> go implementation (w/ continuous batch process)
 * rawapi batch process
   * query
   * invoke
   * MaxRequestBodySize: math.MaxInt32
-* delete legacy FoodChain
+* delete legacy
   * Contabo
   * AWS (all availability zones)
   * Vultr
