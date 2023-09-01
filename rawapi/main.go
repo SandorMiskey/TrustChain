@@ -44,7 +44,7 @@ func main() {
 
 	// region: config and cli flags
 
-	config := *cfg.NewConfig(os.Args[0])
+	config = *cfg.NewConfig(os.Args[0])
 	flagSet := config.NewFlagSet(os.Args[0])
 	flagSet.Entries = map[string]cfg.Entry{
 		// "dbAddr":        {Desc: "database address", Type: "string", Def: "/app/mgmt.db"},
