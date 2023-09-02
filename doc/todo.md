@@ -2,8 +2,13 @@
 
 ## now
 
-* tcRawapiBatch -> go implementation
-  * compare sh/go confirm
+* tcRawapiBatch -> go gateway || sdk implementation
+  * gateway: rawapi
+  * sdk: fabric-samples
+    * asset-transfer-basic/application-go
+    * high-throughput/application-go
+* tcRawapiBatch -> go gateway implementation over http
+  * confirm: common client, req & resp [https://gist.github.com/erikdubbelboer/fe4095419fca55e2c92b3d0432ccd7fc]
   * submit
   * resubmit
 * continuous batch process

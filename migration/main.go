@@ -131,8 +131,8 @@ func main() {
 		defer Logger.Close()
 		Lout = Logger.Out
 		modeConfirm()
-	// case "confirmPsvToJson":
-	// 	helperPanic("implemented yet")
+	case "confirmPsvToJson":
+		helperPanic("implemented yet")
 	case "help", "-h", "--help":
 		Mode = ""
 		msg := helperUsage(fs.FlagSet)
@@ -591,7 +591,7 @@ func helperUsage(fs *flag.FlagSet) func() {
 			fmt.Println("")
 			fmt.Println("modes:")
 			fmt.Println("  confirm           iterates over the output of submit/resubmit and query for block number and data hash against qscc's GetBlockByTxID()")
-			// fmt.Println("  confirmPsvToJson  iterates over the output of submit/resubmit and query for block number and data hash against qscc's GetBlockByTxID()")
+			fmt.Println("  confirmPsvToJson  Convert PSV format to JSON for server-side batch processing")
 			fmt.Println("  resubmit          iterates over the output of submit and resubmits unsuccessful submits")
 			fmt.Println("  submit            iterates over input batch and submit line by line")
 			fmt.Println("")
