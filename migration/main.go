@@ -53,6 +53,7 @@ const (
 	STATUS_CONFIRM_ERROR_CLIENT string = STATUS_CONFIRM_ERROR_PREFIX + "CLIENT"
 	STATUS_CONFIRM_ERROR_HEADER string = STATUS_CONFIRM_ERROR_PREFIX + "HEADER"
 	STATUS_CONFIRM_200          string = "CONFIRM_200"
+	STATUS_PARSE_ERROR          string = "PARSE_ERROR"
 	STATUS_SUBMIT_200           string = "SUBMIT_200"
 
 	TXID string = "^[a-fA-F0-9]{64}$"
@@ -109,7 +110,7 @@ func main() {
 		"channel":         {Desc: "set [string] as channel id", Type: "string", Def: "trustchain-test"},
 		"host":            {Desc: "api host in http(s)://host:port format", Type: "string", Def: "http://localhost:5088"},
 		"loglevel":        {Desc: "loglevel as syslog.Priority", Type: "int", Def: 6},
-		"output":          {Desc: "path for output, empty means stdout", Type: "string", Def: ""},
+		"out":             {Desc: "path for output, empty means stdout", Type: "string", Def: ""},
 		"tc_http_api_key": {Desc: "api key, skip if not set", Type: "string", Def: ""},
 	}
 
@@ -118,7 +119,7 @@ func main() {
 
 	switch Mode {
 	case "confirm":
-		fs.Entries["bundle"] = cfg.Entry{Desc: "| separated file with args for query, empty means stdin", Type: "string", Def: ""}
+		fs.Entries["in"] = cfg.Entry{Desc: "| separated file with args for query, empty means stdin", Type: "string", Def: ""}
 		fs.Entries["chaincode"] = cfg.Entry{Desc: "chaincode to query", Type: "string", Def: "qscc"}
 		fs.Entries["function"] = cfg.Entry{Desc: "function of --chaincode", Type: "string", Def: "GetBlockByTxID"}
 		fs.Entries["overwrite"] = cfg.Entry{Desc: "over write output file if exists, appends if false", Type: "bool", Def: false}
@@ -158,15 +159,14 @@ func modeConfirm() {
 
 	// region: i/o
 
-	inPath := Config.Entries["bundle"].Value.(string)
-	outPath := Config.Entries["output"].Value.(string)
+	inPath := Config.Entries["in"].Value.(string)
+	outPath := Config.Entries["out"].Value.(string)
 
 	batch := helperRead(inPath, helperParsePSV)
 	Lout(LOG_INFO, "# of lines", len(*batch))
 
 	if len(inPath) != 0 && filepath.Clean(inPath) == filepath.Clean(outPath) {
-		Lout(LOG_EMERG, "in-place update not supported yet", inPath)
-		helperPanic("in-place update not supported yet")
+		helperPanic("in-place update not supported yet", inPath)
 	}
 
 	outFile := helperOutputOpen(outPath)
@@ -177,7 +177,7 @@ func modeConfirm() {
 
 	regex, err := regexp.Compile(TXID)
 	if err != nil {
-		helperPanic(err)
+		helperPanic(err.Error())
 	}
 
 	// endregion: pre-compile txid regex
@@ -420,8 +420,7 @@ func helperOutputAppend(f *os.File, psv PSV, fn Compiler) {
 	line := fn(psv)
 	_, err := f.WriteString(line + "\n")
 	if err != nil {
-		Lout(LOG_EMERG, "error appending line to file", line, f)
-		helperPanic(err)
+		helperPanic("error appending line to file", err.Error(), f.Name(), line)
 	}
 }
 
@@ -443,8 +442,7 @@ func helperOutputOpen(f string) *os.File {
 		Lout(LOG_INFO, "creating new file", f)
 		osFile, err = os.Create(f)
 		if err != nil {
-			Lout(LOG_EMERG, "cannot create output file", f, err)
-			helperPanic(err)
+			helperPanic("cannot create output file", f, err.Error())
 		}
 		return osFile
 	}
@@ -455,8 +453,7 @@ func helperOutputOpen(f string) *os.File {
 	osFile, err := os.OpenFile(f, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
 	Lout(LOG_DEBUG, "output file opened for appending", f)
 	if err != nil {
-		Lout(LOG_EMERG, "cannot open file, for appending", f, err)
-		helperPanic(err)
+		helperPanic("cannot open file, for appending", f, err.Error())
 	}
 	return osFile
 
@@ -464,18 +461,19 @@ func helperOutputOpen(f string) *os.File {
 
 }
 
-func helperPanic(s interface{}) {
+func helperPanic(s ...string) {
+	msg := strings.Join(s, " -> ")
 	if Logger != nil {
-		Lout(LOG_ERR, s)
+		Lout(LOG_EMERG, msg)
 	}
-	fmt.Fprintf(os.Stderr, "%s\n", s)
+	fmt.Fprintln(os.Stderr, msg)
 	os.Exit(1)
 }
 
 func helperParseFS(fs *cfg.FlagSet) {
 	err := fs.ParseCopy()
 	if err != nil {
-		helperPanic(err)
+		helperPanic(err.Error())
 	}
 }
 
@@ -498,6 +496,11 @@ func helperParsePSV(scanner *bufio.Scanner) *[]PSV {
 		} else {
 			if len(values) < 5 {
 				Lout(LOG_NOTICE, "row skipped due to insufficient number of fields")
+				item := PSV{
+					Status:  STATUS_PARSE_ERROR,
+					Payload: values,
+				}
+				batch = append(batch, item)
 				continue
 			}
 
@@ -513,7 +516,7 @@ func helperParsePSV(scanner *bufio.Scanner) *[]PSV {
 	}
 
 	if err := scanner.Err(); err != nil {
-		helperPanic(err)
+		helperPanic(err.Error())
 	}
 
 	return &batch
@@ -536,19 +539,16 @@ func helperRead(f string, fn Parser) *[]PSV {
 	// check if file exists
 	_, err := os.Stat(f)
 	if os.IsNotExist(err) {
-		Lout(LOG_EMERG, "input file does not exist", err)
-		helperPanic(err)
+		helperPanic("input file does not exist", err.Error())
 	}
 	if err != nil {
-		Lout(LOG_EMERG, "cannot stat input file", err)
-		helperPanic(err)
+		helperPanic("cannot stat input file", err.Error())
 	}
 
 	// open for reading
 	file, err := os.Open(f)
 	if err != nil {
-		Lout(LOG_EMERG, "cannot open input file", err)
-		helperPanic(err)
+		helperPanic("cannot open input file", err.Error())
 	}
 	defer file.Close()
 
