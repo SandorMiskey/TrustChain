@@ -2,7 +2,11 @@
 
 ## now
 
-* tcRawapiBatch -> go implementation (w/ continuous batch process)
+* tcRawapiBatch -> go implementation
+  * compare sh/go confirm
+  * submit
+  * resubmit
+* continuous batch process
 * rawapi batch process
   * query
   * invoke

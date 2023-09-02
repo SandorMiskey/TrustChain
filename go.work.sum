@@ -1,9 +1,2 @@
-cloud.google.com/go/apigeeregistry v0.4.0/go.mod h1:EUG4PGcsZvxOXAdyEghIdXwAEi/4MEaoqLMLDMIwKXY=
-cloud.google.com/go/apikeys v0.4.0/go.mod h1:XATS/yqZbaBK0HOssf+ALHp8jAlNHUgyfprvNcBIszU=
-cloud.google.com/go/compute v1.18.0/go.mod h1:1X7yHxec2Ga+Ss6jPyjxRxpu2uu7PLgsOVXvgU0yacs=
-cloud.google.com/go/dialogflow v1.29.0/go.mod h1:b+2bzMe+k1s9V+F2jbJwpHPzrnIyHihAdRFMtn2WXuM=
-cloud.google.com/go/iam v0.11.0/go.mod h1:9PiLDanza5D+oWFZiH1uG+RnRCfEGKoyl6yo4cgWZGY=
-golang.org/x/mod v0.8.0/go.mod h1:iBbtSCu2XBx23ZKBPSOrRkjjQPZFPuis4dIYUhu/chs=
-golang.org/x/net v0.6.0/go.mod h1:2Tu9+aMcznHK/AK1HMvgo6xiTLG5rD5rZLDS+rp2Bjs=
-golang.org/x/term v0.6.0/go.mod h1:m6U89DPEgQRMq3DNkDClhWw02AUbt2daBVO4cn4Hv9U=
-golang.org/x/tools v0.6.0/go.mod h1:Xwgl3UAJ/d3gWutnCtw505GrjyAbvKui8lOU390QaIU=
+github.com/valyala/tcplisten v1.0.0/go.mod h1:T0xQ8SeCZGxckz9qRXTfG43PvQ/mcWh7FwZEA7Ioqkc=
+golang.org/x/crypto v0.7.0/go.mod h1:pYwdfH91IfpZVANVyUOhSIPZaFoJGxTFbZhFTx+dXZU=

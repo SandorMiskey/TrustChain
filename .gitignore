@@ -4,6 +4,8 @@ doc/fabric-samples
 doc/fabric-samples.tgz
 doc/legacy_to_port/SASC.tgz
 migration/data
+migration/main
+rawapi/main
 rawapi/vendor
 scripts/.env.sh
 scripts/worksheet.sh
