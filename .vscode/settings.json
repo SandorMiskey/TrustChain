@@ -30,6 +30,7 @@
     "Loglevel",
     "logspout",
     "masternodes",
+    "MAXTOKENSIZE",
     "mgmt",
     "MSPID",
     "multierr",

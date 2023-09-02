@@ -48,6 +48,8 @@ const (
 	LOG_DEBUG  syslog.Priority = log.LOG_DEBUG
 	LOG_EMERG  syslog.Priority = log.LOG_EMERG
 
+	SCANNER_MAXTOKENSIZE int = 1024 * 1024 // 1MB
+
 	STATUS_CONFIRM_ERROR_PREFIX string = "CONFIRM_ERROR_"
 	STATUS_CONFIRM_ERROR_TXID   string = STATUS_CONFIRM_ERROR_PREFIX + "TXID"
 	STATUS_CONFIRM_ERROR_CLIENT string = STATUS_CONFIRM_ERROR_PREFIX + "CLIENT"
@@ -107,11 +109,9 @@ func main() {
 	cfg.FlagSetUsage = helperUsage
 	fs := Config.NewFlagSet(os.Args[0] + " " + os.Args[1])
 	fs.Entries = map[string]cfg.Entry{
-		"channel":         {Desc: "set [string] as channel id", Type: "string", Def: "trustchain-test"},
-		"host":            {Desc: "api host in http(s)://host:port format", Type: "string", Def: "http://localhost:5088"},
-		"loglevel":        {Desc: "loglevel as syslog.Priority", Type: "int", Def: 6},
-		"out":             {Desc: "path for output, empty means stdout", Type: "string", Def: ""},
-		"tc_http_api_key": {Desc: "api key, skip if not set", Type: "string", Def: ""},
+		"channel":  {Desc: "set [string] as channel id", Type: "string", Def: "trustchain-test"},
+		"loglevel": {Desc: "loglevel as syslog.Priority", Type: "int", Def: 6},
+		"out":      {Desc: "path for output, empty means stdout", Type: "string", Def: ""},
 	}
 
 	// endregion: cfg/fs, common args
@@ -119,17 +119,21 @@ func main() {
 
 	switch Mode {
 	case "confirm":
-		fs.Entries["in"] = cfg.Entry{Desc: "| separated file with args for query, empty means stdin", Type: "string", Def: ""}
 		fs.Entries["chaincode"] = cfg.Entry{Desc: "chaincode to query", Type: "string", Def: "qscc"}
 		fs.Entries["function"] = cfg.Entry{Desc: "function of --chaincode", Type: "string", Def: "GetBlockByTxID"}
+		fs.Entries["host"] = cfg.Entry{Desc: "api host in http(s)://host:port format", Type: "string", Def: "http://localhost:5088"}
+		fs.Entries["in"] = cfg.Entry{Desc: "| separated file with args for query, empty means stdin", Type: "string", Def: ""}
 		fs.Entries["overwrite"] = cfg.Entry{Desc: "over write output file if exists, appends if false", Type: "bool", Def: false}
 		fs.Entries["query"] = cfg.Entry{Desc: "query endpoint", Type: "string", Def: "/query"}
+		fs.Entries["tc_http_api_key"] = cfg.Entry{Desc: "api key, skip if not set", Type: "string", Def: ""}
 		helperParseFS(fs)
 		helperSetLogger()
 		defer Logger.Close()
 		Lout = Logger.Out
 		modeConfirm()
-	case "help":
+	// case "confirmPsvToJson":
+	// 	helperPanic("implemented yet")
+	case "help", "-h", "--help":
 		Mode = ""
 		msg := helperUsage(fs.FlagSet)
 		msg()
@@ -528,7 +532,11 @@ func helperRead(f string, fn Parser) *[]PSV {
 
 	if f == "" {
 		Lout(LOG_INFO, "reading stdin")
-		return fn(bufio.NewScanner(os.Stdin))
+
+		scanner := bufio.NewScanner(os.Stdin)
+		scanner.Buffer(make([]byte, SCANNER_MAXTOKENSIZE), SCANNER_MAXTOKENSIZE)
+
+		return fn(scanner)
 	}
 
 	// endregion: stdin
@@ -553,7 +561,10 @@ func helperRead(f string, fn Parser) *[]PSV {
 	defer file.Close()
 
 	// parse
-	return fn(bufio.NewScanner(file))
+	scanner := bufio.NewScanner(file)
+	scanner.Buffer(make([]byte, SCANNER_MAXTOKENSIZE), SCANNER_MAXTOKENSIZE)
+
+	return fn(scanner)
 
 	// endregion: actual file
 
@@ -579,9 +590,10 @@ func helperUsage(fs *flag.FlagSet) func() {
 			fmt.Println("  " + os.Args[0] + " [mode] <options>")
 			fmt.Println("")
 			fmt.Println("modes:")
-			fmt.Println("  confirm    iterates over the output of submit/resubmit and query for block number and data hash against qscc's GetBlockByTxID()")
-			fmt.Println("  resubmit   iterates over the output of submit and resubmits unsuccessful submits")
-			fmt.Println("  submit     iterates over input batch and submit line by line")
+			fmt.Println("  confirm           iterates over the output of submit/resubmit and query for block number and data hash against qscc's GetBlockByTxID()")
+			// fmt.Println("  confirmPsvToJson  iterates over the output of submit/resubmit and query for block number and data hash against qscc's GetBlockByTxID()")
+			fmt.Println("  resubmit          iterates over the output of submit and resubmits unsuccessful submits")
+			fmt.Println("  submit            iterates over input batch and submit line by line")
 			fmt.Println("")
 			fmt.Println("use `" + os.Args[0] + " [mode] --help` for mode specific details")
 		} else {
