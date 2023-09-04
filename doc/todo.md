@@ -2,7 +2,6 @@
 
 ## now
 
-* supernodes & masternodes GW
 * Rawapi:
   * Lator.Exe on-the-fly
   * Lator.Exe -> raw binary
