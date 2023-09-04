@@ -629,8 +629,32 @@ export TC_COMMON1_C1_EXP=3153600000
 		export TC_ORG2_P3_ASSETS_TLSCERT=${TC_ORG2_P3_DATA}/assets/${TC_COMMON1_C1_FQDN}/ca-cert.pem
 
 		# endregion: org2 p3
-
+		
 		# endregion: org2 peers
+		# region: org2 gw1
+
+		# wont be created by tcGenesis.sh
+
+		export TC_ORG2_GW1_NAME=gw1
+		export TC_ORG2_GW1_FQDN=${TC_ORG2_GW1_NAME}.${TC_ORG2_DOMAIN}
+		export TC_ORG2_GW1_WORKER=${TC_SWARM_MANAGER2[node]}
+		export TC_ORG2_GW1_PORT1=5098
+		export TC_ORG2_GW1_PORT2=5099
+		export TC_ORG2_GW1_DATA=${TC_ORG2_DATA}/${TC_ORG2_GW1_NAME}
+
+		export TC_ORG2_GW1_TLS_NAME=$TC_ORG2_STACK-$TC_ORG2_GW1_NAME
+		export TC_ORG2_GW1_TLS_PW=$TC_ORG2_GW1_TLS_PW
+		export TC_ORG2_GW1_CA_NAME=${TC_ORG2_GW1_NAME}-${TC_ORG2_STACK}
+		export TC_ORG2_GW1_CA_PW=$TC_ORG2_GW1_CA_PW
+
+		export TC_ORG2_GW1_MSP=${TC_ORG2_GW1_DATA}/msp
+		export TC_ORG2_GW1_TLSMSP=${TC_ORG2_GW1_DATA}/tls-msp
+		export TC_ORG2_GW1_ASSETS_DIR=${TC_ORG2_GW1_DATA}/assets
+		export TC_ORG2_GW1_ASSETS_STATIC=${TC_ORG2_GW1_ASSETS_DIR}/docs
+		export TC_ORG2_GW1_ASSETS_CACERT=${TC_ORG2_GW1_ASSETS_DIR}/${TC_ORG2_C1_FQDN}/ca-cert.pem
+		export TC_ORG2_GW1_ASSETS_TLSCERT=${TC_ORG2_GW1_ASSETS_DIR}/${TC_COMMON1_C1_FQDN}/ca-cert.pem
+
+		# endregion: org2 gw1
 		# region: org2 cli
 
 		export TC_ORG2_CLI1_NAME=cli1
@@ -796,6 +820,30 @@ export TC_COMMON1_C1_EXP=3153600000
 		# endregion: org3 p3
 
 		# endregion: org3 peers
+		# region: org3 gw1
+
+		# wont be created by tcGenesis.sh
+		
+		export TC_ORG3_GW1_NAME=gw1
+		export TC_ORG3_GW1_FQDN=${TC_ORG3_GW1_NAME}.${TC_ORG3_DOMAIN}
+		export TC_ORG3_GW1_WORKER=${TC_SWARM_MANAGER2[node]}
+		export TC_ORG3_GW1_PORT1=5108
+		export TC_ORG3_GW1_PORT2=5109
+		export TC_ORG3_GW1_DATA=${TC_ORG3_DATA}/${TC_ORG3_GW1_NAME}
+
+		export TC_ORG3_GW1_TLS_NAME=$TC_ORG3_STACK-$TC_ORG3_GW1_NAME
+		export TC_ORG3_GW1_TLS_PW=$TC_ORG3_GW1_TLS_PW
+		export TC_ORG3_GW1_CA_NAME=${TC_ORG3_GW1_NAME}-${TC_ORG3_STACK}
+		export TC_ORG3_GW1_CA_PW=$TC_ORG3_GW1_CA_PW
+
+		export TC_ORG3_GW1_MSP=${TC_ORG3_GW1_DATA}/msp
+		export TC_ORG3_GW1_TLSMSP=${TC_ORG3_GW1_DATA}/tls-msp
+		export TC_ORG3_GW1_ASSETS_DIR=${TC_ORG3_GW1_DATA}/assets
+		export TC_ORG3_GW1_ASSETS_STATIC=${TC_ORG3_GW1_ASSETS_DIR}/docs
+		export TC_ORG3_GW1_ASSETS_CACERT=${TC_ORG3_GW1_ASSETS_DIR}/${TC_ORG3_C1_FQDN}/ca-cert.pem
+		export TC_ORG3_GW1_ASSETS_TLSCERT=${TC_ORG3_GW1_ASSETS_DIR}/${TC_COMMON1_C1_FQDN}/ca-cert.pem
+
+		# endregion: org3 gw1
 		# region: org3 cli
 
 		export TC_ORG3_CLI1_NAME=cli1
