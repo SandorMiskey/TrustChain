@@ -2,6 +2,7 @@
 
 ## now
 
+* load on worker1 & worker2 -> upscale + worker3
 * Rawapi:
   * Lator.Exe on-the-fly
   * Lator.Exe -> raw binary

@@ -23,7 +23,7 @@ commonPP $TC_PATH_SCRIPTS
 
 function _load() {
 	local -n peer=$1
-	local cmd='uptime | awk -F "load average:" "{print $2}"'
+	# local cmd='uptime | awk -F "load average:" "{print $2}"'
 	local uptime=$( ssh ${peer[node]} uptime )
 	local out=$( echo "$uptime" | /usr/bin/awk -F 'load average:' '{print "\t" $2}' )
 	commonPrintf "${peer[node]} -> $out"
