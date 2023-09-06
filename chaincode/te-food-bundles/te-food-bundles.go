@@ -9,7 +9,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/syslog"
-	"strconv"
 	"strings"
 	"time"
 
@@ -32,7 +31,7 @@ type Chaincode struct {
 
 type Bundle struct {
 	DocType            string      `json:"doc_type"` //docType is used to distinguish the various types of objects in state database
-	BundleID           uint64      `json:"bundle_id"`
+	BundleID           string      `json:"bundle_id"`
 	SystemID           string      `json:"system_id"`
 	ExternalFlag       string      `json:"external_flag"`
 	ConfidentialFlag   string      `json:"confidential_flag"`
@@ -155,13 +154,13 @@ func (t *Chaincode) BundleExists(ctx contractapi.TransactionContextInterface, bu
 	return bundleBytes != nil, nil
 }
 
-func (t *Chaincode) BundleHistory(ctx contractapi.TransactionContextInterface, bundleID uint64) ([]HistoryQueryResult, error) {
+func (t *Chaincode) BundleHistory(ctx contractapi.TransactionContextInterface, bundleID string) ([]HistoryQueryResult, error) {
 
 	// BundleHistory returns the chain of custody for a bundle since issuance
 	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.BundleHistory queried with -> %v", bundleID))
 
 	// iterator
-	resultsIterator, err := ctx.GetStub().GetHistoryForKey(strconv.FormatUint(bundleID, 10))
+	resultsIterator, err := ctx.GetStub().GetHistoryForKey(bundleID)
 	if err != nil {
 		msg := fmt.Errorf("error in t.BundleHistory when ctx.GetStub().GetHistoryForKey(%v): %s", bundleID, err)
 		Logger.Out(log.LOG_ERR, msg)
@@ -405,7 +404,7 @@ func (t *Chaincode) CreateBundle(ctx contractapi.TransactionContextInterface, bu
 	// endregion: parse json
 	// region: check if exists
 
-	exists, err := t.BundleExists(ctx, strconv.FormatUint(bundleIn.BundleID, 10))
+	exists, err := t.BundleExists(ctx, bundleIn.BundleID)
 	if err != nil {
 		msg := fmt.Errorf("failed to get bundle: %v", err)
 		Logger.Out(log.LOG_ERR, msg)
@@ -429,6 +428,11 @@ func (t *Chaincode) CreateBundle(ctx contractapi.TransactionContextInterface, bu
 	bundleOut.TxTimestamp = now.Format(time.RFC3339)
 	bundleOut.UpdateTxID = nil
 	bundleOut.UpdateTimestamp = nil
+
+	if bundleIn.LegacyFlag == "1" || bundleIn.ConfidentialFlag == "1" {
+		bundleOut.DataBase64 = ""
+	}
+
 	bundleBytes, err := json.Marshal(bundleOut)
 	if err != nil {
 		msg := fmt.Errorf("failed to marshal bundle: %s", err)
@@ -437,7 +441,7 @@ func (t *Chaincode) CreateBundle(ctx contractapi.TransactionContextInterface, bu
 	}
 	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("bundle marshaled -> %#v", bundleOut))
 
-	err = ctx.GetStub().PutState(strconv.FormatUint(bundleOut.BundleID, 10), bundleBytes)
+	err = ctx.GetStub().PutState(bundleOut.BundleID, bundleBytes)
 	if err != nil {
 		msg := fmt.Errorf("failed to put bundle: %s", err)
 		Logger.Out(log.LOG_ERR, msg)
@@ -506,7 +510,7 @@ func (t *Chaincode) UpdateBundle(ctx contractapi.TransactionContextInterface, bu
 	// endregion: parse json
 	// region: check if exists
 
-	exists, err := t.BundleExists(ctx, strconv.FormatUint(bundleIn.BundleID, 10))
+	exists, err := t.BundleExists(ctx, bundleIn.BundleID)
 	if err != nil {
 		msg := fmt.Errorf("failed to get bundle: %v", err)
 		Logger.Out(log.LOG_ERR, msg)
@@ -522,7 +526,7 @@ func (t *Chaincode) UpdateBundle(ctx contractapi.TransactionContextInterface, bu
 	// endregion: check if exists
 	// region: get original
 
-	bundleOrig, err := t.BundleGet(ctx, strconv.FormatUint(bundleIn.BundleID, 10))
+	bundleOrig, err := t.BundleGet(ctx, bundleIn.BundleID)
 	if err != nil {
 		msg := fmt.Errorf("failed to get bundle %v: %v", bundleIn.BundleID, err)
 		Logger.Out(log.LOG_ERR, msg)
@@ -540,6 +544,11 @@ func (t *Chaincode) UpdateBundle(ctx contractapi.TransactionContextInterface, bu
 	bundleOut.TxTimestamp = bundleOrig.TxTimestamp
 	bundleOut.UpdateTxID = ctx.GetStub().GetTxID()
 	bundleOut.UpdateTimestamp = now.Format(time.RFC3339)
+
+	if bundleIn.LegacyFlag == "1" || bundleIn.ConfidentialFlag == "1" {
+		bundleOut.DataBase64 = ""
+	}
+
 	bundleBytes, err := json.Marshal(bundleOut)
 	if err != nil {
 		msg := fmt.Errorf("failed to marshal bundle: %s", err)
@@ -551,7 +560,7 @@ func (t *Chaincode) UpdateBundle(ctx contractapi.TransactionContextInterface, bu
 	// endregion: updated bundle
 	// region: bundle out
 
-	err = ctx.GetStub().PutState(strconv.FormatUint(bundleOut.BundleID, 10), bundleBytes)
+	err = ctx.GetStub().PutState(bundleOut.BundleID, bundleBytes)
 	if err != nil {
 		msg := fmt.Errorf("failed to put bundle: %s", err)
 		Logger.Out(log.LOG_ERR, msg)

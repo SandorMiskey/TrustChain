@@ -391,36 +391,17 @@ services:
         delay: ${TC_SWARM_DELAY}s
         max_attempts: 5
     environment:
-      #
-      # set env
-      #
-      # - TC_PATH_BASE=${TC_PATH_BASE}
-      # - TC_PATH_RC=${TC_PATH_BASE}/scripts/tcConf.sh
-      # - COMMON_FUNCS=${TC_PATH_BASE}/scripts/commonFuncs.sh
-      #
-      # hyperledger settings
-      #
-      # - CORE_PEER_MSPCONFIGPATH=${TC_ORG1_GW1_MSP}
-      # - CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG1_GW1_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_COMMON1_C1_PORT}.pem
-      # - CORE_PEER_TLS_CERT_FILE=${TC_ORG1_GW1_TLSMSP}/signcerts/cert.pem
-      # - CORE_PEER_TLS_KEY_FILE=${TC_ORG1_GW1_TLSMSP}/keystore/key.pem
-      # - CORE_PEER_TLS_CLIENTROOTCAS_FILES:
-      #     - ${TC_ORG1_GW1_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_COMMON1_C1_PORT}.pem
-      #
-      # raw api
-      #
-      # - TC_RAWAPI_KEY=$TC_RAWAPI_KEY
       - TC_RAWAPI_KEY=""
       - TC_RAWAPI_KEY_FILE=/run/secrets/tc_http_api_key
       - TC_RAWAPI_HTTP_ENABLED=true
       - TC_RAWAPI_HTTP_NAME="TrustChain backend"
-      - TC_RAWAPI_HTTP_PORT=$TC_RAWAPI_HTTP_PORT
+      - TC_RAWAPI_HTTP_PORT=$TC_ORG1_GW1_PORT1
       - TC_RAWAPI_HTTP_STATIC_ENABLED=true
       - TC_RAWAPI_HTTP_STATIC_ROOT=${TC_ORG1_GW1_ASSETS_STATIC}
       - TC_RAWAPI_HTTP_STATIC_INDEX="index.html"
       - TC_RAWAPI_HTTP_STATIC_ERROR="index.html"
       - TC_RAWAPI_HTTPS_ENABLED=true
-      - TC_RAWAPI_HTTPS_PORT=$TC_RAWAPI_HTTPS_PORT
+      - TC_RAWAPI_HTTPS_PORT=$TC_ORG1_GW1_PORT2
       - TC_RAWAPI_HTTPS_CERT=""
       - TC_RAWAPI_HTTPS_CERT_FILE=/run/secrets/tc_https_cert
       - TC_RAWAPI_HTTPS_KEY=""
@@ -431,7 +412,7 @@ services:
       - TC_RAWAPI_LOGALLERRORS=true
       - TC_RAWAPI_MAXREQUESTBODYSIZE=4194304
       - TC_RAWAPI_NETWORKPROTO="tcp"
-      - TC_RAWAPI_LOGLEVEL=7
+      - TC_RAWAPI_LOGLEVEL=6
       - TC_RAWAPI_ORGNAME=$TC_ORG1_STACK
       - TC_RAWAPI_MSPID=${TC_ORG1_STACK}MSP
       - TC_RAWAPI_CERTPATH=${TC_ORG1_CLIENTMSP}/signcerts/cert.pem
@@ -459,7 +440,7 @@ services:
       - ${TC_ORG1_GW1_DATA}:${TC_ORG1_GW1_DATA}
       - ${TC_ORG1_CLIENTHOME}:${TC_ORG1_CLIENTHOME}
       # - ${TC_PATH_SCRIPTS}:${TC_PATH_SCRIPTS}
-    working_dir: ${TC_PATH_BASE}
+    working_dir: ${TC_ORG1_GW1_ASSETS_DIR}
   ${TC_ORG1_GW2_NAME}:
     command: /bin/bash ${TC_ORG1_GW2_ASSETS_DIR}/tcGwInit.sh
     deploy:
@@ -471,25 +452,6 @@ services:
         delay: ${TC_SWARM_DELAY}s
         max_attempts: 5
     environment:
-      #
-      # set env
-      #
-      # - TC_PATH_BASE=${TC_PATH_BASE}
-      # - TC_PATH_RC=${TC_PATH_BASE}/scripts/tcConf.sh
-      # - COMMON_FUNCS=${TC_PATH_BASE}/scripts/commonFuncs.sh
-      #
-      # hyperledger settings
-      #
-      # - CORE_PEER_MSPCONFIGPATH=${TC_ORG1_GW1_MSP}
-      # - CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG1_GW1_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_COMMON1_C1_PORT}.pem
-      # - CORE_PEER_TLS_CERT_FILE=${TC_ORG1_GW1_TLSMSP}/signcerts/cert.pem
-      # - CORE_PEER_TLS_KEY_FILE=${TC_ORG1_GW1_TLSMSP}/keystore/key.pem
-      # - CORE_PEER_TLS_CLIENTROOTCAS_FILES:
-      #     - ${TC_ORG1_GW1_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_COMMON1_C1_PORT}.pem
-      #
-      # raw api
-      #
-      # - TC_RAWAPI_KEY=$TC_RAWAPI_KEY
       - TC_RAWAPI_KEY=""
       - TC_RAWAPI_KEY_FILE=/run/secrets/tc_http_api_key
       - TC_RAWAPI_HTTP_ENABLED=true
@@ -511,7 +473,7 @@ services:
       - TC_RAWAPI_LOGALLERRORS=true
       - TC_RAWAPI_MAXREQUESTBODYSIZE=4194304
       - TC_RAWAPI_NETWORKPROTO="tcp"
-      - TC_RAWAPI_LOGLEVEL=7
+      - TC_RAWAPI_LOGLEVEL=6
       - TC_RAWAPI_ORGNAME=$TC_ORG1_STACK
       - TC_RAWAPI_MSPID=${TC_ORG1_STACK}MSP
       - TC_RAWAPI_CERTPATH=${TC_ORG1_CLIENTMSP}/signcerts/cert.pem
@@ -539,7 +501,7 @@ services:
       - ${TC_ORG1_GW2_DATA}:${TC_ORG1_GW2_DATA}
       - ${TC_ORG1_CLIENTHOME}:${TC_ORG1_CLIENTHOME}
       # - ${TC_PATH_SCRIPTS}:${TC_PATH_SCRIPTS}
-    working_dir: ${TC_PATH_BASE}
+    working_dir: ${TC_ORG1_GW2_ASSETS_DIR}
   ${TC_ORG1_GW3_NAME}:
     command: /bin/bash ${TC_ORG1_GW3_ASSETS_DIR}/tcGwInit.sh
     deploy:
@@ -551,25 +513,6 @@ services:
         delay: ${TC_SWARM_DELAY}s
         max_attempts: 5
     environment:
-      #
-      # set env
-      #
-      # - TC_PATH_BASE=${TC_PATH_BASE}
-      # - TC_PATH_RC=${TC_PATH_BASE}/scripts/tcConf.sh
-      # - COMMON_FUNCS=${TC_PATH_BASE}/scripts/commonFuncs.sh
-      #
-      # hyperledger settings
-      #
-      # - CORE_PEER_MSPCONFIGPATH=${TC_ORG1_GW3_MSP}
-      # - CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG1_GW3_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_COMMON1_C1_PORT}.pem
-      # - CORE_PEER_TLS_CERT_FILE=${TC_ORG1_GW3_TLSMSP}/signcerts/cert.pem
-      # - CORE_PEER_TLS_KEY_FILE=${TC_ORG1_GW3_TLSMSP}/keystore/key.pem
-      # - CORE_PEER_TLS_CLIENTROOTCAS_FILES:
-      #     - ${TC_ORG1_GW3_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_COMMON1_C1_PORT}.pem
-      #
-      # raw api
-      #
-      # - TC_RAWAPI_KEY=$TC_RAWAPI_KEY
       - TC_RAWAPI_KEY=""
       - TC_RAWAPI_KEY_FILE=/run/secrets/tc_http_api_key
       - TC_RAWAPI_HTTP_ENABLED=true
@@ -591,7 +534,7 @@ services:
       - TC_RAWAPI_LOGALLERRORS=true
       - TC_RAWAPI_MAXREQUESTBODYSIZE=4194304
       - TC_RAWAPI_NETWORKPROTO="tcp"
-      - TC_RAWAPI_LOGLEVEL=7
+      - TC_RAWAPI_LOGLEVEL=6
       - TC_RAWAPI_ORGNAME=$TC_ORG1_STACK
       - TC_RAWAPI_MSPID=${TC_ORG1_STACK}MSP
       - TC_RAWAPI_CERTPATH=${TC_ORG1_CLIENTMSP}/signcerts/cert.pem
@@ -619,4 +562,4 @@ services:
       - ${TC_ORG1_GW3_DATA}:${TC_ORG1_GW3_DATA}
       - ${TC_ORG1_CLIENTHOME}:${TC_ORG1_CLIENTHOME}
       # - ${TC_PATH_SCRIPTS}:${TC_PATH_SCRIPTS}
-    working_dir: ${TC_PATH_BASE}
+    working_dir: ${TC_ORG1_GW3_ASSETS_DIR}

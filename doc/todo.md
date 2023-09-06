@@ -2,24 +2,26 @@
 
 ## now
 
-* load on worker1 & worker2 -> upscale + worker3
-* Rawapi:
-  * Lator.Exe on-the-fly
-  * Lator.Exe -> raw binary
-* tcRawapiBatch -> go gateway || sdk implementation
+* migration/main.go -> go gateway || sdk implementation
+  * modes
+    * confirm/reconfirm
+    * submit/resubmit
   * gateway: rawapi
   * sdk: fabric-samples
     * asset-transfer-basic/application-go
     * high-throughput/application-go
-* tcRawapiBatch -> go gateway implementation over http
-  * confirm: common client, req & resp [https://gist.github.com/erikdubbelboer/fe4095419fca55e2c92b3d0432ccd7fc]
-  * submit
-  * resubmit
 * continuous batch process
-* rawapi batch process
-  * query
-  * invoke
-  * MaxRequestBodySize: math.MaxInt32
+* re-genesis mainnet
+  * tcGlusterServers.sh:259
+  * .env
+    * reset passwords
+    * set api-key
+    * check .env anyways
+  * load on worker1 & worker2 -> upscale + worker3
+  * gluster
+    * ??? 50/6 per node, redundancy = 2
+    * ??? 50/3 per node, redundancy = 1
+
 * delete legacy
   * Contabo
   * AWS (all availability zones)
@@ -28,7 +30,14 @@
 
 ## later
 
-* tcRawapiBatch.sh reconfirm?
+* Rawapi:
+  * Lator.Exe on-the-fly
+  * Lator.Exe -> raw binary
+  * batch process via file upload (MaxRequestBodySize: math.MaxInt32)
+* migration/main.go -> implementation over http
+  * confirm: common client, req & resp [https://gist.github.com/erikdubbelboer/fe4095419fca55e2c92b3d0432ccd7fc]
+  * submit
+  * resubmit
 * tcGlusterServers.sh
   * auth.allow
   * fstab backupvolfile-server

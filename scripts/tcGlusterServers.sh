@@ -256,7 +256,8 @@ function _glusterLay() {
 	commonIterate _inner "||||" "${TC_GLUSTER_MANAGERS[@]}"
 	servers="${servers%|})"
 
-	servers+=",/peerOrganizations/endorsers(${TC_SWARM_WORKER1[ip]}|${TC_SWARM_WORKER2[ip]}),/peerOrganizations/supernodes(${TC_SWARM_WORKER1[ip]}|${TC_SWARM_WORKER2[ip]}),/peerOrganizations/masternodes(${TC_SWARM_WORKER1[ip]}|${TC_SWARM_WORKER2[ip]})"
+	servers+=",/peerOrganizations/endorsers(${TC_SWARM_WORKER1[ip]}),/peerOrganizations/supernodes(${TC_SWARM_WORKER1[ip]}),/peerOrganizations/masternodes(${TC_SWARM_WORKER1[ip]})"
+	# servers+=",/peerOrganizations/endorsers(${TC_SWARM_WORKER1[ip]}|${TC_SWARM_WORKER2[ip]}),/peerOrganizations/supernodes(${TC_SWARM_WORKER1[ip]}|${TC_SWARM_WORKER2[ip]}),/peerOrganizations/masternodes(${TC_SWARM_WORKER1[ip]}|${TC_SWARM_WORKER2[ip]})"
 	# _inner() {
 	# 	local -n peer=$1
 	# 	local mnt=$( echo ${peer[mnt]} | sed s+$TC_PATH_WORKBENCH++ )

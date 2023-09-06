@@ -16,7 +16,13 @@ export TC_PATH_BASE=/basedirectory/TrustChain
 export TC_PATH_RC=${TC_PATH_BASE}/scripts/tcConf.sh
 export TC_NETWORK_NAME=xxx
 export TC_NETWORK_DOMAIN=${TC_NETWORK_NAME}.foobar.com
+export TC_CHANNEL1_NAME=foobar
+export TC_CHANNEL2_NAME=foobar-staging
+export TC_EXEC_FORCE=false
+export TC_EXEC_SURE=false
+# export TC_EXEC_DRY=true
 
+export COMMON_FORCE=$TC_EXEC_FORCE
 export COMMON_FUNCS=${TC_PATH_BASE}/scripts/commonFuncs.sh
 
 # endregion: init
@@ -85,6 +91,8 @@ export TC_ORG2_P2_CA_PW=xxx
 export TC_ORG2_P3_TLS_PW=xxx
 export TC_ORG2_P3_CA_PW=xxx
 
+export TC_ORG2_GW1_TLS_PW=xxx
+
 # endregion: org2 ca
 # region: org3 ca
 
@@ -103,6 +111,8 @@ export TC_ORG3_P2_TLS_PW=xxx
 export TC_ORG3_P2_CA_PW=xxx
 export TC_ORG3_P3_TLS_PW=xxx
 export TC_ORG3_P3_CA_PW=xxx
+
+export TC_ORG3_GW1_TLS_PW=xxx
 
 # endregion: org23ca
 # region: common2, common2 - metrics, mgmt
@@ -186,6 +196,7 @@ export TC_ORG2_D3_WORKER=${TC_SWARM_WORKER2[node]}
 export TC_ORG2_P1_WORKER=$TC_ORG2_D1_WORKER
 export TC_ORG2_P2_WORKER=$TC_ORG2_D2_WORKER
 export TC_ORG2_P3_WORKER=$TC_ORG2_D3_WORKER
+export TC_ORG2_GW1_WORKER=${TC_SWARM_MANAGER2[node]}
 export TC_ORG2_CLI1_WORKER=${TC_SWARM_MANAGER1[node]}
 
 export TC_ORG3_C1_WORKER=${TC_SWARM_MANAGER1[node]}
@@ -195,6 +206,7 @@ export TC_ORG3_D3_WORKER=${TC_SWARM_WORKER2[node]}
 export TC_ORG3_P1_WORKER=$TC_ORG3_D1_WORKER
 export TC_ORG3_P2_WORKER=$TC_ORG3_D2_WORKER
 export TC_ORG3_P3_WORKER=$TC_ORG3_D3_WORKER
+export TC_ORG3_GW1_WORKER=${TC_SWARM_MANAGER2[node]}
 export TC_ORG3_CLI1_WORKER=${TC_SWARM_MANAGER1[node]}
 
 export TC_COMMON2_S3_WORKER=${TC_SWARM_MANAGER1[node]}

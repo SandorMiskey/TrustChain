@@ -32,8 +32,8 @@ export PATH=${TC_PATH_BIN}:${TC_PATH_SCRIPTS}:$PATH
 export TC_PATH_WORKBENCH=/srv/TrustChain
 export TC_PATH_SWARM=${TC_PATH_WORKBENCH}/swarm
 export TC_PATH_ORGS=${TC_PATH_WORKBENCH}
-export TC_PATH_CHANNELS=${TC_PATH_WORKBENCH}/channels
-export TC_PATH_CHAINCODE=${TC_PATH_WORKBENCH}/chaincode
+export TC_PATH_CHANNELS=${TC_PATH_WORKBENCH}/artifacts/channels
+export TC_PATH_CHAINCODE=${TC_PATH_WORKBENCH}/artifacts/chaincode
 
 # endregion: base paths
 # region: exec control
@@ -68,8 +68,8 @@ export TC_NETWORK_NAME=$TC_NETWORK_NAME
 export TC_NETWORK_DOMAIN=$TC_NETWORK_DOMAIN
 
 export TC_CHANNEL_PROFILE="DefaultProfile"
-export TC_CHANNEL1_NAME=trustchain-test
-export TC_CHANNEL2_NAME=trustchain
+export TC_CHANNEL1_NAME=trustchain
+export TC_CHANNEL2_NAME=trustchain-staging
 
 # endregion: network and channel
 # region: swarm
@@ -407,7 +407,7 @@ export TC_COMMON1_C1_EXP=3153600000
 		export TC_ORG1_GW1_WORKER=${TC_SWARM_MANAGER1[node]}
 		export TC_ORG1_GW1_PORT1=5088
 		export TC_ORG1_GW1_PORT2=5089
-		export TC_ORG1_GW1_DATA=${TC_ORG1_DATA}/${TC_ORG1_GW1_NAME}
+		export TC_ORG1_GW1_DATA=${TC_ORG1_DATA}/gws/${TC_ORG1_GW1_NAME}
 
 		export TC_ORG1_GW1_TLS_NAME=$TC_ORG1_STACK-$TC_ORG1_GW1_NAME
 		export TC_ORG1_GW1_TLS_PW=$TC_ORG1_GW1_TLS_PW
@@ -428,7 +428,7 @@ export TC_COMMON1_C1_EXP=3153600000
 		export TC_ORG1_GW2_WORKER=${TC_SWARM_MANAGER2[node]}
 		export TC_ORG1_GW2_PORT1=5086
 		export TC_ORG1_GW2_PORT2=5087
-		export TC_ORG1_GW2_DATA=${TC_ORG1_DATA}/${TC_ORG1_GW2_NAME}
+		export TC_ORG1_GW2_DATA=${TC_ORG1_DATA}/gws/${TC_ORG1_GW2_NAME}
 
 		export TC_ORG1_GW2_TLS_NAME=$TC_ORG1_STACK-$TC_ORG1_GW2_NAME
 		export TC_ORG1_GW2_TLS_PW=$TC_ORG1_GW2_TLS_PW
@@ -449,7 +449,7 @@ export TC_COMMON1_C1_EXP=3153600000
 		export TC_ORG1_GW3_WORKER=${TC_SWARM_MANAGER3[node]}
 		export TC_ORG1_GW3_PORT1=5084
 		export TC_ORG1_GW3_PORT2=5085
-		export TC_ORG1_GW3_DATA=${TC_ORG1_DATA}/${TC_ORG1_GW3_NAME}
+		export TC_ORG1_GW3_DATA=${TC_ORG1_DATA}/gws/${TC_ORG1_GW3_NAME}
 
 		export TC_ORG1_GW3_TLS_NAME=$TC_ORG1_STACK-$TC_ORG1_GW3_NAME
 		export TC_ORG1_GW3_TLS_PW=$TC_ORG1_GW3_TLS_PW
@@ -509,6 +509,7 @@ export TC_COMMON1_C1_EXP=3153600000
 		export TC_ORG2_ADMINMSP=${TC_ORG2_ADMINHOME}/msp
 		export TC_ORG2_CLIENT=${TC_ORG2_STACK}-client1
 		export TC_ORG2_CLIENTPW=$TC_ORG2_CLIENTPW
+		export TC_ORG2_CLIENTHOME=${TC_ORG2_DATA}/users/${TC_ORG2_CLIENT}
 		export TC_ORG2_CLIENTMSP=${TC_ORG2_DATA}/users/${TC_ORG2_CLIENT}/msp
 
 		# endregion: org2 all stack
@@ -633,8 +634,6 @@ export TC_COMMON1_C1_EXP=3153600000
 		# endregion: org2 peers
 		# region: org2 gw1
 
-		# wont be created by tcGenesis.sh
-
 		export TC_ORG2_GW1_NAME=gw1
 		export TC_ORG2_GW1_FQDN=${TC_ORG2_GW1_NAME}.${TC_ORG2_DOMAIN}
 		export TC_ORG2_GW1_WORKER=${TC_SWARM_MANAGER2[node]}
@@ -698,6 +697,7 @@ export TC_COMMON1_C1_EXP=3153600000
 		export TC_ORG3_ADMINMSP=${TC_ORG3_ADMINHOME}/msp
 		export TC_ORG3_CLIENT=${TC_ORG3_STACK}-client1
 		export TC_ORG3_CLIENTPW=$TC_ORG3_CLIENTPW
+		export TC_ORG3_CLIENTHOME=${TC_ORG3_DATA}/users/${TC_ORG3_CLIENT}
 		export TC_ORG3_CLIENTMSP=${TC_ORG3_DATA}/users/${TC_ORG3_CLIENT}/msp
 
 		# endregion: org3 all stack
@@ -822,8 +822,6 @@ export TC_COMMON1_C1_EXP=3153600000
 		# endregion: org3 peers
 		# region: org3 gw1
 
-		# wont be created by tcGenesis.sh
-		
 		export TC_ORG3_GW1_NAME=gw1
 		export TC_ORG3_GW1_FQDN=${TC_ORG3_GW1_NAME}.${TC_ORG3_DOMAIN}
 		export TC_ORG3_GW1_WORKER=${TC_SWARM_MANAGER2[node]}
