@@ -134,7 +134,7 @@ case $mode in
 		# empty list of stacks
 		if (( ${#stacks[@]} <  1 )); then
 			# config files
-			cfg=$( find $TC_SWARM_PATH/*yaml ! -name '.*' -print 2>&1 )
+			cfg=$( find $TC_PATH_SWARM/*yaml ! -name '.*' -print 2>&1 )
 			commonVerify $? "$cfg"
 			cfg=$(echo $cfg | sort)
 
@@ -154,7 +154,7 @@ case $mode in
 		else
 			for stack in "${stacks[@]}"; do
 				cfg=$( echo "${stack}" | sed "s/^${TC_SWARM_NETNAME}//")
-				cfg=$( find $TC_SWARM_PATH/*${cfg}.yaml ! -name '.*' -print 2>&1 )
+				cfg=$( find $TC_PATH_SWARM/*${cfg}.yaml ! -name '.*' -print 2>&1 )
 				commonVerify $? "no config found for $stack $cfg"
 				commonPrintf "deploying $cfg as ${stack}"
 				out=$( docker stack deploy -c $cfg $stack --with-registry-auth 2>&1 )

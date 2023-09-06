@@ -83,7 +83,6 @@ export TC_CHANNEL2_NAME=trustchain-staging
 # declare -A TC_SWARM_WORKER2=( [node]=tc2-test-worker2 [ip]=5.5.5.5 [mnt]="/x" )
 # export TC_SWARM_WORKERS=("TC_SWARM_WORKER1" "TC_SWARM_WORKER2")
 
-export TC_SWARM_PATH=$TC_PATH_SWARM
 export TC_SWARM_PUBLIC=${TC_SWARM_MANAGER1[ip]}
 export TC_SWARM_INIT="--advertise-addr ${TC_SWARM_PUBLIC}:2377 --cert-expiry 1000000h0m0s"
 export TC_SWARM_MANAGER=${TC_SWARM_MANAGER1[node]}
