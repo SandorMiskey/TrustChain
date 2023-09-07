@@ -124,9 +124,11 @@ function _glusterServerMount() {
 		_out=$( ssh ${peer[node]} "sudo mkdir -p -v ${peer[gmnt]}" 2>&1 )
 		commonVerify $? "failed: $_out" "mkdir -p -v ${peer[gmnt]} on ${peer[node]} succeeded"
 		_out=$( ssh ${peer[node]} "sudo mount ${peer[gdev]} ${peer[gmnt]}" 2>&1 )
-		commonVerify $? "failed: $_out" "mount ${peer[gdev]} ${peer[gmnt]} on ${peer[node]} succeeded" 
-		_out=$( ssh ${peer[node]} "sudo mkdir -p -v ${peer[gmnt]}/WAL" 2>&1 )
-		commonVerify $? "failed: $_out" "sudo mkdir -p -v ${peer[gmnt]}/WAL on ${peer[node]} succeeded" 
+		commonVerify $? "failed: $_out" "mount ${peer[gdev]} ${peer[gmnt]} on ${peer[node]} succeeded"
+		if [ ! -z ${peer[wal]} ]; then
+			_out=$( ssh ${peer[node]} "sudo mkdir -p -v ${peer[wal]}" 2>&1 )
+			commonVerify $? "failed: $_out" "sudo mkdir -p -v ${peer[wal]} on ${peer[node]} succeeded" 
+		fi
 	}
 	commonIterate _inner "print|mount on |array|node|:" "${TC_GLUSTER_MANAGERS[@]}" 
 	unset _inner _out
@@ -198,11 +200,11 @@ function _glusterLay() {
 	commonPrintf " "
 	_inner() {
 		local -n peer=$1
-		local dir=${peer[gmnt]}/${TC_GLUSTER_BRICK}
+		local dir=${peer[gmnt]}/${TC_GLUSTER_VOLUME}
 		_out=$( ssh ${peer[node]} "sudo mkdir -p -v $dir " 2>&1 )
 		commonVerify $? "failed: $_out" "mkdir -p -v $dir on ${peer[node]} succeeded"
 	}
-	commonIterate _inner "print|mkdir -p -v mountpoint/brick |array|node|:" "${TC_GLUSTER_MANAGERS[@]}" 
+	commonIterate _inner "print|mkdir -p -v volume/bricks |array|node|:" "${TC_GLUSTER_MANAGERS[@]}" 
 	unset _inner _out
 	commonSleep 1 "done"
 
@@ -215,11 +217,11 @@ function _glusterLay() {
 	local servers=""
 	_inner() {
 		local -n peer=$1
-		servers+="${peer[node]}:${peer[gmnt]}/${TC_GLUSTER_BRICK} "
+		servers+="${peer[node]}:${peer[gmnt]}/${TC_GLUSTER_VOLUME} "
 	}
 	commonIterate _inner "||||" "${TC_GLUSTER_MANAGERS[@]}" 
 	local -n manager=${TC_GLUSTER_MANAGERS[0]}
-	local cmd="sudo gluster volume create $TC_GLUSTER_BRICK disperse $TC_GLUSTER_DISPERSE redundancy $TC_GLUSTER_REDUNDANCY $servers"
+	local cmd="sudo gluster volume create $TC_GLUSTER_VOLUME disperse $TC_GLUSTER_DISPERSE redundancy $TC_GLUSTER_REDUNDANCY $servers"
 	commonPrintf "${cmd}will be issued on ${manager[node]}" 
 	_out=$( ssh ${manager[node]} "$cmd" 2>&1 )
 	commonVerify $? "failed: $_out" "created dispersed volume: $_out"
@@ -233,7 +235,7 @@ function _glusterLay() {
 	commonPrintf "starting volume"
 	commonPrintf " "
 	local -n manager=${TC_GLUSTER_MANAGERS[0]}
-	_out=$( ssh ${manager[node]} "sudo gluster volume start $TC_GLUSTER_BRICK" 2>&1 )
+	_out=$( ssh ${manager[node]} "sudo gluster volume start $TC_GLUSTER_VOLUME" 2>&1 )
 	commonVerify $? "failed: $_out" "volume started: $_out"
 	commonPrintf "gluster volume info"
 	_out=$( ssh ${manager[node]} "sudo gluster volume info" 2>&1 )
@@ -256,7 +258,7 @@ function _glusterLay() {
 	commonIterate _inner "||||" "${TC_GLUSTER_MANAGERS[@]}"
 	servers="${servers%|})"
 
-	servers+=",/peerOrganizations/endorsers(${TC_SWARM_WORKER1[ip]}),/peerOrganizations/supernodes(${TC_SWARM_WORKER1[ip]}),/peerOrganizations/masternodes(${TC_SWARM_WORKER1[ip]})"
+	servers+=",/${TC_ORG1_STACK}(${TC_SWARM_WORKER1[ip]}),/${TC_ORG2_STACK}(${TC_SWARM_WORKER1[ip]}),/${TC_ORG3_STACK}(${TC_SWARM_WORKER1[ip]})"
 	# servers+=",/peerOrganizations/endorsers(${TC_SWARM_WORKER1[ip]}|${TC_SWARM_WORKER2[ip]}),/peerOrganizations/supernodes(${TC_SWARM_WORKER1[ip]}|${TC_SWARM_WORKER2[ip]}),/peerOrganizations/masternodes(${TC_SWARM_WORKER1[ip]}|${TC_SWARM_WORKER2[ip]})"
 	# _inner() {
 	# 	local -n peer=$1
@@ -267,7 +269,7 @@ function _glusterLay() {
 	commonPrintf "$servers"
 
 	local -n manager=${TC_GLUSTER_MANAGERS[0]}
-	_cmd="sudo gluster volume set $TC_GLUSTER_BRICK auth.allow \"$servers\""
+	_cmd="sudo gluster volume set $TC_GLUSTER_VOLUME auth.allow \"$servers\""
 	_out=$( ssh ${manager[node]} "$_cmd" 2>&1 )
 	commonVerify $? "$_cmd failed: $_out" "$_cmd succeeded: $_out"
 	_cmd="sudo gluster volume info"
@@ -287,7 +289,6 @@ function _glusterServerFstab() {
 	# declare -n server1=${TC_GLUSTER_MANAGERS[0]}
 	# declare -n server2=${TC_GLUSTER_MANAGERS[1]}
 
-
 	# region: servers
 
 	_inner() {
@@ -301,9 +302,9 @@ function _glusterServerFstab() {
 		_cmd="sudo sed -i \"/^$( echo ${peer[gdev]} | sed 's/\//\\\//g' )/d\" /etc/fstab"
 		_out=$(ssh ${peer[node]} "$_cmd" 2>&1 )
 		commonVerify $? "failed to remove ${peer[gdev]}: $_out" "${peer[gdev]} removed"
-		_cmd="sudo sed -i \"/^$( echo ${peer[node]}:/${TC_GLUSTER_BRICK} | sed 's/\//\\\//g' )/d\" /etc/fstab"
+		_cmd="sudo sed -i \"/^$( echo ${peer[node]}:/${TC_GLUSTER_VOLUME} | sed 's/\//\\\//g' )/d\" /etc/fstab"
 		_out=$(ssh ${peer[node]} "$_cmd" 2>&1 )
-		commonVerify $? "failed to remove ${peer[node]}:/${TC_GLUSTER_BRICK}: $_out" "${peer[node]}:/${TC_GLUSTER_BRICK} removed"
+		commonVerify $? "failed to remove ${peer[node]}:/ ->  $_out" "${peer[node]}:/${TC_GLUSTER_VOLUME} removed"
 		commonPrintf "removing consecutive empty lines"
 		_cmd="sudo sed -i '/^$/N;/^\n$/D' /etc/fstab"
 		_out=$(ssh ${peer[node]} "$_cmd" 2>&1 )
@@ -313,7 +314,7 @@ function _glusterServerFstab() {
 		local entry=""
 		commonPrintf "backupvolfile-server=${backup}"
 		entry+="${peer[gdev]} ${peer[gmnt]} xfs defaults,noatime,nodiratime,allocsize=64m 1 2\n"
-		entry+="${peer[node]}:/${TC_GLUSTER_BRICK} $TC_PATH_WORKBENCH glusterfs defaults,_netdev,backupvolfile-server=${backup} 0 0\n"
+		entry+="${peer[node]}:/${TC_GLUSTER_VOLUME} $TC_PATH_WORKBENCH glusterfs defaults,_netdev,backupvolfile-server=${backup} 0 0\n"
 		_out=$( ssh ${peer[node]} "sudo bash -c 'echo -e \"$entry\" >> /etc/fstab'" 2>&1 )
 		commonVerify $? "failed to update fstab: $_out" "fstab update succeeded"
 

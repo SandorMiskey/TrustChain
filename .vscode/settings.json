@@ -20,6 +20,7 @@
     "Gluster",
     "glusterd",
     "glusterfs",
+    "gmnt",
     "Inited",
     "instancelist",
     "instanceregister",

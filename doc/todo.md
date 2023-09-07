@@ -16,11 +16,13 @@
   * .env
     * reset passwords
     * set api-key
+    * gluster volume and bricks
     * check .env anyways
   * load on worker1 & worker2 -> upscale + worker3
   * gluster
-    * ??? 50/6 per node, redundancy = 2
-    * ??? 50/3 per node, redundancy = 1
+    * ??? 50/6 per node, redundancy = 2 ??
+    * ??? 50/3 per node, redundancy = 1 <-
+    * TC_GLUSTER_DISPERSE=3 & TC_GLUSTER_REDUNDANCY=1 accordingly
 
 * delete legacy
   * Contabo

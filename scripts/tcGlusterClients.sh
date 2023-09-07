@@ -20,23 +20,6 @@ commonPP $TC_PATH_SCRIPTS
 
 # endregion: common
 
-# function _glusterClientUmountVolume() {
-# 	commonPrintf " "
-# 	commonPrintf "umounting shared volume on clients"
-# 	commonPrintf " "
-# 	_inner() {
-# 		local -n peer=$1
-# 		local _cmd="sudo umount -f ${peer[mnt]}"
-# 		commonPrintf "${_cmd} will be issued on ${peer[node]}"
-# 		local _out=$( ssh ${peer[node]} "$_cmd" 2>&1 )
-# 		commonPrintf "status: $? $_out"
-# 	}
-# 	commonIterate _inner "confirm|umount volume on |array|node|?" "${TC_GLUSTER_MOUNTS[@]}"
-
-# 	unset _inner
-# 	commonSleep 3 "done"
-# }
-
 function _glusterClientFstabClear() {
 	commonPrintf " "
 	commonPrintf "removing Gluster entries and consecutive empty lines"
@@ -48,10 +31,10 @@ function _glusterClientFstabClear() {
 		_inInner() {
 			local -n server=$1
 
-			# commonPrintf "removing ${server[node]}:/${TC_GLUSTER_BRICK} entries"
-			_cmd="sudo sed -i \"/^$( echo ${server[node]}:/${TC_GLUSTER_BRICK} | sed 's/\//\\\//g' )/d\" /etc/fstab"
+			# commonPrintf "removing ${server[node]}:/${TC_GLUSTER_VOLUME} entries"
+			_cmd="sudo sed -i \"/^$( echo ${server[node]}:/${TC_GLUSTER_VOLUME} | sed 's/\//\\\//g' )/d\" /etc/fstab"
 			_out=$(ssh ${peer[node]} "$_cmd" 2>&1 )
-			commonVerify $? "failed to remove ${peer[node]}:/${TC_GLUSTER_BRICK}: $_out" "${server[node]}:/${TC_GLUSTER_BRICK} removed"
+			commonVerify $? "failed to remove ${peer[node]}:/${TC_GLUSTER_VOLUME}: $_out" "${server[node]}:/${TC_GLUSTER_VOLUME} removed"
 
 			unset _cmd _out
 		}
@@ -83,7 +66,7 @@ function _glusterClientFstab() {
 		local _path=$( echo ${peer[mnt]} | sed s+$TC_PATH_WORKBENCH++ )
 		local _peer=${peer[node]}
 
-		local _entry+="${server1[node]}:/${TC_GLUSTER_BRICK}${_path} ${peer[mnt]} glusterfs defaults,_netdev,backupvolfile-server=${server2[node]} 0 0\n"
+		local _entry+="${server1[node]}:/${TC_GLUSTER_VOLUME}${_path} ${peer[mnt]} glusterfs defaults,_netdev,backupvolfile-server=${server2[node]} 0 0\n"
 		commonPrintf "appending new entry on ${_peer}: $_entry"
 		_out=$( ssh ${_peer} "sudo bash -c 'echo -e \"$_entry\" >> /etc/fstab'" 2>&1 )
 		commonVerify $? "failed to update fstab: $_out" "fstab update succeeded"
