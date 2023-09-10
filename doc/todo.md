@@ -2,14 +2,12 @@
 
 ## now
 
-* migration/main.go -> go gateway || sdk implementation
-  * modes
-    * confirm/reconfirm
-    * submit/resubmit
-  * gateway: rawapi
-  * sdk: fabric-samples
-    * asset-transfer-basic/application-go
-    * high-throughput/application-go
+* migration/main.go
+  * confirm/reconfirm
+    * fabric/query.go
+    * fabric/lator
+    * main.go fabricQuery()
+    * main.go modeConfirm()
 * continuous batch process
 * re-genesis mainnet
   * tcGlusterServers.sh:259

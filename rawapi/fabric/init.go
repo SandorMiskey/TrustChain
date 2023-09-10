@@ -45,14 +45,10 @@ func (s *OrgSetup) Init() (*OrgSetup, error) {
 	// endregion: logger
 	// region: configtxlator
 
-	if s.Lator.Exe == nil {
-		_, err := s.Lator.Init()
-		if err != nil {
-			logger(log.LOG_EMERG, "error initializing configtxlator instance", err, s.Lator)
-			panic(err)
-		}
-		logger(log.LOG_DEBUG, "configtxlator instance", s.Lator)
-
+	if s.Lator == nil {
+		err := errors.New("configtxlator instance must be initialized beforehand")
+		logger(log.LOG_EMERG, err)
+		panic(err)
 	}
 
 	// endregion: configtxlator
