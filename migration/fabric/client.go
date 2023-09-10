@@ -12,50 +12,13 @@ import (
 	"github.com/hyperledger/fabric-gateway/pkg/client"
 	"github.com/hyperledger/fabric-gateway/pkg/identity"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials"
 )
 
 // endregion: packages
-// region: types
-
-type Client struct {
-	CertPath     string `json:"CertPath"`
-	GatewayPeer  string `json:"GatewayPeer"`
-	KeyPath      string `json:"KeyPath"`
-	MSPID        string `json:"MSPID"`
-	PeerEndpoint string `json:"PeerEndpoint"`
-	TLSCertPath  string `json:"TLSCertPath"`
-
-	gateway *client.Gateway `json:"-"`
-}
-
-type Request struct {
-	Chaincode string   `json:"chaincode"`
-	Channel   string   `json:"channel"`
-	Function  string   `json:"function"`
-	Args      []string `json:"args"`
-}
-
-type ResponseError struct {
-	Details []map[string]string `json:"details"`
-	Err     error               `json:"-"`
-	Message string              `json:"message"`
-	Status  codes.Code          `json:"status"`
-	Type    string              `json:"type"`
-	Txid    string              `json:"tx_id"`
-}
-
-type Response struct {
-	Txid   string `json:"tx_id"`
-	Result []byte `json:"result"`
-	// Error  Error       `json:"error"`
-}
-
-// endregion: types
 // region: init client
 
-func Init(c *Client) error {
+func (c *Client) Init() error {
 
 	clientConnection, err := c.newGrpcConnection()
 	if err != nil {
@@ -85,11 +48,6 @@ func Init(c *Client) error {
 
 	c.gateway = gateway
 	return nil
-}
-
-func (c *Client) Init() error {
-	err := Init(c)
-	return err
 }
 
 // endregion: init client

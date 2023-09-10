@@ -31,21 +31,27 @@ import (
 // region: globals
 
 var (
+	BlockCache = make(map[string]Header)
+
 	DefaultBundleKeyName string = "bundle_id"
 	DefaultBundleKeyPos  int    = 0
 	DefaultBundleKeyType string = "string"
 	DefaultFabChannel    string = "trustchain-test"
-	DefaultFabClient     string = "org1-client"
-	DefaultFabEndpoint   string = "localhost:7051"
-	DefaultFabGw         string = "localhost"
-	DefaultFabTry        int    = 10
-	DefaultFabMspId      string = "Org1MSP"
-	DefaultHttpApikey    string = ""
-	DefaultHttpPort      int    = 5088
-	DefaultLoglevel      int    = 7
-	DefaultPathCert      string = "./cert.pem"
-	DefaultPathKeystore  string = "./keystore"
-	DefaultPathTlsCert   string = "./tlscert.pem"
+	// DefaultFabClient     string = "org1-client"
+	DefaultFabEndpoint  string = "localhost:7051"
+	DefaultFabGw        string = "localhost"
+	DefaultFabTry       int    = 10
+	DefaultFabMspId     string = "Org1MSP"
+	DefaultHttpApikey   string = ""
+	DefaultHttpPort     int    = 5088
+	DefaultLatorBind    string = "127.0.0.1"
+	DefaultLatorExe     string = "/usr/local/bin/configtxlator"
+	DefaultLatorPort    int    = 1337
+	DefaultLatorProto   string = "common.Block"
+	DefaultLoglevel     int    = 7
+	DefaultPathCert     string = "./cert.pem"
+	DefaultPathKeystore string = "./keystore"
+	DefaultPathTlsCert  string = "./tlscert.pem"
 
 	Logger *log.Logger
 	Lout   func(s ...interface{}) *[]error
@@ -68,9 +74,10 @@ const (
 	SCANNER_MAXTOKENSIZE int = 1024 * 1024 // 1MB
 
 	STATUS_CONFIRM_ERROR_PREFIX string = "CONFIRM_ERROR_"
-	STATUS_CONFIRM_ERROR_TXID   string = STATUS_CONFIRM_ERROR_PREFIX + "TXID"
-	STATUS_CONFIRM_ERROR_CLIENT string = STATUS_CONFIRM_ERROR_PREFIX + "CLIENT"
+	STATUS_CONFIRM_ERROR_QUERY  string = STATUS_CONFIRM_ERROR_PREFIX + "QUERY"
+	STATUS_CONFIRM_ERROR_DECODE string = STATUS_CONFIRM_ERROR_PREFIX + "DECODE"
 	STATUS_CONFIRM_ERROR_HEADER string = STATUS_CONFIRM_ERROR_PREFIX + "HEADER"
+	STATUS_CONFIRM_ERROR_TXID   string = STATUS_CONFIRM_ERROR_PREFIX + "TXID"
 	STATUS_CONFIRM_OK           string = "CONFIRM_OK"
 	STATUS_PARSE_ERROR          string = "PARSE_ERROR"
 	STATUS_SUBMIT_ERROR_PREFIX  string = "SUBMIT_ERROR_"
@@ -79,16 +86,16 @@ const (
 	STATUS_SUBMIT_ERROR_TXID    string = STATUS_SUBMIT_ERROR_PREFIX + "TXID"
 	STATUS_SUBMIT_OK            string = "SUBMIT_OK"
 
-	TC_FAB_CHANNEL  string = "TC_CHANNEL1_NAME"
-	TC_FAB_CLIENT   string = "TC_ORG1_CLIENT"
-	TC_FAB_ENDPOINT string = "TC_RAWAPI_PEERENDPOINT"
-	TC_FAB_GW       string = "TC_RAWAPI_GATEWAYPEER"
-	TC_FAB_MSPID    string = "TC_RAWAPI_MSPID"
-	TC_HTTP_APIKEY  string = "TC_HTTP_API_KEY"
-	TC_HTTP_PORT    string = "TC_RAWAPI_HTTP_PORT"
-	// TC_LATOR_BIND    string = "TC_RAWAPI_LATOR_BIND"
-	// TC_LATOR_PORT    string = "TC_RAWAPI_LATOR_PORT"
-	// TC_LATOR_WHICH   string = "TC_RAWAPI_LATOR_WHICH"
+	TC_FAB_CHANNEL   string = "TC_CHANNEL1_NAME"
+	TC_FAB_CLIENT    string = "TC_ORG1_CLIENT"
+	TC_FAB_ENDPOINT  string = "TC_RAWAPI_PEERENDPOINT"
+	TC_FAB_GW        string = "TC_RAWAPI_GATEWAYPEER"
+	TC_FAB_MSPID     string = "TC_RAWAPI_MSPID"
+	TC_HTTP_APIKEY   string = "TC_HTTP_API_KEY"
+	TC_HTTP_PORT     string = "TC_RAWAPI_HTTP_PORT"
+	TC_LATOR_BIND    string = "TC_RAWAPI_LATOR_BIND"
+	TC_LATOR_EXE     string = "TC_PATH_BIN"
+	TC_LATOR_PORT    string = "TC_RAWAPI_LATOR_PORT"
 	TC_LOGLEVEL      string = "TC_RAWAPI_LOGLEVEL"
 	TC_PATH_CERT     string = "TC_RAWAPI_CERTPATH"
 	TC_PATH_KEYSTORE string = "TC_RAWAPI_KEYPATH"
@@ -159,8 +166,8 @@ func main() {
 					switch kv[0] {
 					case TC_FAB_CHANNEL:
 						DefaultFabChannel = kv[1]
-					case TC_FAB_CLIENT:
-						DefaultFabClient = kv[1]
+					// case TC_FAB_CLIENT:
+					// 	DefaultFabClient = kv[1]
 					case TC_FAB_GW:
 						DefaultFabGw = kv[1]
 					case TC_FAB_ENDPOINT:
@@ -174,15 +181,15 @@ func main() {
 						if err == nil {
 							DefaultHttpPort, _ = strconv.Atoi(kv[1])
 						}
-					// case TC_LATOR_BIND:
-					// 	DefaultLatorBind = kv[1]
-					// case TC_LATOR_PORT:
-					// 	_, err := strconv.Atoi(kv[1])
-					// 	if err == nil {
-					// 		DefaultLatorPort, _ = strconv.Atoi(kv[1])
-					// 	}
-					// case TC_LATOR_WHICH:
-					// 	DefaultLatorWhich = kv[1]
+					case TC_LATOR_BIND:
+						DefaultLatorBind = kv[1]
+					case TC_LATOR_PORT:
+						_, err := strconv.Atoi(kv[1])
+						if err == nil {
+							DefaultLatorPort, _ = strconv.Atoi(kv[1])
+						}
+					case TC_LATOR_EXE:
+						DefaultLatorExe = kv[1] + "/configtxlator"
 					case TC_LOGLEVEL:
 						_, err = strconv.Atoi(kv[1])
 						if err == nil {
@@ -225,21 +232,42 @@ func main() {
 		helperPanic("missing mode selector")
 	}
 
-	switch os.Args[1] {
+	switch strings.ToLower(os.Args[1]) {
 	case "confirm", "c":
-		fs.Entries["cert"] = cfg.Entry{Desc: "path to client pem certificate to populate the wallet with", Type: "string", Def: DefaultPathCert}
+		fs.Entries["cert"] = cfg.Entry{Desc: "path to client pem certificate to populate the wallet with, default is $TC_RAWAPI_CERTPATH if set", Type: "string", Def: DefaultPathCert}
 		fs.Entries["chaincode"] = cfg.Entry{Desc: "chaincode to invoke", Type: "string", Def: "qscc"}
-		fs.Entries["endpoint"] = cfg.Entry{Desc: "fabric endpoint", Type: "string", Def: DefaultFabEndpoint}
+		fs.Entries["endpoint"] = cfg.Entry{Desc: "fabric endpoint, default is $TC_RAWAPI_PEERENDPOINT if set", Type: "string", Def: DefaultFabEndpoint}
 		fs.Entries["function"] = cfg.Entry{Desc: "function of --chaincode", Type: "string", Def: "GetBlockByTxID"}
-		fs.Entries["gateway"] = cfg.Entry{Desc: "default gateway", Type: "string", Def: DefaultFabGw}
+		fs.Entries["gateway"] = cfg.Entry{Desc: "default gateway, default is $TC_RAWAPI_GATEWAYPEER if set", Type: "string", Def: DefaultFabGw}
 		fs.Entries["in"] = cfg.Entry{Desc: "file, which contains the output of previous submit attempt, empty means stdin", Type: "string", Def: ""}
-		fs.Entries["keystore"] = cfg.Entry{Desc: "path to client keystore", Type: "string", Def: DefaultPathKeystore}
-		fs.Entries["mspid"] = cfg.Entry{Desc: "fabric MSPID", Type: "string", Def: DefaultFabMspId}
+		fs.Entries["keystore"] = cfg.Entry{Desc: "path to client keystore, default is $TC_RAWAPI_KEYPATH if set", Type: "string", Def: DefaultPathKeystore}
+		fs.Entries["latorbind"] = cfg.Entry{Desc: "address to bind configtxlator's rest api to, default is TC_RAWAPI_LATOR_BIND if set", Type: "string", Def: DefaultLatorBind}
+		fs.Entries["latorexe"] = cfg.Entry{Desc: "path to configtxlator (if empty, will dump protobuf as base64 encoded string), default is $TC_PATH_BIN/configtxlator if set", Type: "string", Def: DefaultLatorExe}
+		fs.Entries["latorport"] = cfg.Entry{Desc: "port where configtxlator will listen, default is TC_RAWAPI_LATOR_PORT if set", Type: "int", Def: DefaultLatorPort}
+		fs.Entries["latorproto"] = cfg.Entry{Desc: "protobuf format, configtxlator will be used if set", Type: "string", Def: DefaultLatorProto}
+		fs.Entries["mspid"] = cfg.Entry{Desc: "fabric MSPID, default is $TC_RAWAPI_MSPID if set", Type: "string", Def: DefaultFabMspId}
 		fs.Entries["try"] = cfg.Entry{Desc: "number of invoke tries", Type: "int", Def: DefaultFabTry}
-		fs.Entries["tlscert"] = cfg.Entry{Desc: "path to TLS cert", Type: "string", Def: DefaultPathTlsCert}
+		fs.Entries["tlscert"] = cfg.Entry{Desc: "path to TLS cert, default is $TC_RAWAPI_TLSCERTPATH if set", Type: "string", Def: DefaultPathTlsCert}
 
 		modeExec = modeConfirm
-	case "confirmRawapi", "cr":
+	case "confirmbatch", "cb":
+		fs.Entries["cert"] = cfg.Entry{Desc: "path to client pem certificate to populate the wallet with, default is $TC_RAWAPI_CERTPATH if set", Type: "string", Def: DefaultPathCert}
+		fs.Entries["chaincode"] = cfg.Entry{Desc: "chaincode to invoke", Type: "string", Def: "qscc"}
+		fs.Entries["endpoint"] = cfg.Entry{Desc: "fabric endpoint, default is $TC_RAWAPI_PEERENDPOINT if set", Type: "string", Def: DefaultFabEndpoint}
+		fs.Entries["function"] = cfg.Entry{Desc: "function of --chaincode", Type: "string", Def: "GetBlockByTxID"}
+		fs.Entries["gateway"] = cfg.Entry{Desc: "default gateway, default is $TC_RAWAPI_GATEWAYPEER if set", Type: "string", Def: DefaultFabGw}
+		fs.Entries["in"] = cfg.Entry{Desc: ", separated list of files, which contain the output of previous submit attempts, empty causes panic", Type: "string", Def: ""}
+		fs.Entries["keystore"] = cfg.Entry{Desc: "path to client keystore, default is $TC_RAWAPI_KEYPATH if set", Type: "string", Def: DefaultPathKeystore}
+		fs.Entries["latorbind"] = cfg.Entry{Desc: "address to bind configtxlator's rest api to, default is TC_RAWAPI_LATOR_BIND if set", Type: "string", Def: DefaultLatorBind}
+		fs.Entries["latorexe"] = cfg.Entry{Desc: "path to configtxlator (if empty, will dump protobuf as base64 encoded string), default is $TC_PATH_BIN/configtxlator if set", Type: "string", Def: DefaultLatorExe}
+		fs.Entries["latorport"] = cfg.Entry{Desc: "port where configtxlator will listen, default is TC_RAWAPI_LATOR_PORT if set", Type: "int", Def: DefaultLatorPort}
+		fs.Entries["latorproto"] = cfg.Entry{Desc: "protobuf format, configtxlator will be used if set", Type: "string", Def: DefaultLatorProto}
+		fs.Entries["mspid"] = cfg.Entry{Desc: "fabric MSPID, default is $TC_RAWAPI_MSPID if set", Type: "string", Def: DefaultFabMspId}
+		fs.Entries["try"] = cfg.Entry{Desc: "number of invoke tries", Type: "int", Def: DefaultFabTry}
+		fs.Entries["tlscert"] = cfg.Entry{Desc: "path to TLS cert, default is $TC_RAWAPI_TLSCERTPATH if set", Type: "string", Def: DefaultPathTlsCert}
+
+		modeExec = modeConfirmBatch
+	case "confirmrawapi", "cr":
 		fs.Entries["apikey"] = cfg.Entry{Desc: "api key, skip if not set, default is $TC_HTTP_API_KEY if set", Type: "string", Def: DefaultHttpApikey}
 		fs.Entries["chaincode"] = cfg.Entry{Desc: "chaincode to query", Type: "string", Def: "qscc"}
 		fs.Entries["function"] = cfg.Entry{Desc: "function of --chaincode", Type: "string", Def: "GetBlockByTxID"}
@@ -254,52 +282,52 @@ func main() {
 		msg()
 		os.Exit(0)
 	case "submit", "s":
-		fs.Entries["cert"] = cfg.Entry{Desc: "path to client pem certificate to populate the wallet with", Type: "string", Def: DefaultPathCert}
+		fs.Entries["cert"] = cfg.Entry{Desc: "path to client pem certificate to populate the wallet with, default is $TC_RAWAPI_CERTPATH if set", Type: "string", Def: DefaultPathCert}
 		fs.Entries["chaincode"] = cfg.Entry{Desc: "chaincode to invoke", Type: "string", Def: "te-food-bundles"}
-		fs.Entries["endpoint"] = cfg.Entry{Desc: "fabric endpoint", Type: "string", Def: DefaultFabEndpoint}
+		fs.Entries["endpoint"] = cfg.Entry{Desc: "fabric endpoint, default is $TC_RAWAPI_PEERENDPOINT if set", Type: "string", Def: DefaultFabEndpoint}
 		fs.Entries["function"] = cfg.Entry{Desc: "function of --chaincode", Type: "string", Def: "CreateBundle"}
-		fs.Entries["gateway"] = cfg.Entry{Desc: "default gateway", Type: "string", Def: DefaultFabGw}
+		fs.Entries["gateway"] = cfg.Entry{Desc: "default gateway, default is $TC_RAWAPI_GATEWAYPEER if set", Type: "string", Def: DefaultFabGw}
 		fs.Entries["in"] = cfg.Entry{Desc: "file, which contains the parameters of one transaction per line, separated by |, empty means stdin", Type: "string", Def: ""}
 		fs.Entries["keyname"] = cfg.Entry{Desc: "the name of the field containing the unique identifier", Type: "string", Def: DefaultBundleKeyName}
 		fs.Entries["keypos"] = cfg.Entry{Desc: "Nth field in -in that contains the unique identifier identified by -keyname", Type: "int", Def: DefaultBundleKeyPos}
-		fs.Entries["keystore"] = cfg.Entry{Desc: "path to client keystore", Type: "string", Def: DefaultPathKeystore}
+		fs.Entries["keystore"] = cfg.Entry{Desc: "path to client keystore, default is $TC_RAWAPI_KEYPATH if set", Type: "string", Def: DefaultPathKeystore}
 		fs.Entries["keytype"] = cfg.Entry{Desc: "type of -keyname, either 'string' or 'int'", Type: "string", Def: DefaultBundleKeyType}
-		fs.Entries["mspid"] = cfg.Entry{Desc: "fabric MSPID", Type: "string", Def: DefaultFabMspId}
+		fs.Entries["mspid"] = cfg.Entry{Desc: "fabric MSPID, default is $TC_RAWAPI_MSPID if set", Type: "string", Def: DefaultFabMspId}
 		fs.Entries["try"] = cfg.Entry{Desc: "number of invoke tries", Type: "int", Def: DefaultFabTry}
-		fs.Entries["tlscert"] = cfg.Entry{Desc: "path to TLS cert", Type: "string", Def: DefaultPathTlsCert}
+		fs.Entries["tlscert"] = cfg.Entry{Desc: "path to TLS cert, default is $TC_RAWAPI_TLSCERTPATH if set", Type: "string", Def: DefaultPathTlsCert}
 
 		modeExec = modeSubmit
 	case "submitBatch", "sb":
-		fs.Entries["cert"] = cfg.Entry{Desc: "path to client pem certificate to populate the wallet with", Type: "string", Def: DefaultPathCert}
+		fs.Entries["cert"] = cfg.Entry{Desc: "path to client pem certificate to populate the wallet with, default is $TC_RAWAPI_CERTPATH if set", Type: "string", Def: DefaultPathCert}
 		fs.Entries["chaincode"] = cfg.Entry{Desc: "chaincode to invoke", Type: "string", Def: "te-food-bundles"}
-		fs.Entries["endpoint"] = cfg.Entry{Desc: "fabric endpoint", Type: "string", Def: DefaultFabEndpoint}
+		fs.Entries["endpoint"] = cfg.Entry{Desc: "fabric endpoint, default is $TC_RAWAPI_PEERENDPOINT if set", Type: "string", Def: DefaultFabEndpoint}
 		fs.Entries["function"] = cfg.Entry{Desc: "function of --chaincode", Type: "string", Def: "CreateBundle"}
-		fs.Entries["gateway"] = cfg.Entry{Desc: "default gateway", Type: "string", Def: DefaultFabGw}
-		fs.Entries["in"] = cfg.Entry{Desc: ", separated list of files, which contain the | separated parameters of one transaction per line", Type: "string", Def: ""}
+		fs.Entries["gateway"] = cfg.Entry{Desc: "default gateway, default is $TC_RAWAPI_GATEWAYPEER if set", Type: "string", Def: DefaultFabGw}
+		fs.Entries["in"] = cfg.Entry{Desc: ", separated list of files, which contain the | separated parameters of one transaction per line, empty causes panic", Type: "string", Def: ""}
 		fs.Entries["keyname"] = cfg.Entry{Desc: "the name of the field containing the unique identifier", Type: "string", Def: DefaultBundleKeyName}
 		fs.Entries["keypos"] = cfg.Entry{Desc: "Nth field in -in that contains the unique identifier identified by -keyname", Type: "int", Def: DefaultBundleKeyPos}
-		fs.Entries["keystore"] = cfg.Entry{Desc: "path to client keystore", Type: "string", Def: DefaultPathKeystore}
+		fs.Entries["keystore"] = cfg.Entry{Desc: "path to client keystore, default is $TC_RAWAPI_KEYPATH if set", Type: "string", Def: DefaultPathKeystore}
 		fs.Entries["keytype"] = cfg.Entry{Desc: "type of -keyname, either 'string' or 'int'", Type: "string", Def: DefaultBundleKeyType}
-		fs.Entries["mspid"] = cfg.Entry{Desc: "fabric MSPID", Type: "string", Def: DefaultFabMspId}
+		fs.Entries["mspid"] = cfg.Entry{Desc: "fabric MSPID, default is $TC_RAWAPI_MSPID if set", Type: "string", Def: DefaultFabMspId}
 		fs.Entries["try"] = cfg.Entry{Desc: "number of invoke tries", Type: "int", Def: DefaultFabTry}
-		fs.Entries["tlscert"] = cfg.Entry{Desc: "path to TLS cert", Type: "string", Def: DefaultPathTlsCert}
+		fs.Entries["tlscert"] = cfg.Entry{Desc: "path to TLS cert, default is $TC_RAWAPI_TLSCERTPATH if set", Type: "string", Def: DefaultPathTlsCert}
 
 		modeExec = modeSubmitBatch
-	case "resubmit", "r":
+	case "resubmit", "rs":
 		shift := strconv.Itoa(reflect.TypeOf(PSV{}).NumField())
-		fs.Entries["cert"] = cfg.Entry{Desc: "path to client pem certificate to populate the wallet with", Type: "string", Def: DefaultPathCert}
+		fs.Entries["cert"] = cfg.Entry{Desc: "path to client pem certificate to populate the wallet with, default is $TC_RAWAPI_CERTPATH if set", Type: "string", Def: DefaultPathCert}
 		fs.Entries["chaincode"] = cfg.Entry{Desc: "chaincode to invoke", Type: "string", Def: "te-food-bundles"}
-		fs.Entries["endpoint"] = cfg.Entry{Desc: "fabric endpoint", Type: "string", Def: DefaultFabEndpoint}
+		fs.Entries["endpoint"] = cfg.Entry{Desc: "fabric endpoint, default is $TC_RAWAPI_PEERENDPOINT if set", Type: "string", Def: DefaultFabEndpoint}
 		fs.Entries["function"] = cfg.Entry{Desc: "function of --chaincode", Type: "string", Def: "CreateBundle"}
 		fs.Entries["gateway"] = cfg.Entry{Desc: "default gateway", Type: "string", Def: DefaultFabGw}
 		fs.Entries["in"] = cfg.Entry{Desc: "file, which contains the output of previous submit attempt, empty means stdin", Type: "string", Def: ""}
 		fs.Entries["keyname"] = cfg.Entry{Desc: "the name of the field containing the unique identifier", Type: "string", Def: DefaultBundleKeyName}
 		fs.Entries["keypos"] = cfg.Entry{Desc: shift + "+Nth field in -in that contains the unique identifier identified by -keyname", Type: "int", Def: DefaultBundleKeyPos}
-		fs.Entries["keystore"] = cfg.Entry{Desc: "path to client keystore", Type: "string", Def: DefaultPathKeystore}
+		fs.Entries["keystore"] = cfg.Entry{Desc: "path to client keystore, default is $TC_RAWAPI_KEYPATH if set", Type: "string", Def: DefaultPathKeystore}
 		fs.Entries["keytype"] = cfg.Entry{Desc: "type of -keyname, either 'string' or 'int'", Type: "string", Def: DefaultBundleKeyType}
-		fs.Entries["mspid"] = cfg.Entry{Desc: "fabric MSPID", Type: "string", Def: DefaultFabMspId}
+		fs.Entries["mspid"] = cfg.Entry{Desc: "fabric MSPID, default is $TC_RAWAPI_MSPID if set", Type: "string", Def: DefaultFabMspId}
 		fs.Entries["try"] = cfg.Entry{Desc: "number of invoke tries", Type: "int", Def: DefaultFabTry}
-		fs.Entries["tlscert"] = cfg.Entry{Desc: "path to TLS cert", Type: "string", Def: DefaultPathTlsCert}
+		fs.Entries["tlscert"] = cfg.Entry{Desc: "path to TLS cert, default is $TC_RAWAPI_TLSCERTPATH if set", Type: "string", Def: DefaultPathTlsCert}
 
 		modeExec = modeResubmit
 	default:
@@ -361,168 +389,128 @@ func modeConfirm(config *cfg.Config) {
 	input := config.Entries["in"].Value.(string)
 	output := config.Entries["out"].Value.(string)
 
-	batch, sent := ioCombined(input, output, procParseBundles)
+	batch, sent := ioCombined(input, output, procParsePSV)
 	defer sent.Close()
 	Lout(LOG_INFO, "# of lines", len(*batch))
 
 	// endregion: i/o
-	// region: block cache
+	// region: client
 
-	// cache := make(map[string]Header)
+	client, err := fabricClient(config)
+	if err != nil {
+		helperPanic("cannot init fabric gw", err.Error())
+	}
+	Lout(LOG_DEBUG, "fabric client", client)
 
-	// endregion: block cache
+	// endregion: client
+	// region: configtxlator
+
+	err = fabricLator(config, client)
+	if err != nil {
+		helperPanic("error while initializing configtxlator")
+	}
+
+	// endregion: configtxlator
 	// region: process batch
 
-	for k, item := range *batch {
-
+	for k, bundle := range *batch {
 		progress := fmt.Sprintf("%d/%d", k+1, len(*batch))
 
-		// region: validate input
-
-		if item.Status != STATUS_SUBMIT_OK && !strings.HasPrefix(item.Status, STATUS_CONFIRM_ERROR_PREFIX) {
-			Lout(LOG_INFO, progress, "bypassed status", item.Status)
-			ioOutputAppend(sent, item, procCompilePSV)
+		if bundle.Status != STATUS_SUBMIT_OK && !strings.HasPrefix(bundle.Status, STATUS_CONFIRM_ERROR_PREFIX) {
+			Lout(LOG_INFO, progress, "bypassed status", bundle.Status)
+			ioOutputAppend(sent, bundle, procCompilePSV)
 			continue
 		}
-		if !TxRegexp.MatchString(item.Txid) {
-			item.Status = "STATUS_CONFIRM_ERROR_TXID"
-			Lout(LOG_ERR, progress, "invalid txid", item.Txid)
-			ioOutputAppend(sent, item, procCompilePSV)
+		if !TxRegexp.MatchString(bundle.Txid) {
+			bundle.Status = STATUS_CONFIRM_ERROR_TXID
+			Lout(LOG_ERR, progress, "invalid txid", bundle.Txid)
+			ioOutputAppend(sent, bundle, procCompilePSV)
 			continue
 		}
 
-		// endregion: validate input
-		// region: get .result.header
-
-		// blockHeader, blockHeaderType, _, err := jsonparser.Get(resp.Body(), "result", "header")
-		// if blockHeaderType != jsonparser.Object || err != nil {
-		// 	item.Status = STATUS_CONFIRM_ERROR_HEADER
-		// 	item.Response = err.Error()
-		// 	Lout(LOG_ERR, progress, "no parsable header in response", item.Response)
-		// 	helperOutputAppend(outFile, item, helperCompilePSV)
-		// 	continue
-		// }
-
-		// endregion: get .result.header
-		// region: parse .result.header.number
-
-		// var responseHeader Header
-
-		// responseHeader.Number, err = jsonparser.GetString(blockHeader, "number")
-		// if err != nil {
-		// 	item.Status = STATUS_CONFIRM_ERROR_HEADER
-		// 	item.Response = err.Error()
-		// 	Lout(LOG_ERR, progress, "cannot parse block # from header", item.Response)
-		// 	helperOutputAppend(outFile, item, helperCompilePSV)
-		// 	continue
-		// }
-
-		// endregion: parse .result.header.number
-		// region: parse or cache
-
-		/*
-			if _, exists := blockCache[responseHeader.Number]; exists {
-				responseHeader = blockCache[responseHeader.Number]
-			} else {
-
-				// region: parse .result.header
-
-				responseHeader.DataHash, err = jsonparser.GetString(blockHeader, "data_hash")
-				if err != nil {
-					item.Status = STATUS_CONFIRM_ERROR_HEADER
-					item.Response = err.Error()
-					Lout(LOG_ERR, progress, "cannot parse data_hash from header", item.Response)
-					helperOutputAppend(outFile, item, helperCompilePSV)
-					continue
-				}
-
-				responseHeader.PreviousHash, err = jsonparser.GetString(blockHeader, "previous_hash")
-				if err != nil {
-					item.Status = STATUS_CONFIRM_ERROR_HEADER
-					item.Response = err.Error()
-					Lout(LOG_ERR, progress, "cannot parse previous_hash from header", item.Response)
-					helperOutputAppend(outFile, item, helperCompilePSV)
-					continue
-				}
-
-				// endregion: parse .result.header
-				// region: get payload (.result.data.data)
-
-				blockPayload, blockPayloadType, _, err := jsonparser.Get(resp.Body(), "result", "data", "data")
-				if blockPayloadType != jsonparser.Array || err != nil {
-					item.Status = STATUS_CONFIRM_ERROR_HEADER
-					item.Response = err.Error()
-					Lout(LOG_ERR, progress, "no parsable payload in response", item.Response)
-					helperOutputAppend(outFile, item, helperCompilePSV)
-					continue
-				}
-
-				// endregion: get payload
-				// region: parse timestamp and length from payload
-
-				responseHeader.Timestamp, err = jsonparser.GetString(blockPayload, "[0]", "payload", "header", "channel_header", "timestamp")
-				if err != nil {
-					item.Status = STATUS_CONFIRM_ERROR_HEADER
-					item.Response = err.Error()
-					Lout(LOG_ERR, progress, "cannot get timestamp from payload", item.Response)
-					helperOutputAppend(outFile, item, helperCompilePSV)
-					continue
-				}
-
-				responseHeader.Length = 0
-				_, err = jsonparser.ArrayEach(blockPayload, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
-
-					responseHeader.Length++
-					// fmt.Println(header.Length)
-				})
-				if err != nil {
-					item.Status = STATUS_CONFIRM_ERROR_HEADER
-					item.Response = err.Error()
-					Lout(LOG_ERR, progress, "cannot count transactions in payload", item.Response)
-					helperOutputAppend(outFile, item, helperCompilePSV)
-					continue
-				}
-
-				// endregion: parse timestamp and length from payload
-				// region: fill blockCache
-
-				blockCache[responseHeader.Number] = responseHeader
-
-				// endregion: blockCache
-
-			}
-		*/
-
-		// endregion: parse or cache
-		// region: header to string
-
-		// responseHeaderData, err := json.Marshal(responseHeader)
-		// if err != nil {
-		// 	item.Status = STATUS_CONFIRM_ERROR_HEADER
-		// 	item.Response = err.Error()
-		// 	Lout(LOG_ERR, progress, "cannot marshal header", item.Response)
-		// 	helperOutputAppend(outFile, item, helperCompilePSV)
-		// 	continue
-		// }
-
-		// endregion: header to string
-		// region: done
-
-		// item.Status = STATUS_CONFIRM_200
-		// item.Response = string(responseHeaderData)
-		// Lout(LOG_DEBUG, progress, item.Status)
-		// Lout(LOG_DEBUG, progress, item.Key)
-		// Lout(LOG_DEBUG, progress, item.Txid)
-		// Lout(LOG_DEBUG, progress, item.Response)
-		// Lout(LOG_DEBUG, progress, item.Payload)
-		// helperOutputAppend(outFile, item, helperCompilePSV)
-		Lout(LOG_INFO, progress, "done")
-
-		// endregion: done
+		err := fabricConfirm(config, client, &bundle)
+		if err != nil {
+			Lout(LOG_NOTICE, progress, err)
+		} else {
+			Lout(LOG_INFO, progress, "success", bundle.Key, bundle.Txid)
+		}
+		ioOutputAppend(sent, bundle, procCompilePSV)
 
 	}
 
 	// endregion: process batch
+
+}
+
+func modeConfirmBatch(config *cfg.Config) {
+
+	// region: i/o
+
+	input := strings.Split(config.Entries["in"].Value.(string), ",")
+	count := 0
+	for k, v := range input {
+		if len(v) == 0 {
+			helperPanic(fmt.Sprintf("empty value in position %d of input files", k+1))
+		}
+		batch := ioRead(v, procParsePSV)
+		Lout(LOG_INFO, fmt.Sprintf("%d/%d with  %d lines", k+1, len(input), len(*batch)))
+		count = count + len(*batch)
+	}
+	Lout(LOG_INFO, fmt.Sprintf("%d files with total of %d lines", len(input), count))
+
+	sent := ioOutputOpen(config.Entries["out"].Value.(string))
+	defer sent.Close()
+
+	// endregion: i/o
+	// region: client
+
+	client, err := fabricClient(config)
+	if err != nil {
+		helperPanic("cannot init fabric gw", err.Error())
+	}
+	Lout(LOG_DEBUG, "fabric client", client)
+
+	// endregion: client
+	// region: configtxlator
+
+	err = fabricLator(config, client)
+	if err != nil {
+		helperPanic("error while initializing configtxlator")
+	}
+
+	// endregion: configtxlator
+	// region: process batch
+
+	done := 1
+	for i, file := range input {
+		batch := ioRead(file, procParsePSV)
+		for k, bundle := range *batch {
+			progress := fmt.Sprintf("file %d/%d, bundle %d/%d, total %d/%d", i+1, len(input), k+1, len(*batch), done, count)
+			done++
+
+			if bundle.Status != STATUS_SUBMIT_OK && !strings.HasPrefix(bundle.Status, STATUS_CONFIRM_ERROR_PREFIX) {
+				Lout(LOG_INFO, progress, "bypassed status", bundle.Status)
+				ioOutputAppend(sent, bundle, procCompilePSV)
+				continue
+			}
+			if !TxRegexp.MatchString(bundle.Txid) {
+				bundle.Status = STATUS_CONFIRM_ERROR_TXID
+				Lout(LOG_ERR, progress, "invalid txid", bundle.Txid)
+				ioOutputAppend(sent, bundle, procCompilePSV)
+				continue
+			}
+
+			err := fabricConfirm(config, client, &bundle)
+			if err != nil {
+				Lout(LOG_NOTICE, progress, err)
+			} else {
+				Lout(LOG_INFO, progress, "success", bundle.Key, bundle.Txid)
+			}
+			ioOutputAppend(sent, bundle, procCompilePSV)
+		}
+	}
+
+	// endregion: process
 
 }
 
@@ -538,6 +526,11 @@ func modeConfirmRawapi(config *cfg.Config) {
 	Lout(LOG_INFO, "# of lines", len(*batch))
 
 	// endregion: i/o
+	// region: client
+
+	client := &fasthttp.Client{}
+
+	// endregion: client
 	// region: base url
 
 	baseurl := fasthttp.AcquireURI()
@@ -551,11 +544,6 @@ func modeConfirmRawapi(config *cfg.Config) {
 	Lout(LOG_INFO, "base url", baseurl.String())
 
 	// endregion: base url
-	// region: block cache
-
-	blockCache := make(map[string]Header)
-
-	// endregion: block cache
 	// region: process batch
 
 	for k, item := range *batch {
@@ -570,7 +558,7 @@ func modeConfirmRawapi(config *cfg.Config) {
 			continue
 		}
 		if !TxRegexp.MatchString(item.Txid) {
-			item.Status = "STATUS_CONFIRM_ERROR_TXID"
+			item.Status = STATUS_CONFIRM_ERROR_TXID
 			Lout(LOG_ERR, progress, "invalid txid", item.Txid)
 			ioOutputAppend(outFile, item, procCompilePSV)
 			continue
@@ -588,8 +576,8 @@ func modeConfirmRawapi(config *cfg.Config) {
 		defer fasthttp.ReleaseRequest(req)
 		req.Header.SetMethod("GET")
 		req.SetRequestURI(url.String())
-		if len(config.Entries["tc_http_api_key"].Value.(string)) != 0 {
-			req.Header.Set(API_KEY_HEADER, config.Entries["tc_http_api_key"].Value.(string))
+		if len(config.Entries["apikey"].Value.(string)) != 0 {
+			req.Header.Set(API_KEY_HEADER, config.Entries["apikey"].Value.(string))
 		}
 		Lout(LOG_DEBUG, progress, url)
 
@@ -597,19 +585,18 @@ func modeConfirmRawapi(config *cfg.Config) {
 		defer fasthttp.ReleaseResponse(resp)
 
 		// endregion: prepare request
-		// region: prepare client
+		// region: query
 
-		client := &fasthttp.Client{}
 		err := client.Do(req, resp)
 		if err != nil {
-			item.Status = STATUS_CONFIRM_ERROR_CLIENT
+			item.Status = STATUS_CONFIRM_ERROR_QUERY
 			item.Response = string(err.Error())
 			Lout(LOG_ERR, progress, "http client error", err)
 			ioOutputAppend(outFile, item, procCompilePSV)
 			continue
 		}
 
-		// endregion: prepare response
+		// endregion: query
 		// region: check status
 
 		if resp.StatusCode() != fasthttp.StatusOK {
@@ -621,10 +608,10 @@ func modeConfirmRawapi(config *cfg.Config) {
 		}
 
 		// endregion: check status
-		// region: get .result.header
+		// region: get block
 
-		blockHeader, blockHeaderType, _, err := jsonparser.Get(resp.Body(), "result", "header")
-		if blockHeaderType != jsonparser.Object || err != nil {
+		blockData, blockDataType, _, err := jsonparser.Get(resp.Body(), "result")
+		if blockDataType != jsonparser.Object || err != nil {
 			item.Status = STATUS_CONFIRM_ERROR_HEADER
 			item.Response = err.Error()
 			Lout(LOG_ERR, progress, "no parsable header in response", item.Response)
@@ -632,111 +619,31 @@ func modeConfirmRawapi(config *cfg.Config) {
 			continue
 		}
 
-		// endregion: get .result.header
-		// region: parse .result.header.number
+		// endregion: get block
+		// region: parse header
 
-		var responseHeader Header
-
-		responseHeader.Number, err = jsonparser.GetString(blockHeader, "number")
+		headerStruct, err := procParseHeader(blockData)
 		if err != nil {
-			item.Status = STATUS_CONFIRM_ERROR_HEADER
 			item.Response = err.Error()
-			Lout(LOG_ERR, progress, "cannot parse block # from header", item.Response)
+			item.Status = STATUS_CONFIRM_ERROR_HEADER
 			ioOutputAppend(outFile, item, procCompilePSV)
 			continue
 		}
 
-		// endregion: parse .result.header.number
-		// region: parse or cache
-
-		if _, exists := blockCache[responseHeader.Number]; exists {
-			responseHeader = blockCache[responseHeader.Number]
-		} else {
-
-			// region: parse .result.header
-
-			responseHeader.DataHash, err = jsonparser.GetString(blockHeader, "data_hash")
-			if err != nil {
-				item.Status = STATUS_CONFIRM_ERROR_HEADER
-				item.Response = err.Error()
-				Lout(LOG_ERR, progress, "cannot parse data_hash from header", item.Response)
-				ioOutputAppend(outFile, item, procCompilePSV)
-				continue
-			}
-
-			responseHeader.PreviousHash, err = jsonparser.GetString(blockHeader, "previous_hash")
-			if err != nil {
-				item.Status = STATUS_CONFIRM_ERROR_HEADER
-				item.Response = err.Error()
-				Lout(LOG_ERR, progress, "cannot parse previous_hash from header", item.Response)
-				ioOutputAppend(outFile, item, procCompilePSV)
-				continue
-			}
-
-			// endregion: parse .result.header
-			// region: get payload (.result.data.data)
-
-			blockPayload, blockPayloadType, _, err := jsonparser.Get(resp.Body(), "result", "data", "data")
-			if blockPayloadType != jsonparser.Array || err != nil {
-				item.Status = STATUS_CONFIRM_ERROR_HEADER
-				item.Response = err.Error()
-				Lout(LOG_ERR, progress, "no parsable payload in response", item.Response)
-				ioOutputAppend(outFile, item, procCompilePSV)
-				continue
-			}
-
-			// endregion: get payload
-			// region: parse timestamp and length from payload
-
-			responseHeader.Timestamp, err = jsonparser.GetString(blockPayload, "[0]", "payload", "header", "channel_header", "timestamp")
-			if err != nil {
-				item.Status = STATUS_CONFIRM_ERROR_HEADER
-				item.Response = err.Error()
-				Lout(LOG_ERR, progress, "cannot get timestamp from payload", item.Response)
-				ioOutputAppend(outFile, item, procCompilePSV)
-				continue
-			}
-
-			responseHeader.Length = 0
-			_, err = jsonparser.ArrayEach(blockPayload, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
-
-				responseHeader.Length++
-				// fmt.Println(header.Length)
-			})
-			if err != nil {
-				item.Status = STATUS_CONFIRM_ERROR_HEADER
-				item.Response = err.Error()
-				Lout(LOG_ERR, progress, "cannot count transactions in payload", item.Response)
-				ioOutputAppend(outFile, item, procCompilePSV)
-				continue
-			}
-
-			// endregion: parse timestamp and length from payload
-			// region: fill blockCache
-
-			blockCache[responseHeader.Number] = responseHeader
-
-			// endregion: blockCache
-
-		}
-
-		// endregion: parse or cache
-		// region: header to string
-
-		responseHeaderData, err := json.Marshal(responseHeader)
+		headerBytes, err := json.Marshal(headerStruct)
 		if err != nil {
-			item.Status = STATUS_CONFIRM_ERROR_HEADER
 			item.Response = err.Error()
-			Lout(LOG_ERR, progress, "cannot marshal header", item.Response)
+			item.Status = STATUS_CONFIRM_ERROR_HEADER
 			ioOutputAppend(outFile, item, procCompilePSV)
 			continue
+
 		}
 
-		// endregion: header to string
+		// endregion: parse header
 		// region: done
 
 		item.Status = STATUS_CONFIRM_OK
-		item.Response = string(responseHeaderData)
+		item.Response = string(headerBytes)
 		Lout(LOG_DEBUG, progress, item.Status)
 		Lout(LOG_DEBUG, progress, item.Key)
 		Lout(LOG_DEBUG, progress, item.Txid)
@@ -873,6 +780,7 @@ func modeSubmitBatch(config *cfg.Config) {
 		batch := ioRead(file, procParseBundles)
 		for k, bundle := range *batch {
 			progress := fmt.Sprintf("file %d/%d, bundle %d/%d, total %d/%d", i+1, len(input), k+1, len(*batch), done, count)
+			done++
 			err := fabricSubmit(config, client, &bundle)
 			if err != nil {
 				Lout(LOG_NOTICE, progress, err)
@@ -880,7 +788,6 @@ func modeSubmitBatch(config *cfg.Config) {
 				Lout(LOG_INFO, progress, "success", bundle.Key, bundle.Txid)
 			}
 			ioOutputAppend(sent, bundle, procCompilePSV)
-			done++
 		}
 	}
 
@@ -907,11 +814,81 @@ func fabricClient(config *cfg.Config) (*fabric.Client, error) {
 		return nil, err
 	}
 
+	Lout(LOG_DEBUG, "fabric client instance", client)
 	return &client, nil
 }
 
-func fabricInvoke(config *cfg.Config, client *fabric.Client, args []string) (*fabric.Response, *fabric.ResponseError) {
+func fabricConfirm(config *cfg.Config, client *fabric.Client, bundle *PSV) error {
 
+	// region: shorten variables coming from config
+
+	channel := config.Entries["channel"].Value.(string)
+	try := config.Entries["try"].Value.(int)
+	proto := config.Entries["latorproto"].Value.(string)
+
+	// endregion: shorten variables coming from config
+	// region: request
+
+	var response *fabric.Response
+	var responseErr *fabric.ResponseError
+
+	for cnt := 1; cnt <= try; cnt++ {
+		args := []string{channel, bundle.Txid}
+		response, responseErr = fabricQuery(config, client, args)
+		if responseErr == nil {
+			break
+		}
+		Lout(LOG_DEBUG, fmt.Sprintf("unsuccessful attempt %d/%d", cnt, try))
+	}
+	if responseErr != nil {
+		bundle.Response = responseErr.Error()
+		bundle.Status = STATUS_CONFIRM_ERROR_QUERY
+		return responseErr
+	}
+
+	// endregion: request
+	// region: proto decode
+
+	if len(proto) != 0 {
+		Lout(LOG_DEBUG, "protobuf format", proto)
+
+		block, err := client.Lator.Exe(response.Result, proto)
+		if err != nil {
+			bundle.Response = err.Error()
+			bundle.Status = STATUS_CONFIRM_ERROR_DECODE
+			return err
+		}
+		response.Result = block
+	}
+
+	// endregion: proto decode
+	// region: parse header
+
+	headerStruct, err := procParseHeader(response.Result)
+	if err != nil {
+		bundle.Response = err.Error()
+		bundle.Status = STATUS_CONFIRM_ERROR_HEADER
+		return err
+	}
+
+	// endregion: parse header
+	// region: out
+
+	headerBytes, err := json.Marshal(headerStruct)
+	if err != nil {
+		bundle.Response = err.Error()
+		bundle.Status = STATUS_CONFIRM_ERROR_HEADER
+	}
+
+	bundle.Response = string(headerBytes)
+	bundle.Status = STATUS_CONFIRM_OK
+	return nil
+
+	// endregion: out
+
+}
+
+func fabricInvoke(config *cfg.Config, client *fabric.Client, args []string) (*fabric.Response, *fabric.ResponseError) {
 	request := fabric.Request{
 		Chaincode: config.Entries["chaincode"].Value.(string),
 		Channel:   config.Entries["channel"].Value.(string),
@@ -930,17 +907,38 @@ func fabricInvoke(config *cfg.Config, client *fabric.Client, args []string) (*fa
 	return response, nil
 }
 
-// func fabricQuery(config *cfg.Config, client, args []string) (*fabric.Response, *fabric.ResponseError) {
-// 	request := fabric.Request{
-// 		Chaincode: config.Entries["chaincode"].Value.(string),
-// 		Channel:   config.Entries["channel"].Value.(string),
-// 		Function:  config.Entries["function"].Value.(string),
-// 		Args:      args,
-// 	}
-// 	Lout(LOG_DEBUG, "fabric query request", request)
+func fabricLator(config *cfg.Config, client *fabric.Client) error {
+	client.Lator = &fabric.Lator{
+		Bind:  config.Entries["latorbind"].Value.(string),
+		Which: config.Entries["latorexe"].Value.(string),
+		Port:  config.Entries["latorport"].Value.(int),
+	}
+	err := client.Lator.Init()
+	if err != nil {
+		helperPanic("error initializing configtxlator instance", err.Error())
+	}
+	Lout(LOG_DEBUG, "configtxlator instance", client.Lator)
 
-// 	return nil, nil
-// }
+	return nil
+}
+
+func fabricQuery(config *cfg.Config, client *fabric.Client, args []string) (*fabric.Response, *fabric.ResponseError) {
+	request := fabric.Request{
+		Chaincode: config.Entries["chaincode"].Value.(string),
+		Channel:   config.Entries["channel"].Value.(string),
+		Function:  config.Entries["function"].Value.(string),
+		Args:      args,
+	}
+	Lout(LOG_DEBUG, "fabric query request", request)
+
+	response, err := fabric.Query(client, &request)
+	if err != nil {
+		Lout(LOG_DEBUG, "error in fabric query", err)
+		return nil, err
+	}
+
+	return response, nil
+}
 
 func fabricSubmit(config *cfg.Config, client *fabric.Client, bundle *PSV) error {
 
@@ -1046,10 +1044,11 @@ func helperUsage(fs *flag.FlagSet) func() {
 
 			format := "  %-18s  %s\n"
 			fmt.Printf(format, "confirm (c)", "iterates over the output of submit/resubmit and query via fabric sdk for block number and data hash against qscc's GetBlockByTxID()")
+			fmt.Printf(format, "confirmBatch (cb)", "iterates over the output of submit/resubmit and query via fabric sdk for block number and data hash against qscc's GetBlockByTxID()")
 			fmt.Printf(format, "confirmRawapi (cr)", "iterates over the output of submit/resubmit and query via Rawapi for block number and data hash against qscc's GetBlockByTxID()")
 			fmt.Printf(format, "help (h)", "produces this")
 			// fmt.Printf(format, "psv2json", "convert PSV format to JSON for server-side batch processing")
-			fmt.Printf(format, "resubmit (r)", "iterates over the output of submit and retries unsuccessful attempts")
+			fmt.Printf(format, "resubmit (rs)", "iterates over the output of submit and retries unsuccessful attempts")
 			fmt.Printf(format, "submit (s)", "iterates over input batch and submit line by line via direct fabric gateway link")
 			fmt.Printf(format, "submitBatch (sb)", "iterates over list of files with bundles to be processed and submit line by line via direct fabric gateway link")
 			fmt.Println("")
@@ -1216,6 +1215,89 @@ func procParseBundles(scanner *bufio.Scanner) *[]PSV {
 	}
 
 	return &batch
+}
+
+func procParseHeader(response []byte) (*Header, error) {
+
+	var responseHeader Header
+
+	// region: get header
+
+	blockHeader, blockHeaderType, _, err := jsonparser.Get(response, "header")
+	if err != nil {
+		return nil, err
+	}
+	if blockHeaderType != jsonparser.Object {
+		return nil, errors.New("header type mismatch")
+	}
+
+	// endregion: get header
+	// region: get block #
+
+	responseHeader.Number, err = jsonparser.GetString(blockHeader, "number")
+	if err != nil {
+		return nil, err
+	}
+
+	// endregion: block #
+	// region: parse or cache
+
+	if _, exists := BlockCache[responseHeader.Number]; exists {
+		responseHeader = BlockCache[responseHeader.Number]
+	} else {
+
+		// region: parse .result.header
+
+		responseHeader.DataHash, err = jsonparser.GetString(blockHeader, "data_hash")
+		if err != nil {
+			return nil, err
+		}
+
+		responseHeader.PreviousHash, err = jsonparser.GetString(blockHeader, "previous_hash")
+		if err != nil {
+			return nil, err
+		}
+
+		// endregion: parse .result.header
+		// region: get payload (.result.data.data)
+
+		blockPayload, blockPayloadType, _, err := jsonparser.Get(response, "data", "data")
+		if err != nil {
+			return nil, err
+		}
+		if blockPayloadType != jsonparser.Array {
+			return nil, errors.New("payload type mismatch")
+		}
+
+		// endregion: get payload
+		// region: parse timestamp and length from payload
+
+		responseHeader.Timestamp, err = jsonparser.GetString(blockPayload, "[0]", "payload", "header", "channel_header", "timestamp")
+		if err != nil {
+			return nil, err
+		}
+
+		responseHeader.Length = 0
+		_, err = jsonparser.ArrayEach(blockPayload, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
+			responseHeader.Length++
+			// fmt.Println(header.Length)
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		// endregion: parse timestamp and length from payload
+		// region: fill blockCache
+
+		BlockCache[responseHeader.Number] = responseHeader
+
+		// endregion: blockCache
+
+	}
+
+	// endregion: parse or cache
+
+	return &responseHeader, nil
 }
 
 func procParsePSV(scanner *bufio.Scanner) *[]PSV {

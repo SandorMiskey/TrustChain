@@ -2,13 +2,6 @@
 
 ## now
 
-* migration/main.go
-  * confirm/reconfirm
-    * fabric/query.go
-    * fabric/lator
-    * main.go fabricQuery()
-    * main.go modeConfirm()
-* continuous batch process
 * re-genesis mainnet
   * tcGlusterServers.sh:259
   * .env
