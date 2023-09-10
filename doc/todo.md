@@ -15,6 +15,7 @@
     * ??? 50/3 per node, redundancy = 1 <-
     * TC_GLUSTER_DISPERSE=3 & TC_GLUSTER_REDUNDANCY=1 accordingly
 
+* backup
 * delete legacy
   * Contabo
   * AWS (all availability zones)
