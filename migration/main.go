@@ -49,6 +49,7 @@ var (
 	DefaultLatorExe     string = "/usr/local/bin/configtxlator"
 	DefaultLatorPort    int    = 1337
 	DefaultLatorProto   string = "common.Block"
+	DefaultLatorSleep   int    = 5
 	DefaultLoglevel     int    = 7
 	DefaultPathCert     string = "./cert.pem"
 	DefaultPathKeystore string = "./keystore"
@@ -940,6 +941,8 @@ func fabricLator(config *cfg.Config, client *fabric.Client) error {
 	}
 	Lout(LOG_DEBUG, "configtxlator instance", client.Lator)
 
+	Lout(LOG_INFO, "waiting for configtxlator launch", DefaultLatorSleep)
+	time.Sleep(time.Duration(DefaultLatorSleep) * time.Second)
 	return nil
 }
 
