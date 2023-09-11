@@ -12,6 +12,7 @@
 ## later
 
 * Rawapi:
+  * rewrite: use migration/fabric
   * Lator.Exe on-the-fly
   * Lator.Exe -> raw binary
   * batch process via file upload (MaxRequestBodySize: math.MaxInt32)
