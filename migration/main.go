@@ -17,6 +17,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/SandorMiskey/TEx-kit/cfg"
 	"github.com/SandorMiskey/TEx-kit/log"
@@ -55,6 +56,9 @@ var (
 
 	Logger *log.Logger
 	Lout   func(s ...interface{}) *[]error
+
+	StatStart time.Time = time.Now()
+	StatTrs   int       = 0
 
 	TxRegexp *regexp.Regexp
 )
@@ -376,7 +380,19 @@ func main() {
 	modeExec(&config)
 
 	// endregion: exec mode
+	// region: stats
 
+	statEnd := time.Now()
+	statElapsed := statEnd.Sub(StatStart)
+
+	Lout(LOG_INFO, "start time", StatStart.Format(time.RFC3339))
+	Lout(LOG_INFO, "end time", statEnd.Format(time.RFC3339))
+	Lout(LOG_INFO, "elapsed time", statElapsed)
+	Lout(LOG_INFO, "trx per hour", float64(StatTrs)/statElapsed.Hours())
+	Lout(LOG_INFO, "trx per min", float64(StatTrs)/statElapsed.Minutes())
+	Lout(LOG_INFO, "trx per sec", float64(StatTrs)/statElapsed.Seconds())
+
+	// endregion: stats
 }
 
 // endregion: main
@@ -413,8 +429,9 @@ func modeConfirm(config *cfg.Config) {
 	// endregion: configtxlator
 	// region: process batch
 
-	for k, bundle := range *batch {
-		progress := fmt.Sprintf("%d/%d", k+1, len(*batch))
+	for _, bundle := range *batch {
+		StatTrs++
+		progress := helpersProgress(StatTrs, len(*batch))
 
 		if bundle.Status != STATUS_SUBMIT_OK && !strings.HasPrefix(bundle.Status, STATUS_CONFIRM_ERROR_PREFIX) {
 			Lout(LOG_INFO, progress, "bypassed status", bundle.Status)
@@ -481,12 +498,11 @@ func modeConfirmBatch(config *cfg.Config) {
 	// endregion: configtxlator
 	// region: process batch
 
-	done := 1
-	for i, file := range input {
+	for _, file := range input {
 		batch := ioRead(file, procParsePSV)
-		for k, bundle := range *batch {
-			progress := fmt.Sprintf("file %d/%d, bundle %d/%d, total %d/%d", i+1, len(input), k+1, len(*batch), done, count)
-			done++
+		for _, bundle := range *batch {
+			StatTrs++
+			progress := helpersProgress(StatTrs, count)
 
 			if bundle.Status != STATUS_SUBMIT_OK && !strings.HasPrefix(bundle.Status, STATUS_CONFIRM_ERROR_PREFIX) {
 				Lout(LOG_INFO, progress, "bypassed status", bundle.Status)
@@ -546,9 +562,10 @@ func modeConfirmRawapi(config *cfg.Config) {
 	// endregion: base url
 	// region: process batch
 
-	for k, item := range *batch {
+	for _, item := range *batch {
 
-		progress := fmt.Sprintf("%d/%d", k+1, len(*batch))
+		StatTrs++
+		progress := helpersProgress(StatTrs, len(*batch))
 
 		// region: validate input
 
@@ -683,8 +700,10 @@ func modeResubmit(config *cfg.Config) {
 	// endregion: client
 	// region: process batch
 
-	for k, bundle := range *batch {
-		progress := fmt.Sprintf("%d/%d", k+1, len(*batch))
+	for _, bundle := range *batch {
+
+		StatTrs++
+		progress := helpersProgress(StatTrs, len(*batch))
 
 		if !strings.HasPrefix(bundle.Status, STATUS_SUBMIT_ERROR_PREFIX) {
 			Lout(LOG_INFO, progress, "bypassed status", bundle.Status)
@@ -728,8 +747,10 @@ func modeSubmit(config *cfg.Config) {
 	// endregion: client
 	// region: process batch
 
-	for k, bundle := range *batch {
-		progress := fmt.Sprintf("%d/%d", k+1, len(*batch))
+	for _, bundle := range *batch {
+		StatTrs++
+		progress := helpersProgress(StatTrs, len(*batch))
+
 		err := fabricSubmit(config, client, &bundle)
 
 		if err != nil {
@@ -775,12 +796,12 @@ func modeSubmitBatch(config *cfg.Config) {
 	// endregion: client
 	// region: process batch
 
-	done := 1
-	for i, file := range input {
+	for _, file := range input {
 		batch := ioRead(file, procParseBundles)
-		for k, bundle := range *batch {
-			progress := fmt.Sprintf("file %d/%d, bundle %d/%d, total %d/%d", i+1, len(input), k+1, len(*batch), done, count)
-			done++
+		for _, bundle := range *batch {
+			StatTrs++
+			progress := helpersProgress(StatTrs, count)
+
 			err := fabricSubmit(config, client, &bundle)
 			if err != nil {
 				Lout(LOG_NOTICE, progress, err)
@@ -1032,6 +1053,10 @@ func helperPanic(s ...string) {
 	}
 	fmt.Fprintln(os.Stderr, msg)
 	os.Exit(1)
+}
+
+func helpersProgress(n, sum int) string {
+	return fmt.Sprintf("%7d/%-7d %3.2f%%", n, sum, float64(n)/float64(sum)*100)
 }
 
 func helperUsage(fs *flag.FlagSet) func() {
