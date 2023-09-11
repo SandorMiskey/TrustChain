@@ -2,23 +2,6 @@
 
 ## now
 
-* re-genesis mainnet
-  * workers
-    * upscale worker 1 & 2
-    * create worker 3
-      * elastic ip
-      * trustchain user
-  * gluster
-    * ??? 50/6 per node, redundancy = 2 ??
-    * ??? 50/3 per node, redundancy = 1 <-
-    * TC_GLUSTER_DISPERSE=3 & TC_GLUSTER_REDUNDANCY=1 accordingly
-  * tcGlusterServers.sh:259
-  * .env
-    * reset passwords
-    * set api-key
-    * gluster volume and bricks
-    * check .env anyways
-
 * backup
 * delete legacy
   * Contabo
