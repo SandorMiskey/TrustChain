@@ -166,46 +166,50 @@ func main() {
 			} else if start {
 				kv := strings.SplitN(s.Text(), "=", 2)
 				if len(kv) == 2 {
-					os.Setenv(kv[0], kv[1])
+					_, set := os.LookupEnv(kv[0])
+					if !set {
 
-					switch kv[0] {
-					case TC_FAB_CHANNEL:
-						DefaultFabChannel = kv[1]
-					// case TC_FAB_CLIENT:
-					// 	DefaultFabClient = kv[1]
-					case TC_FAB_GW:
-						DefaultFabGw = kv[1]
-					case TC_FAB_ENDPOINT:
-						DefaultFabEndpoint = kv[1]
-					case TC_FAB_MSPID:
-						DefaultFabMspId = kv[1]
-					case TC_HTTP_APIKEY:
-						DefaultHttpApikey = kv[1]
-					case TC_HTTP_PORT:
-						_, err = strconv.Atoi(kv[1])
-						if err == nil {
-							DefaultHttpPort, _ = strconv.Atoi(kv[1])
+						os.Setenv(kv[0], kv[1])
+
+						switch kv[0] {
+						case TC_FAB_CHANNEL:
+							DefaultFabChannel = kv[1]
+						// case TC_FAB_CLIENT:
+						// 	DefaultFabClient = kv[1]
+						case TC_FAB_GW:
+							DefaultFabGw = kv[1]
+						case TC_FAB_ENDPOINT:
+							DefaultFabEndpoint = kv[1]
+						case TC_FAB_MSPID:
+							DefaultFabMspId = kv[1]
+						case TC_HTTP_APIKEY:
+							DefaultHttpApikey = kv[1]
+						case TC_HTTP_PORT:
+							_, err = strconv.Atoi(kv[1])
+							if err == nil {
+								DefaultHttpPort, _ = strconv.Atoi(kv[1])
+							}
+						case TC_LATOR_BIND:
+							DefaultLatorBind = kv[1]
+						case TC_LATOR_PORT:
+							_, err := strconv.Atoi(kv[1])
+							if err == nil {
+								DefaultLatorPort, _ = strconv.Atoi(kv[1])
+							}
+						case TC_LATOR_EXE:
+							DefaultLatorExe = kv[1] + "/configtxlator"
+						case TC_LOGLEVEL:
+							_, err = strconv.Atoi(kv[1])
+							if err == nil {
+								DefaultLoglevel, _ = strconv.Atoi(kv[1])
+							}
+						case TC_PATH_CERT:
+							DefaultPathCert = kv[1]
+						case TC_PATH_KEYSTORE:
+							DefaultPathKeystore = kv[1]
+						case TC_PATH_TLSCERT:
+							DefaultPathTlsCert = kv[1]
 						}
-					case TC_LATOR_BIND:
-						DefaultLatorBind = kv[1]
-					case TC_LATOR_PORT:
-						_, err := strconv.Atoi(kv[1])
-						if err == nil {
-							DefaultLatorPort, _ = strconv.Atoi(kv[1])
-						}
-					case TC_LATOR_EXE:
-						DefaultLatorExe = kv[1] + "/configtxlator"
-					case TC_LOGLEVEL:
-						_, err = strconv.Atoi(kv[1])
-						if err == nil {
-							DefaultLoglevel, _ = strconv.Atoi(kv[1])
-						}
-					case TC_PATH_CERT:
-						DefaultPathCert = kv[1]
-					case TC_PATH_KEYSTORE:
-						DefaultPathKeystore = kv[1]
-					case TC_PATH_TLSCERT:
-						DefaultPathTlsCert = kv[1]
 					}
 				}
 			}
@@ -256,6 +260,7 @@ func main() {
 
 		modeExec = modeConfirm
 	case "confirmbatch", "cb":
+		fs.Entries["batch"] = cfg.Entry{Desc: "list of files to process, one file path per line, -in ignored if specified", Type: "string", Def: ""}
 		fs.Entries["cert"] = cfg.Entry{Desc: "path to client pem certificate to populate the wallet with, default is $TC_RAWAPI_CERTPATH if set", Type: "string", Def: DefaultPathCert}
 		fs.Entries["chaincode"] = cfg.Entry{Desc: "chaincode to invoke", Type: "string", Def: "qscc"}
 		fs.Entries["endpoint"] = cfg.Entry{Desc: "fabric endpoint, default is $TC_RAWAPI_PEERENDPOINT if set", Type: "string", Def: DefaultFabEndpoint}
@@ -268,6 +273,7 @@ func main() {
 		fs.Entries["latorport"] = cfg.Entry{Desc: "port where configtxlator will listen, default is TC_RAWAPI_LATOR_PORT if set", Type: "int", Def: DefaultLatorPort}
 		fs.Entries["latorproto"] = cfg.Entry{Desc: "protobuf format, configtxlator will be used if set", Type: "string", Def: DefaultLatorProto}
 		fs.Entries["mspid"] = cfg.Entry{Desc: "fabric MSPID, default is $TC_RAWAPI_MSPID if set", Type: "string", Def: DefaultFabMspId}
+		fs.Entries["suffix"] = cfg.Entry{Desc: "suffix with which the name of the processed file is appended as output (-out is ignored if supplied)", Type: "string", Def: ""}
 		fs.Entries["try"] = cfg.Entry{Desc: "number of invoke tries", Type: "int", Def: DefaultFabTry}
 		fs.Entries["tlscert"] = cfg.Entry{Desc: "path to TLS cert, default is $TC_RAWAPI_TLSCERTPATH if set", Type: "string", Def: DefaultPathTlsCert}
 
@@ -303,6 +309,7 @@ func main() {
 
 		modeExec = modeSubmit
 	case "submitBatch", "sb":
+		fs.Entries["batch"] = cfg.Entry{Desc: "list of files to process, one file path per line, -in ignored if specified", Type: "string", Def: ""}
 		fs.Entries["cert"] = cfg.Entry{Desc: "path to client pem certificate to populate the wallet with, default is $TC_RAWAPI_CERTPATH if set", Type: "string", Def: DefaultPathCert}
 		fs.Entries["chaincode"] = cfg.Entry{Desc: "chaincode to invoke", Type: "string", Def: "te-food-bundles"}
 		fs.Entries["endpoint"] = cfg.Entry{Desc: "fabric endpoint, default is $TC_RAWAPI_PEERENDPOINT if set", Type: "string", Def: DefaultFabEndpoint}
@@ -314,6 +321,7 @@ func main() {
 		fs.Entries["keystore"] = cfg.Entry{Desc: "path to client keystore, default is $TC_RAWAPI_KEYPATH if set", Type: "string", Def: DefaultPathKeystore}
 		fs.Entries["keytype"] = cfg.Entry{Desc: "type of -keyname, either 'string' or 'int'", Type: "string", Def: DefaultBundleKeyType}
 		fs.Entries["mspid"] = cfg.Entry{Desc: "fabric MSPID, default is $TC_RAWAPI_MSPID if set", Type: "string", Def: DefaultFabMspId}
+		fs.Entries["suffix"] = cfg.Entry{Desc: "suffix with which the name of the processed file is appended as output (-out is ignored if supplied)", Type: "string", Def: ""}
 		fs.Entries["try"] = cfg.Entry{Desc: "number of invoke tries", Type: "int", Def: DefaultFabTry}
 		fs.Entries["tlscert"] = cfg.Entry{Desc: "path to TLS cert, default is $TC_RAWAPI_TLSCERTPATH if set", Type: "string", Def: DefaultPathTlsCert}
 
@@ -462,24 +470,31 @@ func modeConfirm(config *cfg.Config) {
 
 func modeConfirmBatch(config *cfg.Config) {
 
-	// region: i/o
+	// region: input
 
-	input := strings.Split(config.Entries["in"].Value.(string), ",")
-	count := 0
-	for k, v := range input {
-		if len(v) == 0 {
-			helperPanic(fmt.Sprintf("empty value in position %d of input files", k+1))
-		}
-		batch := ioRead(v, procParsePSV)
-		Lout(LOG_INFO, fmt.Sprintf("%d/%d with  %d lines", k+1, len(input), len(*batch)))
-		count = count + len(*batch)
+	// input := strings.Split(config.Entries["in"].Value.(string), ",")
+	// count := ioCount(input)
+
+	var input []string
+	if len(config.Entries["batch"].Value.(string)) == 0 {
+		input = strings.Split(config.Entries["in"].Value.(string), ",")
+	} else {
+		input = procBundles2Batch(ioRead(config.Entries["batch"].Value.(string), procParseBundles))
 	}
-	Lout(LOG_INFO, fmt.Sprintf("%d files with total of %d lines", len(input), count))
+	count := ioCount(input)
 
-	sent := ioOutputOpen(config.Entries["out"].Value.(string))
-	defer sent.Close()
+	// endregion: input
+	// region: output
 
-	// endregion: i/o
+	var output *os.File
+	var suffix string = config.Entries["suffix"].Value.(string)
+
+	if len(suffix) == 0 {
+		output = ioOutputOpen(config.Entries["out"].Value.(string))
+		defer output.Close()
+	}
+
+	// endregion: output
 	// region: client
 
 	client, err := fabricClient(config)
@@ -501,19 +516,23 @@ func modeConfirmBatch(config *cfg.Config) {
 
 	for _, file := range input {
 		batch := ioRead(file, procParsePSV)
+		if len(suffix) > 0 {
+			output = ioOutputOpen(file + suffix)
+			defer output.Close()
+		}
 		for _, bundle := range *batch {
 			StatTrs++
 			progress := helperProgress(StatTrs, count)
 
 			if bundle.Status != STATUS_SUBMIT_OK && !strings.HasPrefix(bundle.Status, STATUS_CONFIRM_ERROR_PREFIX) {
 				Lout(LOG_INFO, progress, "bypassed status", bundle.Status)
-				ioOutputAppend(sent, bundle, procCompilePSV)
+				ioOutputAppend(output, bundle, procCompilePSV)
 				continue
 			}
 			if !TxRegexp.MatchString(bundle.Txid) {
 				bundle.Status = STATUS_CONFIRM_ERROR_TXID
 				Lout(LOG_ERR, progress, "invalid txid", bundle.Txid)
-				ioOutputAppend(sent, bundle, procCompilePSV)
+				ioOutputAppend(output, bundle, procCompilePSV)
 				continue
 			}
 
@@ -521,9 +540,12 @@ func modeConfirmBatch(config *cfg.Config) {
 			if err != nil {
 				Lout(LOG_NOTICE, progress, err)
 			} else {
-				Lout(LOG_INFO, progress, "success", bundle.Key, bundle.Txid)
+				Lout(LOG_INFO, progress, "success", fmt.Sprintf("%12s", bundle.Key), file, output.Name())
 			}
-			ioOutputAppend(sent, bundle, procCompilePSV)
+			ioOutputAppend(output, bundle, procCompilePSV)
+		}
+		if len(suffix) > 0 {
+			output.Close()
 		}
 	}
 
@@ -768,24 +790,28 @@ func modeSubmit(config *cfg.Config) {
 
 func modeSubmitBatch(config *cfg.Config) {
 
-	// region: i/o
+	// region: input
 
-	input := strings.Split(config.Entries["in"].Value.(string), ",")
-	count := 0
-	for k, v := range input {
-		if len(v) == 0 {
-			helperPanic(fmt.Sprintf("empty value in position %d of input files", k+1))
-		}
-		batch := ioRead(v, procParseBundles)
-		Lout(LOG_INFO, fmt.Sprintf("%d/%d with  %d lines", k+1, len(input), len(*batch)))
-		count = count + len(*batch)
+	var input []string
+	if len(config.Entries["batch"].Value.(string)) == 0 {
+		input = strings.Split(config.Entries["in"].Value.(string), ",")
+	} else {
+		input = procBundles2Batch(ioRead(config.Entries["batch"].Value.(string), procParseBundles))
 	}
-	Lout(LOG_INFO, fmt.Sprintf("%d files with total of %d lines", len(input), count))
+	count := ioCount(input)
 
-	sent := ioOutputOpen(config.Entries["out"].Value.(string))
-	defer sent.Close()
+	// endregion: input
+	// region: output
 
-	// endregion: i/o
+	var output *os.File
+	var suffix string = config.Entries["suffix"].Value.(string)
+
+	if len(suffix) == 0 {
+		output = ioOutputOpen(config.Entries["out"].Value.(string))
+		defer output.Close()
+	}
+
+	// endregion: output
 	// region: client
 
 	client, err := fabricClient(config)
@@ -799,6 +825,10 @@ func modeSubmitBatch(config *cfg.Config) {
 
 	for _, file := range input {
 		batch := ioRead(file, procParseBundles)
+		if len(suffix) > 0 {
+			output = ioOutputOpen(file + suffix)
+			defer output.Close()
+		}
 		for _, bundle := range *batch {
 			StatTrs++
 			progress := helperProgress(StatTrs, count)
@@ -807,9 +837,12 @@ func modeSubmitBatch(config *cfg.Config) {
 			if err != nil {
 				Lout(LOG_NOTICE, progress, err)
 			} else {
-				Lout(LOG_INFO, progress, "success", bundle.Key, bundle.Txid)
+				Lout(LOG_INFO, progress, "success", fmt.Sprintf("%12s", bundle.Key), file, output.Name())
 			}
-			ioOutputAppend(sent, bundle, procCompilePSV)
+			ioOutputAppend(output, bundle, procCompilePSV)
+		}
+		if len(suffix) > 0 {
+			output.Close()
 		}
 	}
 
@@ -1113,9 +1146,9 @@ func helperUsage(fs *flag.FlagSet) func() {
 				fmt.Println("options:")
 				fs.PrintDefaults()
 				fmt.Println("")
-				fmt.Println("Before evaluation, the file corresponding to $TC_PATH_RC is read (if it is set and the file exists) and the environment variables are taken into account when")
-				fmt.Println("setting some default values and parsing cli. Parameters can also be passed via env. variables, like `CHANNEL=foo` instead of '-channel=foo', order of")
-				fmt.Println("precedence:")
+				fmt.Println("Before evaluation, the file corresponding to $TC_PATH_RC is read (if it is set and the file exists) and otherwise unset variables are taken into account")
+				fmt.Println("when setting some default values and parsing cli. Parameters can also be passed via env. variables, like `CHANNEL=foo` instead of '-channel=foo', order")
+				fmt.Println("of precedence:")
 				fmt.Println("  1. command line options")
 				fmt.Println("  2. environment variables")
 				fmt.Println("  3. default values")
@@ -1139,6 +1172,20 @@ func ioCombined(in, out string, fn Parser) (*[]PSV, *os.File) {
 	file := ioOutputOpen(out)
 
 	return batch, file
+}
+
+func ioCount(input []string) int {
+	count := 0
+	for k, v := range input {
+		if len(v) == 0 {
+			helperPanic(fmt.Sprintf("empty value in position %d of input files", k+1))
+		}
+		batch := ioRead(v, procParseBundles)
+		Lout(LOG_INFO, fmt.Sprintf("%d/%d with  %d lines", k+1, len(input), len(*batch)))
+		count = count + len(*batch)
+	}
+	Lout(LOG_INFO, fmt.Sprintf("%d files with total of %d lines", len(input), count))
+	return count
 }
 
 func ioOutputAppend(f *os.File, psv PSV, fn Compiler) {
@@ -1248,6 +1295,14 @@ func procCompilePSV(psv PSV) string {
 	values = append(values, strings.Join(psv.Payload, "|"))
 
 	return strings.Join(values, "|")
+}
+
+func procBundles2Batch(psv *[]PSV) []string {
+	var batch []string
+	for _, line := range *psv {
+		batch = append(batch, line.Payload...)
+	}
+	return batch
 }
 
 func procParseBundles(scanner *bufio.Scanner) *[]PSV {
