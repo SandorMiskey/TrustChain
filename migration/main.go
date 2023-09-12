@@ -384,11 +384,11 @@ func main() {
 	// region: stats
 
 	statEnd := time.Now()
-	statElapsed := statEnd.Sub(StatStart)
+	statElapsed := time.Since(StatStart)
 
 	Lout(LOG_INFO, "start time", StatStart.Format(time.RFC3339))
 	Lout(LOG_INFO, "end time", statEnd.Format(time.RFC3339))
-	Lout(LOG_INFO, "elapsed time", statElapsed)
+	Lout(LOG_INFO, "elapsed time", statElapsed.Truncate(time.Second).String())
 	Lout(LOG_INFO, "trx per hour", float64(StatTrs)/statElapsed.Hours())
 	Lout(LOG_INFO, "trx per min", float64(StatTrs)/statElapsed.Minutes())
 	Lout(LOG_INFO, "trx per sec", float64(StatTrs)/statElapsed.Seconds())
@@ -432,7 +432,7 @@ func modeConfirm(config *cfg.Config) {
 
 	for _, bundle := range *batch {
 		StatTrs++
-		progress := helpersProgress(StatTrs, len(*batch))
+		progress := helperProgress(StatTrs, len(*batch))
 
 		if bundle.Status != STATUS_SUBMIT_OK && !strings.HasPrefix(bundle.Status, STATUS_CONFIRM_ERROR_PREFIX) {
 			Lout(LOG_INFO, progress, "bypassed status", bundle.Status)
@@ -503,7 +503,7 @@ func modeConfirmBatch(config *cfg.Config) {
 		batch := ioRead(file, procParsePSV)
 		for _, bundle := range *batch {
 			StatTrs++
-			progress := helpersProgress(StatTrs, count)
+			progress := helperProgress(StatTrs, count)
 
 			if bundle.Status != STATUS_SUBMIT_OK && !strings.HasPrefix(bundle.Status, STATUS_CONFIRM_ERROR_PREFIX) {
 				Lout(LOG_INFO, progress, "bypassed status", bundle.Status)
@@ -566,7 +566,7 @@ func modeConfirmRawapi(config *cfg.Config) {
 	for _, item := range *batch {
 
 		StatTrs++
-		progress := helpersProgress(StatTrs, len(*batch))
+		progress := helperProgress(StatTrs, len(*batch))
 
 		// region: validate input
 
@@ -704,7 +704,7 @@ func modeResubmit(config *cfg.Config) {
 	for _, bundle := range *batch {
 
 		StatTrs++
-		progress := helpersProgress(StatTrs, len(*batch))
+		progress := helperProgress(StatTrs, len(*batch))
 
 		if !strings.HasPrefix(bundle.Status, STATUS_SUBMIT_ERROR_PREFIX) {
 			Lout(LOG_INFO, progress, "bypassed status", bundle.Status)
@@ -750,7 +750,7 @@ func modeSubmit(config *cfg.Config) {
 
 	for _, bundle := range *batch {
 		StatTrs++
-		progress := helpersProgress(StatTrs, len(*batch))
+		progress := helperProgress(StatTrs, len(*batch))
 
 		err := fabricSubmit(config, client, &bundle)
 
@@ -801,7 +801,7 @@ func modeSubmitBatch(config *cfg.Config) {
 		batch := ioRead(file, procParseBundles)
 		for _, bundle := range *batch {
 			StatTrs++
-			progress := helpersProgress(StatTrs, count)
+			progress := helperProgress(StatTrs, count)
 
 			err := fabricSubmit(config, client, &bundle)
 			if err != nil {
@@ -1058,8 +1058,33 @@ func helperPanic(s ...string) {
 	os.Exit(1)
 }
 
-func helpersProgress(n, sum int) string {
-	return fmt.Sprintf("%7d/%-7d %3.2f%%", n, sum, float64(n)/float64(sum)*100)
+func helperProgress(doneTransactions, totalTransactions int) string {
+	// Calculate progress percentage
+	percentage := (float64(doneTransactions) / float64(totalTransactions)) * 100
+
+	// Calculate elapsed time
+	elapsedTime := time.Since(StatStart)
+
+	// Calculate remaining time
+	remainingTransactions := totalTransactions - doneTransactions
+	transactionsPerSecond := float64(doneTransactions) / elapsedTime.Seconds()
+	remainingTime := time.Duration(float64(remainingTransactions) / transactionsPerSecond * float64(time.Second))
+
+	// Format elapsed time and remaining time as HH:MM:SS
+	elapsedTimeFormatted := helperProgressDuration(elapsedTime)
+	remainingTimeFormatted := helperProgressDuration(remainingTime)
+
+	// Format and return the result as a string
+	formattedString := fmt.Sprintf("progress: %6.2f%% %7d/%-7d elapsed: %s remaining: %s tx/s: %6.2f", percentage, doneTransactions, totalTransactions, elapsedTimeFormatted, remainingTimeFormatted, transactionsPerSecond)
+
+	return formattedString
+}
+
+func helperProgressDuration(d time.Duration) string {
+	hours := int(d.Hours())
+	minutes := int(d.Minutes()) % 60
+	seconds := int(d.Seconds()) % 60
+	return fmt.Sprintf("%02d:%02d:%02d", hours, minutes, seconds)
 }
 
 func helperUsage(fs *flag.FlagSet) func() {
