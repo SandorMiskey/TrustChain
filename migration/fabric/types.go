@@ -1,6 +1,8 @@
 package fabric
 
 import (
+	"os/exec"
+
 	"github.com/hyperledger/fabric-gateway/pkg/client"
 	"github.com/valyala/fasthttp"
 	"google.golang.org/grpc/codes"
@@ -25,6 +27,7 @@ type Lator struct {
 	Port   int              `json:"port"`
 	Which  string           `json:"which"`
 	Exe    LatorExe         `json:"-"`
+	cmd    *exec.Cmd        `json:"-"`
 	client *fasthttp.Client `json:"-"`
 }
 

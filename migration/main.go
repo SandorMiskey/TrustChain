@@ -52,9 +52,9 @@ var (
 	DefaultHttpPort      int    = 5088
 	DefaultLatorBind     string = "127.0.0.1"
 	DefaultLatorExe      string = "/usr/local/bin/configtxlator"
-	DefaultLatorPort     int    = 1337
+	DefaultLatorPort     int    = 0
 	DefaultLatorProto    string = "common.Block"
-	DefaultLatorSleep    int    = 3
+	DefaultLatorSleep    int    = 1
 	DefaultLoglevel      int    = 7
 	DefaultPathCert      string = "./cert.pem"
 	DefaultPathKeystore  string = "./keystore"
@@ -300,7 +300,7 @@ func main() {
 		fs.Entries[OPT_FAB_KEYSTORE] = cfg.Entry{Desc: "path to client keystore, default is $TC_RAWAPI_KEYPATH if set", Type: "string", Def: DefaultPathKeystore}
 		fs.Entries[OPT_LATOR_BIND] = cfg.Entry{Desc: "address to bind configtxlator's rest api to, default is TC_RAWAPI_LATOR_BIND if set", Type: "string", Def: DefaultLatorBind}
 		fs.Entries[OPT_LATOR_EXE] = cfg.Entry{Desc: "path to configtxlator (if empty, will dump protobuf as base64 encoded string), default is $TC_PATH_BIN/configtxlator if set", Type: "string", Def: DefaultLatorExe}
-		fs.Entries[OPT_LATOR_PORT] = cfg.Entry{Desc: "port where configtxlator will listen, default is $TC_RAWAPI_LATOR_PORT if set, 0 meand random", Type: "int", Def: DefaultLatorPort}
+		fs.Entries[OPT_LATOR_PORT] = cfg.Entry{Desc: "port where configtxlator will listen, default is $TC_RAWAPI_LATOR_PORT if set, 0 means random", Type: "int", Def: DefaultLatorPort}
 		fs.Entries[OPT_LATOR_PROTO] = cfg.Entry{Desc: "protobuf format, configtxlator will be used if set", Type: "string", Def: DefaultLatorProto}
 		fs.Entries[OPT_FAB_MSPID] = cfg.Entry{Desc: "fabric MSPID, default is $TC_RAWAPI_MSPID if set", Type: "string", Def: DefaultFabMspId}
 		fs.Entries[OPT_PROC_TRY] = cfg.Entry{Desc: "number of invoke tries", Type: "int", Def: DefaultFabTry}
@@ -318,7 +318,7 @@ func main() {
 		fs.Entries[OPT_FAB_KEYSTORE] = cfg.Entry{Desc: "path to client keystore, default is $TC_RAWAPI_KEYPATH if set", Type: "string", Def: DefaultPathKeystore}
 		fs.Entries[OPT_LATOR_BIND] = cfg.Entry{Desc: "address to bind configtxlator's rest api to, default is TC_RAWAPI_LATOR_BIND if set", Type: "string", Def: DefaultLatorBind}
 		fs.Entries[OPT_LATOR_EXE] = cfg.Entry{Desc: "path to configtxlator (if empty, will dump protobuf as base64 encoded string), default is $TC_PATH_BIN/configtxlator if set", Type: "string", Def: DefaultLatorExe}
-		fs.Entries[OPT_LATOR_PORT] = cfg.Entry{Desc: "port where configtxlator will listen, default is $TC_RAWAPI_LATOR_PORT if set, 0 meand random", Type: "int", Def: DefaultLatorPort}
+		fs.Entries[OPT_LATOR_PORT] = cfg.Entry{Desc: "port where configtxlator will listen, default is $TC_RAWAPI_LATOR_PORT if set, 0 means random", Type: "int", Def: DefaultLatorPort}
 		fs.Entries[OPT_LATOR_PROTO] = cfg.Entry{Desc: "protobuf format, configtxlator will be used if set", Type: "string", Def: DefaultLatorProto}
 		fs.Entries[OPT_FAB_MSPID] = cfg.Entry{Desc: "fabric MSPID, default is $TC_RAWAPI_MSPID if set", Type: "string", Def: DefaultFabMspId}
 		fs.Entries[OPT_IO_SUFFIX] = cfg.Entry{Desc: "suffix with which the name of the processed file is appended as output (-out is ignored if supplied)", Type: "string", Def: ""}
@@ -359,7 +359,7 @@ func main() {
 
 		fs.Entries[OPT_LATOR_BIND] = cfg.Entry{Desc: "address to bind configtxlator's rest api to, default is TC_RAWAPI_LATOR_BIND if set", Type: "string", Def: DefaultLatorBind}
 		fs.Entries[OPT_LATOR_EXE] = cfg.Entry{Desc: "path to configtxlator (if empty, will dump protobuf as base64 encoded string), default is $TC_PATH_BIN/configtxlator if set", Type: "string", Def: DefaultLatorExe}
-		fs.Entries[OPT_LATOR_PORT] = cfg.Entry{Desc: "port where configtxlator will listen, default is $TC_RAWAPI_LATOR_PORT if set, 0 meand random", Type: "int", Def: DefaultLatorPort}
+		fs.Entries[OPT_LATOR_PORT] = cfg.Entry{Desc: "port where configtxlator will listen, default is $TC_RAWAPI_LATOR_PORT if set, 0 means random", Type: "int", Def: DefaultLatorPort}
 		fs.Entries[OPT_LATOR_PROTO] = cfg.Entry{Desc: "protobuf format, configtxlator will be used if set", Type: "string", Def: DefaultLatorProto}
 
 		modeExec = modeCombined
@@ -507,6 +507,7 @@ func modeConfirm(config *cfg.Config) {
 	// region: configtxlator
 
 	err = fabricLator(config, client)
+	defer client.Lator.Close()
 	if err != nil {
 		helperPanic("error while initializing configtxlator")
 	}
@@ -584,6 +585,7 @@ func modeConfirmBatch(config *cfg.Config) {
 	// region: configtxlator
 
 	err = fabricLator(config, client)
+	defer client.Lator.Close()
 	if err != nil {
 		helperPanic("error while initializing configtxlator")
 	}
@@ -814,6 +816,7 @@ func modeCombined(config *cfg.Config) {
 	// region: configtxlator
 
 	err = fabricLator(config, client)
+	defer client.Lator.Close()
 	if err != nil {
 		helperPanic("error while initializing configtxlator")
 	}
@@ -1167,27 +1170,6 @@ func fabricConfirm(config *cfg.Config, client *fabric.Client, bundle *PSV) error
 
 }
 
-/*
-func fabricInvoke(config *cfg.Config, client *fabric.Client, args []string) (*fabric.Response, *fabric.ResponseError) {
-	request := fabric.Request{
-		Chaincode: config.Entries[OPT_FAB_CHAINCODE].Value.(string),
-		Channel:   config.Entries["channel"].Value.(string),
-		Function:  config.Entries[OPT_FAB_FUNCTION].Value.(string),
-		Args:      args,
-	}
-	Lout(LOG_DEBUG, "fabric invoke request", request)
-
-	response, err := fabric.Invoke(client, &request)
-	if err != nil {
-		Lout(LOG_DEBUG, "error in fabric invoke", err)
-		return nil, err
-	}
-	Lout(LOG_DEBUG, "fabric invoke response", response)
-
-	return response, nil
-}
-*/
-
 func fabricLator(config *cfg.Config, client *fabric.Client) error {
 	client.Lator = &fabric.Lator{
 		Bind:  config.Entries[OPT_LATOR_BIND].Value.(string),
@@ -1199,9 +1181,9 @@ func fabricLator(config *cfg.Config, client *fabric.Client) error {
 		helperPanic("error initializing configtxlator instance", err.Error())
 	}
 	Lout(LOG_DEBUG, "configtxlator instance", client.Lator)
-
 	Lout(LOG_INFO, "waiting for configtxlator launch", DefaultLatorSleep)
 	time.Sleep(time.Duration(DefaultLatorSleep) * time.Second)
+
 	return nil
 }
 

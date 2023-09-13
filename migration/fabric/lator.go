@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"io"
 	"math/rand"
+	"net"
 	"os/exec"
+	"strconv"
 	"time"
 
 	"github.com/valyala/fasthttp"
@@ -20,7 +22,15 @@ func (l *Lator) Init() error {
 			rand.Seed(time.Now().UnixNano())
 			min := 1024
 			max := 65534
-			l.Port = rand.Intn(max-min+1) + min
+			for {
+				l.Port = rand.Intn(max-min+1) + min
+				conn, err := net.Dial("tcp", "localhost:"+strconv.Itoa(l.Port))
+				if err != nil {
+					// port is likely not in use
+					break
+				}
+				conn.Close()
+			}
 		}
 
 		bin := l.Which
@@ -33,6 +43,7 @@ func (l *Lator) Init() error {
 		}
 
 		l.client = &fasthttp.Client{}
+		l.cmd = cmd
 		l.Exe = l.exeRest
 		return nil
 	}
@@ -58,6 +69,12 @@ func (l *Lator) Init() error {
 
 	// endregion: dump
 
+}
+
+func (l *Lator) Close() {
+	if l.cmd != nil {
+		defer l.cmd.Process.Kill()
+	}
 }
 
 func (l *Lator) exeRest(pb []byte, typ string) ([]byte, error) {
