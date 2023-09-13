@@ -4,7 +4,9 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
+	"math/rand"
 	"os/exec"
+	"time"
 
 	"github.com/valyala/fasthttp"
 )
@@ -13,7 +15,14 @@ func (l *Lator) Init() error {
 
 	// region: rest api
 
-	if len(l.Bind) != 0 && len(l.Which) != 0 && l.Port > 0 {
+	if len(l.Bind) != 0 && len(l.Which) != 0 {
+		if l.Port == 0 {
+			rand.Seed(time.Now().UnixNano())
+			min := 1024
+			max := 65534
+			l.Port = rand.Intn(max-min+1) + min
+		}
+
 		bin := l.Which
 		adr := fmt.Sprintf("--hostname=%s", l.Bind)
 		prt := fmt.Sprintf("--port=%d", l.Port)
@@ -22,6 +31,7 @@ func (l *Lator) Init() error {
 		if err != nil {
 			return err
 		}
+
 		l.client = &fasthttp.Client{}
 		l.Exe = l.exeRest
 		return nil
@@ -140,6 +150,6 @@ func (l *Lator) exeDump(pb []byte, typ string) ([]byte, error) {
 	encodedLength := base64.StdEncoding.EncodedLen(len(pb))
 	encodedData := make([]byte, encodedLength)
 	base64.StdEncoding.Encode(encodedData, pb)
-	encodedData = append([]byte{'"'}, append(encodedData, '"')...)
+	// encodedData = append([]byte{'"'}, append(encodedData, '"')...)
 	return encodedData, nil
 }
