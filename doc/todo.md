@@ -2,7 +2,6 @@
 
 ## now
 
-* migration/main.go default channel?
 * backup
 * delete legacy
   * Contabo

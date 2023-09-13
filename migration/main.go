@@ -203,7 +203,7 @@ func main() {
 			helperPanic("$TC_PATH_RC is set but cannot stat file", TC_PATH_RC, err.Error())
 		}
 
-		envCmd := exec.Command("bash", "-c", "source "+rc+" ; echo '<<<ENVIRONMENT>>>' ; env")
+		envCmd := exec.Command("bash", "-c", "source "+rc+" ; echo '<<<ENVIRONMENT>>>' ; env | sort")
 		env, err := envCmd.CombinedOutput()
 		if err != nil {
 			helperPanic(err.Error())
@@ -217,56 +217,53 @@ func main() {
 			} else if start {
 				kv := strings.SplitN(s.Text(), "=", 2)
 				if len(kv) == 2 {
-					_, set := os.LookupEnv(kv[0])
-					if !set {
-
-						os.Setenv(kv[0], kv[1])
-
-						switch kv[0] {
-						case TC_FAB_CHANNEL:
-							DefaultFabChannel = kv[1]
-						// case TC_FAB_CLIENT:
-						// 	DefaultFabClient = kv[1]
-						case TC_FAB_GW:
-							DefaultFabGw = kv[1]
-						case TC_FAB_ENDPOINT:
-							DefaultFabEndpoint = kv[1]
-						case TC_FAB_MSPID:
-							DefaultFabMspId = kv[1]
-						case TC_HTTP_APIKEY:
-							DefaultHttpApikey = kv[1]
-						case TC_HTTP_PORT:
-							_, err = strconv.Atoi(kv[1])
-							if err == nil {
-								DefaultHttpPort, _ = strconv.Atoi(kv[1])
-							}
-						case TC_LATOR_BIND:
-							DefaultLatorBind = kv[1]
-						case TC_LATOR_PORT:
-							_, err := strconv.Atoi(kv[1])
-							if err == nil {
-								DefaultLatorPort, _ = strconv.Atoi(kv[1])
-							}
-						case TC_LATOR_EXE:
-							DefaultLatorExe = kv[1] + "/configtxlator"
-						case TC_LOGLEVEL:
-							_, err = strconv.Atoi(kv[1])
-							if err == nil {
-								DefaultLoglevel, _ = strconv.Atoi(kv[1])
-							}
-						case TC_PATH_CERT:
-							DefaultPathCert = kv[1]
-						case TC_PATH_KEYSTORE:
-							DefaultPathKeystore = kv[1]
-						case TC_PATH_TLSCERT:
-							DefaultPathTlsCert = kv[1]
+					tmp, set := os.LookupEnv(kv[0])
+					if set {
+						kv[1] = tmp
+					}
+					switch kv[0] {
+					case TC_FAB_CHANNEL:
+						DefaultFabChannel = kv[1]
+					// case TC_FAB_CLIENT:
+					// 	DefaultFabClient = kv[1]
+					case TC_FAB_GW:
+						DefaultFabGw = kv[1]
+					case TC_FAB_ENDPOINT:
+						DefaultFabEndpoint = kv[1]
+					case TC_FAB_MSPID:
+						DefaultFabMspId = kv[1]
+					case TC_HTTP_APIKEY:
+						DefaultHttpApikey = kv[1]
+					case TC_HTTP_PORT:
+						_, err = strconv.Atoi(kv[1])
+						if err == nil {
+							DefaultHttpPort, _ = strconv.Atoi(kv[1])
 						}
+					case TC_LATOR_BIND:
+						DefaultLatorBind = kv[1]
+					case TC_LATOR_PORT:
+						_, err := strconv.Atoi(kv[1])
+						if err == nil {
+							DefaultLatorPort, _ = strconv.Atoi(kv[1])
+						}
+					case TC_LATOR_EXE:
+						DefaultLatorExe = kv[1] + "/configtxlator"
+					case TC_LOGLEVEL:
+						_, err = strconv.Atoi(kv[1])
+						if err == nil {
+							DefaultLoglevel, _ = strconv.Atoi(kv[1])
+						}
+					case TC_PATH_CERT:
+						DefaultPathCert = kv[1]
+					case TC_PATH_KEYSTORE:
+						DefaultPathKeystore = kv[1]
+					case TC_PATH_TLSCERT:
+						DefaultPathTlsCert = kv[1]
 					}
 				}
 			}
 		}
 	}
-
 	// endregion: env. variables
 	// region: cfg/fs, common args
 
@@ -303,7 +300,7 @@ func main() {
 		fs.Entries[OPT_FAB_KEYSTORE] = cfg.Entry{Desc: "path to client keystore, default is $TC_RAWAPI_KEYPATH if set", Type: "string", Def: DefaultPathKeystore}
 		fs.Entries[OPT_LATOR_BIND] = cfg.Entry{Desc: "address to bind configtxlator's rest api to, default is TC_RAWAPI_LATOR_BIND if set", Type: "string", Def: DefaultLatorBind}
 		fs.Entries[OPT_LATOR_EXE] = cfg.Entry{Desc: "path to configtxlator (if empty, will dump protobuf as base64 encoded string), default is $TC_PATH_BIN/configtxlator if set", Type: "string", Def: DefaultLatorExe}
-		fs.Entries[OPT_LATOR_PORT] = cfg.Entry{Desc: "port where configtxlator will listen, default is TC_RAWAPI_LATOR_PORT if set", Type: "int", Def: DefaultLatorPort}
+		fs.Entries[OPT_LATOR_PORT] = cfg.Entry{Desc: "port where configtxlator will listen, default is $TC_RAWAPI_LATOR_PORT if set, 0 meand random", Type: "int", Def: DefaultLatorPort}
 		fs.Entries[OPT_LATOR_PROTO] = cfg.Entry{Desc: "protobuf format, configtxlator will be used if set", Type: "string", Def: DefaultLatorProto}
 		fs.Entries[OPT_FAB_MSPID] = cfg.Entry{Desc: "fabric MSPID, default is $TC_RAWAPI_MSPID if set", Type: "string", Def: DefaultFabMspId}
 		fs.Entries[OPT_PROC_TRY] = cfg.Entry{Desc: "number of invoke tries", Type: "int", Def: DefaultFabTry}
@@ -321,7 +318,7 @@ func main() {
 		fs.Entries[OPT_FAB_KEYSTORE] = cfg.Entry{Desc: "path to client keystore, default is $TC_RAWAPI_KEYPATH if set", Type: "string", Def: DefaultPathKeystore}
 		fs.Entries[OPT_LATOR_BIND] = cfg.Entry{Desc: "address to bind configtxlator's rest api to, default is TC_RAWAPI_LATOR_BIND if set", Type: "string", Def: DefaultLatorBind}
 		fs.Entries[OPT_LATOR_EXE] = cfg.Entry{Desc: "path to configtxlator (if empty, will dump protobuf as base64 encoded string), default is $TC_PATH_BIN/configtxlator if set", Type: "string", Def: DefaultLatorExe}
-		fs.Entries[OPT_LATOR_PORT] = cfg.Entry{Desc: "port where configtxlator will listen, default is TC_RAWAPI_LATOR_PORT if set", Type: "int", Def: DefaultLatorPort}
+		fs.Entries[OPT_LATOR_PORT] = cfg.Entry{Desc: "port where configtxlator will listen, default is $TC_RAWAPI_LATOR_PORT if set, 0 meand random", Type: "int", Def: DefaultLatorPort}
 		fs.Entries[OPT_LATOR_PROTO] = cfg.Entry{Desc: "protobuf format, configtxlator will be used if set", Type: "string", Def: DefaultLatorProto}
 		fs.Entries[OPT_FAB_MSPID] = cfg.Entry{Desc: "fabric MSPID, default is $TC_RAWAPI_MSPID if set", Type: "string", Def: DefaultFabMspId}
 		fs.Entries[OPT_IO_SUFFIX] = cfg.Entry{Desc: "suffix with which the name of the processed file is appended as output (-out is ignored if supplied)", Type: "string", Def: ""}
@@ -362,7 +359,7 @@ func main() {
 
 		fs.Entries[OPT_LATOR_BIND] = cfg.Entry{Desc: "address to bind configtxlator's rest api to, default is TC_RAWAPI_LATOR_BIND if set", Type: "string", Def: DefaultLatorBind}
 		fs.Entries[OPT_LATOR_EXE] = cfg.Entry{Desc: "path to configtxlator (if empty, will dump protobuf as base64 encoded string), default is $TC_PATH_BIN/configtxlator if set", Type: "string", Def: DefaultLatorExe}
-		fs.Entries[OPT_LATOR_PORT] = cfg.Entry{Desc: "port where configtxlator will listen, default is TC_RAWAPI_LATOR_PORT if set", Type: "int", Def: DefaultLatorPort}
+		fs.Entries[OPT_LATOR_PORT] = cfg.Entry{Desc: "port where configtxlator will listen, default is $TC_RAWAPI_LATOR_PORT if set, 0 meand random", Type: "int", Def: DefaultLatorPort}
 		fs.Entries[OPT_LATOR_PROTO] = cfg.Entry{Desc: "protobuf format, configtxlator will be used if set", Type: "string", Def: DefaultLatorProto}
 
 		modeExec = modeCombined
@@ -513,6 +510,7 @@ func modeConfirm(config *cfg.Config) {
 	if err != nil {
 		helperPanic("error while initializing configtxlator")
 	}
+	Lout(LOG_INFO, "protobuf decode", client.Lator.Which, fmt.Sprintf("%s:%d", client.Lator.Bind, client.Lator.Port))
 
 	// endregion: configtxlator
 	// region: process batch
@@ -589,6 +587,7 @@ func modeConfirmBatch(config *cfg.Config) {
 	if err != nil {
 		helperPanic("error while initializing configtxlator")
 	}
+	Lout(LOG_INFO, "protobuf decode", client.Lator.Which, fmt.Sprintf("%s:%d", client.Lator.Bind, client.Lator.Port))
 
 	// endregion: configtxlator
 	// region: process batch
@@ -818,6 +817,7 @@ func modeCombined(config *cfg.Config) {
 	if err != nil {
 		helperPanic("error while initializing configtxlator")
 	}
+	Lout(LOG_INFO, "protobuf decode", client.Lator.Which, fmt.Sprintf("%s:%d", client.Lator.Bind, client.Lator.Port))
 
 	// endregion: configtxlator
 	// region: process batch
