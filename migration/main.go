@@ -861,7 +861,7 @@ func modeCombined(config *cfg.Config) {
 				if err != nil {
 					Lout(LOG_NOTICE, progress, err)
 				} else {
-					Lout(LOG_INFO, progress, " submited", fmt.Sprintf("%12s", bundle.Key), bundle.Status, file, output.Name())
+					Lout(LOG_INFO, progress, " submited", fmt.Sprintf("%12s", bundle.Key), file, output.Name())
 				}
 				confirm = append(confirm, bundle)
 			}
@@ -1117,7 +1117,7 @@ func fabricConfirm(config *cfg.Config, client *fabric.Client, bundle *PSV) error
 			Lout(LOG_DEBUG, "error in fabric query", responseErr)
 			break
 		}
-		Lout(LOG_NOTICE, fmt.Sprintf("unsuccessful attempt %d/%d", cnt, try))
+		Lout(LOG_NOTICE, fmt.Sprintf("unsuccessful confirm attempt %d/%d", cnt, try))
 	}
 	if responseErr != nil {
 		bundle.Response = responseErr.Error()
@@ -1277,7 +1277,7 @@ func fabricSubmit(config *cfg.Config, client *fabric.Client, bundle *PSV) error 
 		if responseErr == nil {
 			break
 		}
-		Lout(LOG_DEBUG, fmt.Sprintf("unsuccessful attempt %d/%d", cnt, try))
+		Lout(LOG_DEBUG, fmt.Sprintf("unsuccessful submit attempt %d/%d", cnt, try))
 	}
 	if responseErr != nil {
 		bundle.Response = responseErr.Error()
