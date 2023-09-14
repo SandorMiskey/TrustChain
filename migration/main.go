@@ -34,7 +34,7 @@ import (
 var (
 	BlockCache = make(map[string]Header)
 
-	DefaultBundleBuffered int    = 100
+	DefaultBundleBuffered int    = 200
 	DefaultBundleKeyName  string = "bundle_id"
 	DefaultBundleKeyPos   int    = 0
 	DefaultBundleKeyType  string = "string"
@@ -44,7 +44,7 @@ var (
 	// DefaultFabClient     string = "org1-client"
 	DefaultFabEndpoint   string = "localhost:7051"
 	DefaultFabGw         string = "localhost"
-	DefaultFabTry        int    = 10
+	DefaultFabTry        int    = 25
 	DefaultFabMspId      string = "Org1MSP"
 	DefaultFabSubmitCc   string = "te-food-bundles"
 	DefaultFabSubmitFunc string = "CreateBundle"
@@ -99,10 +99,10 @@ const (
 	MODE_RESUBMIT_SC        string = "r"
 
 	OPT_FAB_CERT         string = "cert"
-	OPT_FAB_CC           string = "chaincode"
-	OPT_FAB_CC_CONFIRM   string = "chaincode_confirm"
-	OPT_FAB_CC_SUBMIT    string = "chaincode_submit"
-	OPT_FAB_CHANNEL      string = "channel"
+	OPT_FAB_CC           string = "cc"
+	OPT_FAB_CC_CONFIRM   string = "cc_confirm"
+	OPT_FAB_CC_SUBMIT    string = "cc_submit"
+	OPT_FAB_CHANNEL      string = "ch"
 	OPT_FAB_ENDPOINT     string = "endpoint"
 	OPT_FAB_FUNC         string = "func"
 	OPT_FAB_FUNC_CONFIRM string = "func_confirm"
@@ -892,7 +892,7 @@ func modeCombined(config *cfg.Config) {
 				if err != nil {
 					Lout(LOG_NOTICE, progress, err)
 				} else {
-					Lout(LOG_INFO, progress, "confirmed", fmt.Sprintf("%12s", bundle.Key), file, output.Name())
+					Lout(LOG_INFO, progress, "confirmed", fmt.Sprintf("%20s", bundle.Key), file, output.Name())
 				}
 				ioOutputAppend(output, bundle, procCompilePSV)
 			}
@@ -1305,22 +1305,22 @@ func helperPanic(s ...string) {
 }
 
 func helperProgress(doneTransactions, totalTransactions int) string {
-	// Calculate progress percentage
+	// calculate progress percentage
 	percentage := (float64(doneTransactions) / float64(totalTransactions)) * 100
 
-	// Calculate elapsed time
+	// calculate elapsed time
 	elapsedTime := time.Since(StatStart)
 
-	// Calculate remaining time
+	// calculate remaining time
 	remainingTransactions := totalTransactions - doneTransactions
 	transactionsPerSecond := float64(doneTransactions) / elapsedTime.Seconds()
 	remainingTime := time.Duration(float64(remainingTransactions) / transactionsPerSecond * float64(time.Second))
 
-	// Format elapsed time and remaining time as HH:MM:SS
+	// format elapsed time and remaining time as HH:MM:SS
 	elapsedTimeFormatted := helperProgressDuration(elapsedTime)
 	remainingTimeFormatted := helperProgressDuration(remainingTime)
 
-	// Format and return the result as a string
+	// format and return the result as a string
 	formattedString := fmt.Sprintf("progress: %6.2f%% %7d/%-7d elapsed: %s remaining: %s tx/s: %6.2f", percentage, doneTransactions, totalTransactions, elapsedTimeFormatted, remainingTimeFormatted, transactionsPerSecond)
 
 	return formattedString
