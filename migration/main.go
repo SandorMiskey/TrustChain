@@ -84,20 +84,31 @@ const (
 
 	SCANNER_MAXTOKENSIZE int = 1024 * 1024 // 1MB
 
+	MODE_FORMAT             string = "  %-2s || %-13s    %s\n"
+	MODE_COMBINED_DESC      string = "combination of confirmBatch and submitBatch"
+	MODE_COMBINED_FULL      string = "combined"
+	MODE_COMBINED_SC        string = "c"
+	MODE_CONFIRM_DESC       string = "iterates over the output of submit/resubmit and query for block number and data hash via fabric gateway against supplied chaincode and function"
 	MODE_CONFIRM_FULL       string = "confirm"
-	MODE_CONFIRM_SC         string = "c"
+	MODE_CONFIRM_SC         string = "co"
+	MODE_CONFIRMBATCH_DESC  string = "iterates over the output of submit/resubmit and query for block number and data hash via fabric gateway against supplied chaincode and function"
 	MODE_CONFIRMBATCH_FULL  string = "confirmBatch"
 	MODE_CONFIRMBATCH_SC    string = "cb"
+	MODE_CONFIRMRAWAPI_DESC string = "iterates over the output of submit/resubmit and query for block number and data hash via rawapi/http against supplied chaincode and function"
 	MODE_CONFIRMRAWAPI_FULL string = "confirmRawapi"
 	MODE_CONFIRMRAWAPI_SC   string = "cr"
-	MODE_COMBINED_FULL      string = "combined"
-	MODE_COMBINED_SC        string = "co"
-	MODE_SUBMIT_FULL        string = "submit"
-	MODE_SUBMIT_SC          string = "s"
-	MODE_SUBMITBATCH_FULL   string = "submitBatch"
-	MODE_SUBMITBATCH_SC     string = "sb"
+	MODE_HELP_DESC          string = "or, for that matter, anything not in this list produces this output"
+	MODE_HELP_FULL          string = "help"
+	MODE_HELP_SC            string = "h"
+	MODE_RESUBMIT_DESC      string = "iterates over the output of submit and retries unsuccessful attempts"
 	MODE_RESUBMIT_FULL      string = "resubmit"
 	MODE_RESUBMIT_SC        string = "r"
+	MODE_SUBMIT_DESC        string = "iterates over input batch and submit line by line via direct fabric gateway link"
+	MODE_SUBMIT_FULL        string = "submit"
+	MODE_SUBMIT_SC          string = "s"
+	MODE_SUBMITBATCH_DESC   string = "iterates over list of files with bundles to be processed and submit line by line via direct fabric gateway link"
+	MODE_SUBMITBATCH_FULL   string = "submitBatch"
+	MODE_SUBMITBATCH_SC     string = "sb"
 
 	OPT_FAB_CERT         string = "cert"
 	OPT_FAB_CC           string = "cc"
@@ -330,7 +341,7 @@ func main() {
 	case MODE_CONFIRMRAWAPI_FULL, MODE_CONFIRMRAWAPI_SC:
 		fs.Entries[OPT_HTTP_APIKEY] = cfg.Entry{Desc: "api key, skip if not set, default is $TC_HTTP_API_KEY if set", Type: "string", Def: DefaultHttpApikey}
 		fs.Entries[OPT_FAB_CC] = cfg.Entry{Desc: "chaincode to query", Type: "string", Def: "qscc"}
-		fs.Entries[OPT_FAB_FUNC] = cfg.Entry{Desc: "function of -" + OPT_FAB_CC, Type: "string", Def: "GetBlockByTxID"}
+		fs.Entries[OPT_FAB_FUNC] = cfg.Entry{Desc: "function of -" + OPT_FAB_CC, Type: "string", Def: DefaultFabConfirmFunc}
 		fs.Entries[OPT_HTTP_HOST] = cfg.Entry{Desc: "api host in http(s)://host:port format, default port is $TC_RAWAPI_HTTP_PORT if set", Type: "string", Def: "http://localhost:" + strconv.Itoa(DefaultHttpPort)}
 		fs.Entries[OPT_IO_INPUT] = cfg.Entry{Desc: "| separated file with args for query, empty means stdin", Type: "string", Def: ""}
 		fs.Entries[OPT_HTTP_QUERY] = cfg.Entry{Desc: "query endpoint", Type: "string", Def: "/query"}
@@ -421,10 +432,11 @@ func main() {
 
 		modeExec = modeResubmit
 	default:
+		mode := os.Args[1]
 		os.Args[1] = ""
 		usage := helperUsage(fs.FlagSet)
 		usage()
-		helperPanic("invalid mode '" + os.Args[1] + "'")
+		helperPanic("invalid mode '" + mode + "'")
 	}
 
 	// endregion: evaluate mode
@@ -471,14 +483,15 @@ func main() {
 	statEnd := time.Now()
 	statElapsed := time.Since(StatStart)
 
-	Lout(LOG_INFO, "start time", StatStart.Format(time.RFC3339))
-	Lout(LOG_INFO, "end time", statEnd.Format(time.RFC3339))
-	Lout(LOG_INFO, "elapsed time", statElapsed.Truncate(time.Second).String())
-	Lout(LOG_INFO, "trx per hour", float64(StatTrs)/statElapsed.Hours())
-	Lout(LOG_INFO, "trx per min", float64(StatTrs)/statElapsed.Minutes())
-	Lout(LOG_INFO, "trx per sec", float64(StatTrs)/statElapsed.Seconds())
+	Lout(LOG_INFO, "start time:   ", StatStart.Format(time.RFC3339))
+	Lout(LOG_INFO, "end time:     ", statEnd.Format(time.RFC3339))
+	Lout(LOG_INFO, "elapsed time: ", statElapsed.Truncate(time.Second).String())
+	Lout(LOG_INFO, "trx per hour: ", float64(StatTrs)/statElapsed.Hours())
+	Lout(LOG_INFO, "trx per min:  ", float64(StatTrs)/statElapsed.Minutes())
+	Lout(LOG_INFO, "trx per sec:  ", float64(StatTrs)/statElapsed.Seconds())
 
 	// endregion: stats
+
 }
 
 // endregion: main
@@ -518,26 +531,24 @@ func modeConfirm(config *cfg.Config) {
 	// region: process batch
 
 	for _, bundle := range *batch {
-		StatTrs++
-		progress := helperProgress(StatTrs, len(*batch))
 
 		if bundle.Status != STATUS_SUBMIT_OK && !strings.HasPrefix(bundle.Status, STATUS_CONFIRM_ERROR_PREFIX) {
-			Lout(LOG_INFO, progress, "bypassed status", bundle.Status)
+			Lout(LOG_INFO, helperProgress(len(*batch)), "bypassed status", bundle.Status)
 			ioOutputAppend(sent, bundle, procCompilePSV)
 			continue
 		}
 		if !TxRegexp.MatchString(bundle.Txid) {
 			bundle.Status = STATUS_CONFIRM_ERROR_TXID
-			Lout(LOG_ERR, progress, "invalid txid", bundle.Txid)
+			Lout(LOG_ERR, helperProgress(len(*batch)), "invalid txid", bundle.Txid)
 			ioOutputAppend(sent, bundle, procCompilePSV)
 			continue
 		}
 
 		err := fabricConfirm(config, client, &bundle)
 		if err != nil {
-			Lout(LOG_NOTICE, progress, err)
+			Lout(LOG_NOTICE, helperProgress(len(*batch)), err)
 		} else {
-			Lout(LOG_INFO, progress, "success", bundle.Key, bundle.Txid)
+			Lout(LOG_INFO, helperProgress(len(*batch)), "success", bundle.Key, bundle.Txid)
 		}
 		ioOutputAppend(sent, bundle, procCompilePSV)
 
@@ -602,26 +613,23 @@ func modeConfirmBatch(config *cfg.Config) {
 			defer output.Close()
 		}
 		for _, bundle := range *batch {
-			StatTrs++
-			progress := helperProgress(StatTrs, count)
-
 			if bundle.Status != STATUS_SUBMIT_OK && !strings.HasPrefix(bundle.Status, STATUS_CONFIRM_ERROR_PREFIX) {
-				Lout(LOG_INFO, progress, "bypassed status", bundle.Status)
+				Lout(LOG_INFO, helperProgress(count), "bypassed status", bundle.Status)
 				ioOutputAppend(output, bundle, procCompilePSV)
 				continue
 			}
 			if !TxRegexp.MatchString(bundle.Txid) {
 				bundle.Status = STATUS_CONFIRM_ERROR_TXID
-				Lout(LOG_ERR, progress, "invalid txid", bundle.Txid)
+				Lout(LOG_ERR, helperProgress(count), "invalid txid", bundle.Txid)
 				ioOutputAppend(output, bundle, procCompilePSV)
 				continue
 			}
 
 			err := fabricConfirm(config, client, &bundle)
 			if err != nil {
-				Lout(LOG_NOTICE, progress, err)
+				Lout(LOG_NOTICE, helperProgress(count), err)
 			} else {
-				Lout(LOG_INFO, progress, "success", fmt.Sprintf("%12s", bundle.Key), file, output.Name())
+				Lout(LOG_INFO, helperProgress(count), "success", fmt.Sprintf("%12s", bundle.Key), file, output.Name())
 			}
 			ioOutputAppend(output, bundle, procCompilePSV)
 		}
@@ -668,19 +676,16 @@ func modeConfirmRawapi(config *cfg.Config) {
 
 	for _, item := range *batch {
 
-		StatTrs++
-		progress := helperProgress(StatTrs, len(*batch))
-
 		// region: validate input
 
 		if item.Status != STATUS_SUBMIT_OK && !strings.HasPrefix(item.Status, STATUS_CONFIRM_ERROR_PREFIX) {
-			Lout(LOG_INFO, progress, "bypassed status", item.Status)
+			Lout(LOG_INFO, helperProgress(len(*batch)), "bypassed status", item.Status)
 			ioOutputAppend(outFile, item, procCompilePSV)
 			continue
 		}
 		if !TxRegexp.MatchString(item.Txid) {
 			item.Status = STATUS_CONFIRM_ERROR_TXID
-			Lout(LOG_ERR, progress, "invalid txid", item.Txid)
+			Lout(LOG_ERR, helperProgress(len(*batch)), "invalid txid", item.Txid)
 			ioOutputAppend(outFile, item, procCompilePSV)
 			continue
 		}
@@ -700,7 +705,7 @@ func modeConfirmRawapi(config *cfg.Config) {
 		if len(config.Entries[OPT_HTTP_APIKEY].Value.(string)) != 0 {
 			req.Header.Set(API_KEY_HEADER, config.Entries[OPT_HTTP_APIKEY].Value.(string))
 		}
-		Lout(LOG_DEBUG, progress, url)
+		Lout(LOG_DEBUG, helperProgress(len(*batch)), url)
 
 		resp := fasthttp.AcquireResponse()
 		defer fasthttp.ReleaseResponse(resp)
@@ -712,7 +717,7 @@ func modeConfirmRawapi(config *cfg.Config) {
 		if err != nil {
 			item.Status = STATUS_CONFIRM_ERROR_QUERY
 			item.Response = string(err.Error())
-			Lout(LOG_ERR, progress, "http client error", err)
+			Lout(LOG_ERR, helperProgress(len(*batch)), "http client error", err)
 			ioOutputAppend(outFile, item, procCompilePSV)
 			continue
 		}
@@ -723,7 +728,7 @@ func modeConfirmRawapi(config *cfg.Config) {
 		if resp.StatusCode() != fasthttp.StatusOK {
 			item.Status = STATUS_CONFIRM_ERROR_PREFIX + strconv.Itoa(resp.StatusCode())
 			item.Response = string(resp.Body())
-			Lout(LOG_ERR, progress, "response status indicates an error", resp.StatusCode(), item.Response)
+			Lout(LOG_ERR, helperProgress(len(*batch)), "response status indicates an error", resp.StatusCode(), item.Response)
 			ioOutputAppend(outFile, item, procCompilePSV)
 			continue
 		}
@@ -735,7 +740,7 @@ func modeConfirmRawapi(config *cfg.Config) {
 		if blockDataType != jsonparser.Object || err != nil {
 			item.Status = STATUS_CONFIRM_ERROR_HEADER
 			item.Response = err.Error()
-			Lout(LOG_ERR, progress, "no parsable header in response", item.Response)
+			Lout(LOG_ERR, helperProgress(len(*batch)), "no parsable header in response", item.Response)
 			ioOutputAppend(outFile, item, procCompilePSV)
 			continue
 		}
@@ -765,13 +770,8 @@ func modeConfirmRawapi(config *cfg.Config) {
 
 		item.Status = STATUS_CONFIRM_OK
 		item.Response = string(headerBytes)
-		Lout(LOG_DEBUG, progress, item.Status)
-		Lout(LOG_DEBUG, progress, item.Key)
-		Lout(LOG_DEBUG, progress, item.Txid)
-		Lout(LOG_DEBUG, progress, item.Response)
-		Lout(LOG_DEBUG, progress, item.Payload)
 		ioOutputAppend(outFile, item, procCompilePSV)
-		Lout(LOG_INFO, progress, "done")
+		Lout(LOG_INFO, helperProgress(len(*batch)), "done")
 
 		// endregion: done
 
@@ -860,14 +860,11 @@ func modeCombined(config *cfg.Config) {
 			// region: submit buffer
 
 			for _, bundle := range batch[i:bufferEnd] {
-				StatTrs++
-				progress := helperProgress(StatTrs, count)
-
 				err := fabricSubmit(config, client, &bundle)
 				if err != nil {
-					Lout(LOG_NOTICE, progress, err)
+					Lout(LOG_NOTICE, helperProgress(count), err)
 				} else {
-					Lout(LOG_INFO, progress, " submited", fmt.Sprintf("%20s", bundle.Key), file)
+					Lout(LOG_INFO, helperProgress(count), " submited", fmt.Sprintf("%20s", bundle.Key), file)
 				}
 				submited = append(submited, bundle)
 			}
@@ -879,26 +876,23 @@ func modeCombined(config *cfg.Config) {
 			go func(confirm []PSV) {
 				defer wg.Done()
 				for _, bundle := range confirm {
-					StatTrs++
-					progress := helperProgress(StatTrs, count)
-
 					if bundle.Status != STATUS_SUBMIT_OK && !strings.HasPrefix(bundle.Status, STATUS_CONFIRM_ERROR_PREFIX) {
-						Lout(LOG_INFO, progress, "bypassed status", bundle.Status)
+						Lout(LOG_INFO, helperProgress(count), "bypassed status", bundle.Status)
 						ioOutputAppend(output, bundle, procCompilePSV)
 						continue
 					}
 					if !TxRegexp.MatchString(bundle.Txid) {
 						bundle.Status = STATUS_CONFIRM_ERROR_TXID
-						Lout(LOG_ERR, progress, "invalid txid", bundle.Txid)
+						Lout(LOG_ERR, helperProgress(count), "invalid txid", bundle.Txid)
 						ioOutputAppend(output, bundle, procCompilePSV)
 						continue
 					}
 
 					err = fabricConfirm(config, client, &bundle)
 					if err != nil {
-						Lout(LOG_NOTICE, progress, err)
+						Lout(LOG_NOTICE, helperProgress(count), err)
 					} else {
-						Lout(LOG_INFO, progress, "confirmed", fmt.Sprintf("%20s", bundle.Key), file, output.Name())
+						Lout(LOG_INFO, helperProgress(count), "confirmed", fmt.Sprintf("%20s", bundle.Key), file, output.Name())
 					}
 					ioOutputAppend(output, bundle, procCompilePSV)
 				}
@@ -942,20 +936,17 @@ func modeResubmit(config *cfg.Config) {
 
 	for _, bundle := range *batch {
 
-		StatTrs++
-		progress := helperProgress(StatTrs, len(*batch))
-
 		if !strings.HasPrefix(bundle.Status, STATUS_SUBMIT_ERROR_PREFIX) {
-			Lout(LOG_INFO, progress, "bypassed status", bundle.Status)
+			Lout(LOG_INFO, helperProgress(len(*batch)), "bypassed status", bundle.Status)
 			ioOutputAppend(sent, bundle, procCompilePSV)
 			continue
 		}
 
 		err := fabricSubmit(config, client, &bundle)
 		if err != nil {
-			Lout(LOG_NOTICE, progress, err)
+			Lout(LOG_NOTICE, helperProgress(len(*batch)), err)
 		} else {
-			Lout(LOG_INFO, progress, "success", bundle.Key, bundle.Txid)
+			Lout(LOG_INFO, helperProgress(len(*batch)), "success", bundle.Key, bundle.Txid)
 		}
 		ioOutputAppend(sent, bundle, procCompilePSV)
 	}
@@ -988,15 +979,11 @@ func modeSubmit(config *cfg.Config) {
 	// region: process batch
 
 	for _, bundle := range *batch {
-		StatTrs++
-		progress := helperProgress(StatTrs, len(*batch))
-
 		err := fabricSubmit(config, client, &bundle)
-
 		if err != nil {
-			Lout(LOG_NOTICE, progress, err)
+			Lout(LOG_NOTICE, helperProgress(len(*batch)), err)
 		} else {
-			Lout(LOG_INFO, progress, "success", bundle.Key, bundle.Txid)
+			Lout(LOG_INFO, helperProgress(len(*batch)), "success", bundle.Key, bundle.Txid)
 		}
 		ioOutputAppend(sent, bundle, procCompilePSV)
 	}
@@ -1047,14 +1034,11 @@ func modeSubmitBatch(config *cfg.Config) {
 			defer output.Close()
 		}
 		for _, bundle := range *batch {
-			StatTrs++
-			progress := helperProgress(StatTrs, count)
-
 			err := fabricSubmit(config, client, &bundle)
 			if err != nil {
-				Lout(LOG_NOTICE, progress, err)
+				Lout(LOG_NOTICE, helperProgress(count), err)
 			} else {
-				Lout(LOG_INFO, progress, "success", fmt.Sprintf("%12s", bundle.Key), file, output.Name())
+				Lout(LOG_INFO, helperProgress(count), "success", fmt.Sprintf("%12s", bundle.Key), file, output.Name())
 			}
 			ioOutputAppend(output, bundle, procCompilePSV)
 		}
@@ -1092,18 +1076,18 @@ func fabricConfirm(config *cfg.Config, client *fabric.Client, bundle *PSV) error
 
 	// region: shorten variables coming from config
 
-	if config.Entries[OPT_FAB_CC_CONFIRM].Value != nil {
-		config.Entries[OPT_FAB_CC] = config.Entries[OPT_FAB_CC_CONFIRM]
-	}
-	if config.Entries[OPT_FAB_FUNC_CONFIRM].Value != nil {
-		config.Entries[OPT_FAB_FUNC] = config.Entries[OPT_FAB_FUNC_CONFIRM]
-	}
-
 	channel := config.Entries[OPT_FAB_CHANNEL].Value.(string)
 	chaincode := config.Entries[OPT_FAB_CC].Value.(string)
 	function := config.Entries[OPT_FAB_FUNC].Value.(string)
 	proto := config.Entries[OPT_LATOR_PROTO].Value.(string)
 	try := config.Entries[OPT_PROC_TRY].Value.(int)
+
+	if config.Entries[OPT_FAB_CC_CONFIRM].Value != nil {
+		chaincode = config.Entries[OPT_FAB_CC_CONFIRM].Value.(string)
+	}
+	if config.Entries[OPT_FAB_FUNC_CONFIRM].Value != nil {
+		function = config.Entries[OPT_FAB_FUNC_CONFIRM].Value.(string)
+	}
 
 	// endregion: shorten variables coming from config
 	// region: request
@@ -1199,16 +1183,16 @@ func fabricSubmit(config *cfg.Config, client *fabric.Client, bundle *PSV) error 
 
 	// region: shorten variables coming from config
 
-	if config.Entries[OPT_FAB_CC_SUBMIT].Value != nil {
-		config.Entries[OPT_FAB_CC] = config.Entries[OPT_FAB_CC_SUBMIT]
-	}
-	if config.Entries[OPT_FAB_FUNC_SUBMIT].Value != nil {
-		config.Entries[OPT_FAB_FUNC] = config.Entries[OPT_FAB_FUNC_SUBMIT]
-	}
-
 	chaincode := config.Entries[OPT_FAB_CC].Value.(string)
 	channel := config.Entries[OPT_FAB_CHANNEL].Value.(string)
 	function := config.Entries[OPT_FAB_FUNC].Value.(string)
+
+	if config.Entries[OPT_FAB_CC_SUBMIT].Value != nil {
+		chaincode = config.Entries[OPT_FAB_CC_SUBMIT].Value.(string)
+	}
+	if config.Entries[OPT_FAB_FUNC_SUBMIT].Value != nil {
+		function = config.Entries[OPT_FAB_FUNC_SUBMIT].Value.(string)
+	}
 
 	keypos := config.Entries[OPT_PROC_KEYPOS].Value.(int)
 	keyname := config.Entries[OPT_PROC_KEYNAME].Value.(string)
@@ -1312,16 +1296,19 @@ func helperPanic(s ...string) {
 	os.Exit(1)
 }
 
-func helperProgress(doneTransactions, totalTransactions int) string {
+func helperProgress(totalTransactions int) string {
+	// counter
+	StatTrs++
+
 	// calculate progress percentage
-	percentage := (float64(doneTransactions) / float64(totalTransactions)) * 100
+	percentage := (float64(StatTrs) / float64(totalTransactions)) * 100
 
 	// calculate elapsed time
 	elapsedTime := time.Since(StatStart)
 
 	// calculate remaining time
-	remainingTransactions := totalTransactions - doneTransactions
-	transactionsPerSecond := float64(doneTransactions) / elapsedTime.Seconds()
+	remainingTransactions := totalTransactions - StatTrs
+	transactionsPerSecond := float64(StatTrs) / elapsedTime.Seconds()
 	remainingTime := time.Duration(float64(remainingTransactions) / transactionsPerSecond * float64(time.Second))
 
 	// format elapsed time and remaining time as HH:MM:SS
@@ -1329,7 +1316,7 @@ func helperProgress(doneTransactions, totalTransactions int) string {
 	remainingTimeFormatted := helperProgressDuration(remainingTime)
 
 	// format and return the result as a string
-	formattedString := fmt.Sprintf("progress: %6.2f%% %7d/%-7d elapsed: %s remaining: %s tx/s: %6.2f", percentage, doneTransactions, totalTransactions, elapsedTimeFormatted, remainingTimeFormatted, transactionsPerSecond)
+	formattedString := fmt.Sprintf("progress: %6.2f%% %7d/%-7d elapsed: %s remaining: %s tx/s: %6.2f", percentage, StatTrs, totalTransactions, elapsedTimeFormatted, remainingTimeFormatted, transactionsPerSecond)
 
 	return formattedString
 }
@@ -1349,16 +1336,15 @@ func helperUsage(fs *flag.FlagSet) func() {
 			fmt.Println("")
 			fmt.Println("modes:")
 
-			format := "  %-18s  %s\n"
-			fmt.Printf(format, "confirm (c)", "iterates over the output of submit/resubmit and query via fabric gateway for block number and data hash against supplied chaincode and function")
-			fmt.Printf(format, "confirmBatch (cb)", "iterates over the output of submit/resubmit and query via fabric sdk for block number and data hash against supplied chaincode and function")
-			fmt.Printf(format, "confirmRawapi (cr)", "iterates over the output of submit/resubmit and query via Rawapi for block number and data hash against supplied chaincode and function")
-			fmt.Printf(format, "combined (co)", "combination of confirmBatch and submitBatch")
-			fmt.Printf(format, "help (h)", "produces this")
-			// fmt.Printf(format, "psv2json", "convert PSV format to JSON for server-side batch processing")
-			fmt.Printf(format, "resubmit (rs)", "iterates over the output of submit and retries unsuccessful attempts")
-			fmt.Printf(format, "submit (s)", "iterates over input batch and submit line by line via direct fabric gateway link")
-			fmt.Printf(format, "submitBatch (sb)", "iterates over list of files with bundles to be processed and submit line by line via direct fabric gateway link")
+			fmt.Printf(MODE_FORMAT, MODE_COMBINED_SC, MODE_COMBINED_FULL, MODE_COMBINED_DESC)
+			fmt.Printf(MODE_FORMAT, MODE_CONFIRM_SC, MODE_CONFIRM_FULL, MODE_CONFIRM_DESC)
+			fmt.Printf(MODE_FORMAT, MODE_CONFIRMBATCH_SC, MODE_CONFIRMBATCH_FULL, MODE_CONFIRMBATCH_DESC)
+			fmt.Printf(MODE_FORMAT, MODE_CONFIRMRAWAPI_SC, MODE_CONFIRMRAWAPI_FULL, MODE_CONFIRMRAWAPI_DESC)
+			fmt.Printf(MODE_FORMAT, MODE_HELP_SC, MODE_HELP_FULL, MODE_HELP_DESC)
+			// fmt.Printf(MODE_FORMAT, "psv2json", "convert PSV format to JSON for server-side batch processing")
+			fmt.Printf(MODE_FORMAT, MODE_RESUBMIT_SC, MODE_RESUBMIT_FULL, MODE_RESUBMIT_DESC)
+			fmt.Printf(MODE_FORMAT, MODE_SUBMIT_SC, MODE_SUBMIT_FULL, MODE_SUBMIT_DESC)
+			fmt.Printf(MODE_FORMAT, MODE_SUBMITBATCH_SC, MODE_SUBMITBATCH_FULL, MODE_SUBMITBATCH_DESC)
 			fmt.Println("")
 			fmt.Println("use `" + os.Args[0] + " [mode] --help` for mode specific details")
 		} else {
