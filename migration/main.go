@@ -327,7 +327,7 @@ func main() {
 
 		modeExec = modeConfirmBatch
 	case MODE_CONFIRMRAWAPI_FULL, MODE_CONFIRMRAWAPI_SC:
-		fs.Entries["apikey"] = cfg.Entry{Desc: "api key, skip if not set, default is $TC_HTTP_API_KEY if set", Type: "string", Def: DefaultHttpApikey}
+		fs.Entries[OPT_HTTP_APIKEY] = cfg.Entry{Desc: "api key, skip if not set, default is $TC_HTTP_API_KEY if set", Type: "string", Def: DefaultHttpApikey}
 		fs.Entries[OPT_FAB_CC] = cfg.Entry{Desc: "chaincode to query", Type: "string", Def: "qscc"}
 		fs.Entries[OPT_FAB_FUNC] = cfg.Entry{Desc: "function of -" + OPT_FAB_CC, Type: "string", Def: "GetBlockByTxID"}
 		fs.Entries[OPT_HTTP_HOST] = cfg.Entry{Desc: "api host in http(s)://host:port format, default port is $TC_RAWAPI_HTTP_PORT if set", Type: "string", Def: "http://localhost:" + strconv.Itoa(DefaultHttpPort)}
@@ -655,11 +655,11 @@ func modeConfirmRawapi(config *cfg.Config) {
 	baseurl := fasthttp.AcquireURI()
 	defer fasthttp.ReleaseURI(baseurl)
 	baseurl.Parse(nil, []byte(config.Entries[OPT_HTTP_HOST].Value.(string)+config.Entries[OPT_HTTP_QUERY].Value.(string)))
-	baseurl.QueryArgs().Add("channel", config.Entries["channel"].Value.(string))
+	baseurl.QueryArgs().Add("channel", config.Entries[OPT_FAB_CHANNEL].Value.(string))
 	baseurl.QueryArgs().Add("chaincode", config.Entries[OPT_FAB_CC].Value.(string))
 	baseurl.QueryArgs().Add("function", config.Entries[OPT_FAB_FUNC].Value.(string))
 	baseurl.QueryArgs().Add("proto_decode", "common.Block")
-	baseurl.QueryArgs().Add("args", config.Entries["channel"].Value.(string))
+	baseurl.QueryArgs().Add("args", config.Entries[OPT_FAB_CHANNEL].Value.(string))
 	Lout(LOG_INFO, "base url", baseurl.String())
 
 	// endregion: base url
@@ -696,8 +696,8 @@ func modeConfirmRawapi(config *cfg.Config) {
 		defer fasthttp.ReleaseRequest(req)
 		req.Header.SetMethod("GET")
 		req.SetRequestURI(url.String())
-		if len(config.Entries["apikey"].Value.(string)) != 0 {
-			req.Header.Set(API_KEY_HEADER, config.Entries["apikey"].Value.(string))
+		if len(config.Entries[OPT_HTTP_APIKEY].Value.(string)) != 0 {
+			req.Header.Set(API_KEY_HEADER, config.Entries[OPT_HTTP_APIKEY].Value.(string))
 		}
 		Lout(LOG_DEBUG, progress, url)
 
@@ -1091,7 +1091,7 @@ func fabricConfirm(config *cfg.Config, client *fabric.Client, bundle *PSV) error
 		config.Entries[OPT_FAB_FUNC] = config.Entries[OPT_FAB_FUNC_CONFIRM]
 	}
 
-	channel := config.Entries["channel"].Value.(string)
+	channel := config.Entries[OPT_FAB_CHANNEL].Value.(string)
 	chaincode := config.Entries[OPT_FAB_CC].Value.(string)
 	function := config.Entries[OPT_FAB_FUNC].Value.(string)
 	proto := config.Entries[OPT_LATOR_PROTO].Value.(string)
@@ -1199,7 +1199,7 @@ func fabricSubmit(config *cfg.Config, client *fabric.Client, bundle *PSV) error 
 	}
 
 	chaincode := config.Entries[OPT_FAB_CC].Value.(string)
-	channel := config.Entries["channel"].Value.(string)
+	channel := config.Entries[OPT_FAB_CHANNEL].Value.(string)
 	function := config.Entries[OPT_FAB_FUNC].Value.(string)
 
 	keypos := config.Entries[OPT_PROC_KEYPOS].Value.(int)
