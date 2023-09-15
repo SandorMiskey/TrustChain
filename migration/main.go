@@ -17,6 +17,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/SandorMiskey/TEx-kit/cfg"
@@ -830,6 +831,8 @@ func modeCombined(config *cfg.Config) {
 
 	for _, file := range input {
 
+		var wg sync.WaitGroup
+
 		// region: read batch
 
 		batchPointer := ioRead(file, procParseBundles)
@@ -850,8 +853,8 @@ func modeCombined(config *cfg.Config) {
 				bufferEnd = len(batch)
 			}
 
-			// submit := batch[i:bufferEnd]
-			var confirm []PSV
+			// submited := batch[i:bufferEnd]
+			var submited []PSV
 
 			// endregion: read buffer
 			// region: submit buffer
@@ -864,42 +867,47 @@ func modeCombined(config *cfg.Config) {
 				if err != nil {
 					Lout(LOG_NOTICE, progress, err)
 				} else {
-					Lout(LOG_INFO, progress, " submited", fmt.Sprintf("%12s", bundle.Key), file, output.Name())
+					Lout(LOG_INFO, progress, " submited", fmt.Sprintf("%20s", bundle.Key), file)
 				}
-				confirm = append(confirm, bundle)
+				submited = append(submited, bundle)
 			}
 
 			// endregion: submit buffer
 			// region: confirm and write buffer
 
-			for _, bundle := range confirm {
-				StatTrs++
-				progress := helperProgress(StatTrs, count)
+			wg.Add(1)
+			go func(confirm []PSV) {
+				defer wg.Done()
+				for _, bundle := range confirm {
+					StatTrs++
+					progress := helperProgress(StatTrs, count)
 
-				if bundle.Status != STATUS_SUBMIT_OK && !strings.HasPrefix(bundle.Status, STATUS_CONFIRM_ERROR_PREFIX) {
-					Lout(LOG_INFO, progress, "bypassed status", bundle.Status)
-					ioOutputAppend(output, bundle, procCompilePSV)
-					continue
-				}
-				if !TxRegexp.MatchString(bundle.Txid) {
-					bundle.Status = STATUS_CONFIRM_ERROR_TXID
-					Lout(LOG_ERR, progress, "invalid txid", bundle.Txid)
-					ioOutputAppend(output, bundle, procCompilePSV)
-					continue
-				}
+					if bundle.Status != STATUS_SUBMIT_OK && !strings.HasPrefix(bundle.Status, STATUS_CONFIRM_ERROR_PREFIX) {
+						Lout(LOG_INFO, progress, "bypassed status", bundle.Status)
+						ioOutputAppend(output, bundle, procCompilePSV)
+						continue
+					}
+					if !TxRegexp.MatchString(bundle.Txid) {
+						bundle.Status = STATUS_CONFIRM_ERROR_TXID
+						Lout(LOG_ERR, progress, "invalid txid", bundle.Txid)
+						ioOutputAppend(output, bundle, procCompilePSV)
+						continue
+					}
 
-				err = fabricConfirm(config, client, &bundle)
-				if err != nil {
-					Lout(LOG_NOTICE, progress, err)
-				} else {
-					Lout(LOG_INFO, progress, "confirmed", fmt.Sprintf("%20s", bundle.Key), file, output.Name())
+					err = fabricConfirm(config, client, &bundle)
+					if err != nil {
+						Lout(LOG_NOTICE, progress, err)
+					} else {
+						Lout(LOG_INFO, progress, "confirmed", fmt.Sprintf("%20s", bundle.Key), file, output.Name())
+					}
+					ioOutputAppend(output, bundle, procCompilePSV)
 				}
-				ioOutputAppend(output, bundle, procCompilePSV)
-			}
+			}(submited)
 
 			// endregion: confirm and write buffer
 
 		}
+		wg.Wait()
 		if len(suffix) > 0 {
 			output.Close()
 		}
