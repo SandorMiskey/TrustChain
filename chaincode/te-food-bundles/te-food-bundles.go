@@ -425,7 +425,8 @@ func (t *Chaincode) CreateBundle(ctx contractapi.TransactionContextInterface, bu
 	bundleOut := bundleIn
 	bundleOut.DocType = "bundle"
 	bundleOut.TxID = ctx.GetStub().GetTxID()
-	bundleOut.TxTimestamp = now.Format(time.RFC3339)
+	// bundleOut.TxTimestamp = now.Format(time.RFC3339)
+	bundleOut.TxTimestamp = now.Format("2006-01-02T15:04:00Z")
 	bundleOut.UpdateTxID = nil
 	bundleOut.UpdateTimestamp = nil
 
