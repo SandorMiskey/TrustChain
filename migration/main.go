@@ -51,7 +51,7 @@ var (
 	Def_HttpPort       int    = 5088
 	Def_HttpQuery      string = "/query"
 	Def_IoBrake        string = "./BRAKE"
-	Def_IoBuffer       int    = 200
+	Def_IoBuffer       int    = 150
 	Def_IoLoglevel     int    = 7
 	Def_IoTimestamp    bool   = false
 	Def_LatorBind      string = "127.0.0.1"
@@ -112,36 +112,40 @@ const (
 	MODE_SUBMITBATCH_FULL   string = "submitBatch"
 	MODE_SUBMITBATCH_SC     string = "sb"
 
-	OPT_FAB_CERT         string = "cert"
-	OPT_FAB_CC_CONFIRM   string = "cc_confirm"
-	OPT_FAB_CC_SUBMIT    string = "cc_submit"
-	OPT_FAB_CHANNEL      string = "ch"
-	OPT_FAB_ENDPOINT     string = "endpoint"
-	OPT_FAB_FUNC_CONFIRM string = "func_confirm"
-	OPT_FAB_FUNC_SUBMIT  string = "func_submit"
-	OPT_FAB_GATEWAY      string = "gw"
-	OPT_FAB_KEYSTORE     string = "keystore"
-	OPT_FAB_MSPID        string = "mspid"
-	OPT_FAB_TLSCERT      string = "tlscert"
-	OPT_IO_BATCH         string = "batch"
-	OPT_IO_BRAKE         string = "brake"
-	OPT_IO_BUFFER        string = "buffer"
-	OPT_IO_LOGLEVEL      string = "loglevel"
-	OPT_IO_INPUT         string = "in"
-	OPT_IO_OUTPUT        string = "out"
-	OPT_IO_SUFFIX        string = "suffix"
-	OPT_IO_TIMESTAMP     string = "ts"
-	OPT_LATOR_BIND       string = "lator_bind"
-	OPT_LATOR_EXE        string = "lator_exe"
-	OPT_LATOR_PORT       string = "lator_port"
-	OPT_LATOR_PROTO      string = "lator_proto"
-	OPT_HTTP_APIKEY      string = "apikey"
-	OPT_HTTP_HOST        string = "host"
-	OPT_HTTP_QUERY       string = "query"
-	OPT_PROC_KEYNAME     string = "keyname"
-	OPT_PROC_KEYPOS      string = "keypos"
-	OPT_PROC_KEYTYPE     string = "keytype"
-	OPT_PROC_TRY         string = "try"
+	OPT_FAB_CERT             string = "cert"
+	OPT_FAB_CC_CONFIRM       string = "cc_confirm"
+	OPT_FAB_CC_SUBMIT        string = "cc_submit"
+	OPT_FAB_CHANNEL          string = "ch"
+	OPT_FAB_ENDPOINT         string = "endpoint"
+	OPT_FAB_ENDPOINT_CONFIRM string = "endpoint_confirm"
+	OPT_FAB_ENDPOINT_SUBMIT  string = "endpoint_submit"
+	OPT_FAB_FUNC_CONFIRM     string = "func_confirm"
+	OPT_FAB_FUNC_SUBMIT      string = "func_submit"
+	OPT_FAB_GATEWAY          string = "gw"
+	OPT_FAB_GATEWAY_CONFIRM  string = "gw_confirm"
+	OPT_FAB_GATEWAY_SUBMIT   string = "gw_submit"
+	OPT_FAB_KEYSTORE         string = "keystore"
+	OPT_FAB_MSPID            string = "mspid"
+	OPT_FAB_TLSCERT          string = "tlscert"
+	OPT_IO_BATCH             string = "batch"
+	OPT_IO_BRAKE             string = "brake"
+	OPT_IO_BUFFER            string = "buffer"
+	OPT_IO_LOGLEVEL          string = "loglevel"
+	OPT_IO_INPUT             string = "in"
+	OPT_IO_OUTPUT            string = "out"
+	OPT_IO_SUFFIX            string = "suffix"
+	OPT_IO_TIMESTAMP         string = "ts"
+	OPT_LATOR_BIND           string = "lator_bind"
+	OPT_LATOR_EXE            string = "lator_exe"
+	OPT_LATOR_PORT           string = "lator_port"
+	OPT_LATOR_PROTO          string = "lator_proto"
+	OPT_HTTP_APIKEY          string = "apikey"
+	OPT_HTTP_HOST            string = "host"
+	OPT_HTTP_QUERY           string = "query"
+	OPT_PROC_KEYNAME         string = "keyname"
+	OPT_PROC_KEYPOS          string = "keypos"
+	OPT_PROC_KEYTYPE         string = "keytype"
+	OPT_PROC_TRY             string = "try"
 
 	SCANNER_MAXTOKENSIZE int = 1024 * 1024 // 1MB
 
@@ -310,10 +314,12 @@ func main() {
 		fs.Entries[OPT_FAB_CERT] = cfg.Entry{Desc: "path to client pem certificate to populate the wallet with, default is $TC_RAWAPI_CERTPATH if set", Type: "string", Def: Def_FabCert}
 		fs.Entries[OPT_FAB_CC_CONFIRM] = cfg.Entry{Desc: "chaincode to invoke", Type: "string", Def: Def_FabCcConfirm}
 		fs.Entries[OPT_FAB_CC_SUBMIT] = cfg.Entry{Desc: "chaincode to invoke", Type: "string", Def: Def_FabCcSubmit}
-		fs.Entries[OPT_FAB_ENDPOINT] = cfg.Entry{Desc: "fabric endpoint, default is $TC_RAWAPI_PEERENDPOINT if set", Type: "string", Def: Def_FabEndpoint}
+		fs.Entries[OPT_FAB_ENDPOINT_CONFIRM] = cfg.Entry{Desc: "fabric confirm endpoint, default is $TC_RAWAPI_PEERENDPOINT if set", Type: "string", Def: Def_FabEndpoint}
+		fs.Entries[OPT_FAB_ENDPOINT_SUBMIT] = cfg.Entry{Desc: "fabric invoke endpoint, default is $TC_RAWAPI_PEERENDPOINT if set", Type: "string", Def: Def_FabEndpoint}
 		fs.Entries[OPT_FAB_FUNC_CONFIRM] = cfg.Entry{Desc: "function of -" + OPT_FAB_CC_CONFIRM, Type: "string", Def: Def_FabFuncConfirm}
 		fs.Entries[OPT_FAB_FUNC_SUBMIT] = cfg.Entry{Desc: "function of -" + OPT_FAB_CC_SUBMIT, Type: "string", Def: Def_FabFuncSubmit}
-		fs.Entries[OPT_FAB_GATEWAY] = cfg.Entry{Desc: "default gateway, default is $TC_RAWAPI_GATEWAYPEER if set", Type: "string", Def: Def_FabGateway}
+		fs.Entries[OPT_FAB_GATEWAY_CONFIRM] = cfg.Entry{Desc: "default gateway, default is $TC_RAWAPI_GATEWAYPEER if set", Type: "string", Def: Def_FabGateway}
+		fs.Entries[OPT_FAB_GATEWAY_SUBMIT] = cfg.Entry{Desc: "default gateway, default is $TC_RAWAPI_GATEWAYPEER if set", Type: "string", Def: Def_FabGateway}
 		fs.Entries[OPT_FAB_KEYSTORE] = cfg.Entry{Desc: "path to client keystore, default is $TC_RAWAPI_KEYPATH if set", Type: "string", Def: Def_FabKeystore}
 		fs.Entries[OPT_FAB_MSPID] = cfg.Entry{Desc: "fabric MSPID, default is $TC_RAWAPI_MSPID if set", Type: "string", Def: Def_FabMspId}
 		fs.Entries[OPT_FAB_TLSCERT] = cfg.Entry{Desc: "path to TLS cert, default is $TC_RAWAPI_TLSCERTPATH if set", Type: "string", Def: Def_FabTlscert}
@@ -529,21 +535,31 @@ func modeCombined(config *cfg.Config) {
 	// endregion: output
 	// region: client
 
-	client, err := fabricClient(config)
+	config.Entries[OPT_FAB_ENDPOINT] = config.Entries[OPT_FAB_ENDPOINT_SUBMIT]
+	config.Entries[OPT_FAB_GATEWAY] = config.Entries[OPT_FAB_GATEWAY_SUBMIT]
+	clientSubmit, err := fabricClient(config)
 	if err != nil {
 		helperPanic("cannot init fabric gw", err.Error())
 	}
-	Lout(LOG_DEBUG, "fabric client", client)
+	Lout(LOG_DEBUG, "fabric submit client", clientSubmit)
+
+	config.Entries[OPT_FAB_ENDPOINT] = config.Entries[OPT_FAB_ENDPOINT_CONFIRM]
+	config.Entries[OPT_FAB_GATEWAY] = config.Entries[OPT_FAB_GATEWAY_CONFIRM]
+	clientConfirm, err := fabricClient(config)
+	if err != nil {
+		helperPanic("cannot init fabric gw", err.Error())
+	}
+	Lout(LOG_DEBUG, "fabric confirm client", clientConfirm)
 
 	// endregion: client
 	// region: configtxlator
 
-	err = fabricLator(config, client)
-	defer client.Lator.Close()
+	err = fabricLator(config, clientConfirm)
+	defer clientConfirm.Lator.Close()
 	if err != nil {
 		helperPanic("error while initializing configtxlator")
 	}
-	Lout(LOG_INFO, "protobuf decode", client.Lator.Which, fmt.Sprintf("%s:%d", client.Lator.Bind, client.Lator.Port))
+	Lout(LOG_INFO, "protobuf decode", clientConfirm.Lator.Which, fmt.Sprintf("%s:%d", clientConfirm.Lator.Bind, clientConfirm.Lator.Port))
 
 	// endregion: configtxlator
 	// region: process batch
@@ -598,7 +614,7 @@ func modeCombined(config *cfg.Config) {
 			// region: submit buffer
 
 			for _, bundle := range batch[i:bufferEnd] {
-				err := fabricSubmit(config, client, &bundle)
+				err := fabricSubmit(config, clientSubmit, &bundle)
 				if err != nil {
 					Lout(LOG_NOTICE, helperProgress(count), err)
 				} else {
@@ -626,7 +642,7 @@ func modeCombined(config *cfg.Config) {
 						continue
 					}
 
-					err = fabricConfirm(config, client, &bundle)
+					err = fabricConfirm(config, clientConfirm, &bundle)
 					if err != nil {
 						Lout(LOG_NOTICE, helperProgress(count), err)
 					} else {
@@ -1210,9 +1226,9 @@ func fabricSubmit(config *cfg.Config, client *fabric.Client, bundle *PSV) error 
 	channel := config.Entries[OPT_FAB_CHANNEL].Value.(string)
 	function := config.Entries[OPT_FAB_FUNC_SUBMIT].Value.(string)
 
-	if config.Entries[OPT_FAB_FUNC_SUBMIT].Value != nil {
-		function = config.Entries[OPT_FAB_FUNC_SUBMIT].Value.(string)
-	}
+	// if config.Entries[OPT_FAB_FUNC_SUBMIT].Value != nil {
+	// 	function = config.Entries[OPT_FAB_FUNC_SUBMIT].Value.(string)
+	// }
 
 	keypos := config.Entries[OPT_PROC_KEYPOS].Value.(int)
 	keyname := config.Entries[OPT_PROC_KEYNAME].Value.(string)

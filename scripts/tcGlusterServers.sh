@@ -259,7 +259,7 @@ function _glusterLay() {
 	servers="${servers%|})"
 
 	servers+=",/${TC_ORG1_STACK}(${TC_SWARM_WORKER2[ip]}|${TC_SWARM_WORKER3[ip]}),/${TC_ORG2_STACK}(${TC_SWARM_WORKER1[ip]}|${TC_SWARM_WORKER3[ip]}),/${TC_ORG3_STACK}(${TC_SWARM_WORKER1[ip]}|${TC_SWARM_WORKER2[ip]})"
-	# servers+=",/peerOrganizations/endorsers(${TC_SWARM_WORKER1[ip]}|${TC_SWARM_WORKER2[ip]}),/peerOrganizations/supernodes(${TC_SWARM_WORKER1[ip]}|${TC_SWARM_WORKER2[ip]}),/peerOrganizations/masternodes(${TC_SWARM_WORKER1[ip]}|${TC_SWARM_WORKER2[ip]})"
+	# servers+=",/${TC_ORG1_STACK}(${TC_SWARM_WORKER1[ip]}),/${TC_ORG2_STACK}(${TC_SWARM_WORKER1[ip]}),/${TC_ORG3_STACK}(${TC_SWARM_WORKER1[ip]})"
 	# _inner() {
 	# 	local -n peer=$1
 	# 	local mnt=$( echo ${peer[mnt]} | sed s+$TC_PATH_WORKBENCH++ )
