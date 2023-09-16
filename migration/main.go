@@ -9,6 +9,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io/fs"
 	"log/syslog"
 	"os"
 	"os/exec"
@@ -35,31 +36,32 @@ import (
 var (
 	BlockCache = make(map[string]Header)
 
-	DefaultBundleBuffered int    = 200
-	DefaultBundleKeyName  string = "bundle_id"
-	DefaultBundleKeyPos   int    = 0
-	DefaultBundleKeyType  string = "string"
-	DefaultFabConfirmCc   string = "qscc"
-	DefaultFabConfirmFunc string = "GetBlockByTxID"
-	DefaultFabChannel     string = "trustchain-test"
-	// DefaultFabClient     string = "org1-client"
-	DefaultFabEndpoint   string = "localhost:7051"
-	DefaultFabGw         string = "localhost"
-	DefaultFabTry        int    = 25
-	DefaultFabMspId      string = "Org1MSP"
-	DefaultFabSubmitCc   string = "te-food-bundles"
-	DefaultFabSubmitFunc string = "CreateBundle"
-	DefaultHttpApikey    string = ""
-	DefaultHttpPort      int    = 5088
-	DefaultLatorBind     string = "127.0.0.1"
-	DefaultLatorExe      string = "/usr/local/bin/configtxlator"
-	DefaultLatorPort     int    = 0
-	DefaultLatorProto    string = "common.Block"
-	DefaultLatorSleep    int    = 1
-	DefaultLoglevel      int    = 7
-	DefaultPathCert      string = "./cert.pem"
-	DefaultPathKeystore  string = "./keystore"
-	DefaultPathTlsCert   string = "./tlscert.pem"
+	Def_FabCert        string = "./cert.pem"
+	Def_FabCcConfirm   string = "qscc"
+	Def_FabCcSubmit    string = "te-food-bundles"
+	Def_FabChannel     string = "trustchain-test"
+	Def_FabEndpoint    string = "localhost:7051"
+	Def_FabFuncConfirm string = "GetBlockByTxID"
+	Def_FabFuncSubmit  string = "CreateBundle"
+	Def_FabGateway     string = "localhost"
+	Def_FabKeystore    string = "./keystore"
+	Def_FabMspId       string = "Org1MSP"
+	Def_FabTlscert     string = "./tlscert.pem"
+	Def_HttpApikey     string = ""
+	Def_HttpPort       int    = 5088
+	Def_HttpQuery      string = "/query"
+	Def_IoBrake        string = "./BRAKE"
+	Def_IoBuffer       int    = 200
+	Def_IoLoglevel     int    = 7
+	Def_IoTimestamp    bool   = false
+	Def_LatorBind      string = "127.0.0.1"
+	Def_LatorExe       string = "/usr/local/bin/configtxlator"
+	Def_LatorPort      int    = 0
+	Def_LatorProto     string = "common.Block"
+	Def_ProcKeyname    string = "bundle_id"
+	Def_ProcKeypos     int    = 0
+	Def_ProcKeytype    string = "string"
+	Def_ProcTry        int    = 25
 
 	Logger *log.Logger
 	Lout   func(s ...interface{}) *[]error
@@ -76,47 +78,45 @@ var (
 const (
 	API_KEY_HEADER string = "X-API-Key"
 
+	LATOR_LATENCY int = 1
+
 	LOG_ERR    syslog.Priority = log.LOG_ERR
 	LOG_NOTICE syslog.Priority = log.LOG_NOTICE
 	LOG_INFO   syslog.Priority = log.LOG_INFO
 	LOG_DEBUG  syslog.Priority = log.LOG_DEBUG
 	LOG_EMERG  syslog.Priority = log.LOG_EMERG
 
-	SCANNER_MAXTOKENSIZE int = 1024 * 1024 // 1MB
-
-	MODE_FORMAT             string = "  %-2s || %-13s    %s\n"
+	MODE_FORMAT             string = "  %-3s || %-13s    %s\n"
 	MODE_COMBINED_DESC      string = "combination of confirmBatch and submitBatch"
 	MODE_COMBINED_FULL      string = "combined"
-	MODE_COMBINED_SC        string = "c"
+	MODE_COMBINED_SC        string = "-c"
 	MODE_CONFIRM_DESC       string = "iterates over the output of submit/resubmit and query for block number and data hash via fabric gateway against supplied chaincode and function"
 	MODE_CONFIRM_FULL       string = "confirm"
-	MODE_CONFIRM_SC         string = "co"
+	MODE_CONFIRM_SC         string = "-co"
 	MODE_CONFIRMBATCH_DESC  string = "iterates over the output of submit/resubmit and query for block number and data hash via fabric gateway against supplied chaincode and function"
 	MODE_CONFIRMBATCH_FULL  string = "confirmBatch"
-	MODE_CONFIRMBATCH_SC    string = "cb"
+	MODE_CONFIRMBATCH_SC    string = "-cb"
 	MODE_CONFIRMRAWAPI_DESC string = "iterates over the output of submit/resubmit and query for block number and data hash via rawapi/http against supplied chaincode and function"
 	MODE_CONFIRMRAWAPI_FULL string = "confirmRawapi"
-	MODE_CONFIRMRAWAPI_SC   string = "cr"
-	MODE_HELP_DESC          string = "or, for that matter, anything not in this list produces this output"
+	MODE_CONFIRMRAWAPI_SC   string = "-cr"
+	MODE_HELP_DESC          string = "or, for that matter, anything not in the list produces this output"
 	MODE_HELP_FULL          string = "help"
-	MODE_HELP_SC            string = "h"
+	MODE_HELP_SC            string = "-h"
 	MODE_RESUBMIT_DESC      string = "iterates over the output of submit and retries unsuccessful attempts"
 	MODE_RESUBMIT_FULL      string = "resubmit"
-	MODE_RESUBMIT_SC        string = "r"
+	MODE_RESUBMIT_SC        string = "-r"
 	MODE_SUBMIT_DESC        string = "iterates over input batch and submit line by line via direct fabric gateway link"
 	MODE_SUBMIT_FULL        string = "submit"
-	MODE_SUBMIT_SC          string = "s"
+	MODE_SUBMIT_SC          string = "-s"
 	MODE_SUBMITBATCH_DESC   string = "iterates over list of files with bundles to be processed and submit line by line via direct fabric gateway link"
 	MODE_SUBMITBATCH_FULL   string = "submitBatch"
-	MODE_SUBMITBATCH_SC     string = "sb"
+	MODE_SUBMITBATCH_SC     string = "-sb"
 
 	OPT_FAB_CERT         string = "cert"
-	OPT_FAB_CC           string = "cc"
 	OPT_FAB_CC_CONFIRM   string = "cc_confirm"
 	OPT_FAB_CC_SUBMIT    string = "cc_submit"
 	OPT_FAB_CHANNEL      string = "ch"
 	OPT_FAB_ENDPOINT     string = "endpoint"
-	OPT_FAB_FUNC         string = "func"
 	OPT_FAB_FUNC_CONFIRM string = "func_confirm"
 	OPT_FAB_FUNC_SUBMIT  string = "func_submit"
 	OPT_FAB_GATEWAY      string = "gw"
@@ -124,11 +124,13 @@ const (
 	OPT_FAB_MSPID        string = "mspid"
 	OPT_FAB_TLSCERT      string = "tlscert"
 	OPT_IO_BATCH         string = "batch"
+	OPT_IO_BRAKE         string = "brake"
 	OPT_IO_BUFFER        string = "buffer"
 	OPT_IO_LOGLEVEL      string = "loglevel"
 	OPT_IO_INPUT         string = "in"
 	OPT_IO_OUTPUT        string = "out"
 	OPT_IO_SUFFIX        string = "suffix"
+	OPT_IO_TIMESTAMP     string = "ts"
 	OPT_LATOR_BIND       string = "lator_bind"
 	OPT_LATOR_EXE        string = "lator_exe"
 	OPT_LATOR_PORT       string = "lator_port"
@@ -140,6 +142,8 @@ const (
 	OPT_PROC_KEYPOS      string = "keypos"
 	OPT_PROC_KEYTYPE     string = "keytype"
 	OPT_PROC_TRY         string = "try"
+
+	SCANNER_MAXTOKENSIZE int = 1024 * 1024 // 1MB
 
 	STATUS_CONFIRM_ERROR_PREFIX string = "CONFIRM_ERROR_"
 	STATUS_CONFIRM_ERROR_QUERY  string = STATUS_CONFIRM_ERROR_PREFIX + "QUERY"
@@ -235,42 +239,42 @@ func main() {
 					}
 					switch kv[0] {
 					case TC_FAB_CHANNEL:
-						DefaultFabChannel = kv[1]
+						Def_FabChannel = kv[1]
 					// case TC_FAB_CLIENT:
 					// 	DefaultFabClient = kv[1]
 					case TC_FAB_GW:
-						DefaultFabGw = kv[1]
+						Def_FabGateway = kv[1]
 					case TC_FAB_ENDPOINT:
-						DefaultFabEndpoint = kv[1]
+						Def_FabEndpoint = kv[1]
 					case TC_FAB_MSPID:
-						DefaultFabMspId = kv[1]
+						Def_FabMspId = kv[1]
 					case TC_HTTP_APIKEY:
-						DefaultHttpApikey = kv[1]
+						Def_HttpApikey = kv[1]
 					case TC_HTTP_PORT:
 						_, err = strconv.Atoi(kv[1])
 						if err == nil {
-							DefaultHttpPort, _ = strconv.Atoi(kv[1])
+							Def_HttpPort, _ = strconv.Atoi(kv[1])
 						}
 					case TC_LATOR_BIND:
-						DefaultLatorBind = kv[1]
+						Def_LatorBind = kv[1]
 					case TC_LATOR_PORT:
 						_, err := strconv.Atoi(kv[1])
 						if err == nil {
-							DefaultLatorPort, _ = strconv.Atoi(kv[1])
+							Def_LatorPort, _ = strconv.Atoi(kv[1])
 						}
 					case TC_LATOR_EXE:
-						DefaultLatorExe = kv[1] + "/configtxlator"
+						Def_LatorExe = kv[1] + "/configtxlator"
 					case TC_LOGLEVEL:
 						_, err = strconv.Atoi(kv[1])
 						if err == nil {
-							DefaultLoglevel, _ = strconv.Atoi(kv[1])
+							Def_IoLoglevel, _ = strconv.Atoi(kv[1])
 						}
 					case TC_PATH_CERT:
-						DefaultPathCert = kv[1]
+						Def_FabCert = kv[1]
 					case TC_PATH_KEYSTORE:
-						DefaultPathKeystore = kv[1]
+						Def_FabKeystore = kv[1]
 					case TC_PATH_TLSCERT:
-						DefaultPathTlsCert = kv[1]
+						Def_FabTlscert = kv[1]
 					}
 				}
 			}
@@ -285,8 +289,8 @@ func main() {
 	cfg.FlagSetUsage = helperUsage
 	fs := config.NewFlagSet(os.Args[0] + " " + os.Args[1])
 	fs.Entries = map[string]cfg.Entry{
-		OPT_FAB_CHANNEL: {Desc: "[string] as channel id, default is $TC_CHANNEL1_NAME if set", Type: "string", Def: DefaultFabChannel},
-		OPT_IO_LOGLEVEL: {Desc: "loglevel as syslog.Priority, default is $TC_RAWAPI_LOGLEVEL if set", Type: "int", Def: DefaultLoglevel},
+		OPT_FAB_CHANNEL: {Desc: "[string] as channel id, default is $TC_CHANNEL1_NAME if set", Type: "string", Def: Def_FabChannel},
+		OPT_IO_LOGLEVEL: {Desc: "loglevel as syslog.Priority, default is $TC_RAWAPI_LOGLEVEL if set", Type: "int", Def: Def_IoLoglevel},
 		OPT_IO_OUTPUT:   {Desc: "path for output, empty means stdout", Type: "string", Def: ""},
 	}
 
@@ -302,133 +306,135 @@ func main() {
 	}
 
 	switch strings.ToLower(os.Args[1]) {
+	case MODE_COMBINED_FULL, MODE_COMBINED_SC:
+		fs.Entries[OPT_FAB_CERT] = cfg.Entry{Desc: "path to client pem certificate to populate the wallet with, default is $TC_RAWAPI_CERTPATH if set", Type: "string", Def: Def_FabCert}
+		fs.Entries[OPT_FAB_CC_CONFIRM] = cfg.Entry{Desc: "chaincode to invoke", Type: "string", Def: Def_FabCcConfirm}
+		fs.Entries[OPT_FAB_CC_SUBMIT] = cfg.Entry{Desc: "chaincode to invoke", Type: "string", Def: Def_FabCcSubmit}
+		fs.Entries[OPT_FAB_ENDPOINT] = cfg.Entry{Desc: "fabric endpoint, default is $TC_RAWAPI_PEERENDPOINT if set", Type: "string", Def: Def_FabEndpoint}
+		fs.Entries[OPT_FAB_FUNC_CONFIRM] = cfg.Entry{Desc: "function of -" + OPT_FAB_CC_CONFIRM, Type: "string", Def: Def_FabFuncConfirm}
+		fs.Entries[OPT_FAB_FUNC_SUBMIT] = cfg.Entry{Desc: "function of -" + OPT_FAB_CC_SUBMIT, Type: "string", Def: Def_FabFuncSubmit}
+		fs.Entries[OPT_FAB_GATEWAY] = cfg.Entry{Desc: "default gateway, default is $TC_RAWAPI_GATEWAYPEER if set", Type: "string", Def: Def_FabGateway}
+		fs.Entries[OPT_FAB_KEYSTORE] = cfg.Entry{Desc: "path to client keystore, default is $TC_RAWAPI_KEYPATH if set", Type: "string", Def: Def_FabKeystore}
+		fs.Entries[OPT_FAB_MSPID] = cfg.Entry{Desc: "fabric MSPID, default is $TC_RAWAPI_MSPID if set", Type: "string", Def: Def_FabMspId}
+		fs.Entries[OPT_FAB_TLSCERT] = cfg.Entry{Desc: "path to TLS cert, default is $TC_RAWAPI_TLSCERTPATH if set", Type: "string", Def: Def_FabTlscert}
+
+		fs.Entries[OPT_IO_BATCH] = cfg.Entry{Desc: "list of files to process, one file path per line, -" + OPT_IO_INPUT + " ignored if specified", Type: "string", Def: ""}
+		fs.Entries[OPT_IO_BRAKE] = cfg.Entry{Desc: "file path, which if appears, processing stops before opening the next file", Type: "string", Def: Def_IoBrake}
+		fs.Entries[OPT_IO_BUFFER] = cfg.Entry{Desc: "fills up the temporary buffer with this many transactions, which first get submitted, then confirmed, should be large enough for the submited transactions to be finalized by the time of confirmation begins", Type: "int", Def: Def_IoBuffer}
+		fs.Entries[OPT_IO_INPUT] = cfg.Entry{Desc: ", separated list of files, which contain the output of previous submit attempts, empty causes panic", Type: "string", Def: ""}
+		fs.Entries[OPT_IO_SUFFIX] = cfg.Entry{Desc: "suffix with which the name of the processed file is appended as output (-" + OPT_IO_OUTPUT + " is ignored if supplied)", Type: "string", Def: ""}
+		fs.Entries[OPT_IO_TIMESTAMP] = cfg.Entry{Desc: "prefixes the file with a timestamp (YYMMDD_HHMM_) if true, only valid if the -" + OPT_IO_SUFFIX + "suffix is also set", Type: "bool", Def: Def_IoTimestamp}
+
+		fs.Entries[OPT_LATOR_BIND] = cfg.Entry{Desc: "address to bind configtxlator's rest api to, default is TC_RAWAPI_LATOR_BIND if set", Type: "string", Def: Def_LatorBind}
+		fs.Entries[OPT_LATOR_EXE] = cfg.Entry{Desc: "path to configtxlator (if empty, will dump protobuf as base64 encoded string), default is $TC_PATH_BIN/configtxlator if set", Type: "string", Def: Def_LatorExe}
+		fs.Entries[OPT_LATOR_PORT] = cfg.Entry{Desc: "port where configtxlator will listen, default is $TC_RAWAPI_LATOR_PORT if set, 0 means random", Type: "int", Def: Def_LatorPort}
+		fs.Entries[OPT_LATOR_PROTO] = cfg.Entry{Desc: "protobuf format, configtxlator will be used if set", Type: "string", Def: Def_LatorProto}
+
+		fs.Entries[OPT_PROC_KEYNAME] = cfg.Entry{Desc: "the name of the field containing the unique identifier", Type: "string", Def: Def_ProcKeyname}
+		fs.Entries[OPT_PROC_KEYPOS] = cfg.Entry{Desc: "Nth field in -in that contains the unique identifier identified by -" + OPT_PROC_KEYNAME, Type: "int", Def: Def_ProcKeypos}
+		fs.Entries[OPT_PROC_KEYTYPE] = cfg.Entry{Desc: "type of -" + OPT_PROC_KEYNAME + ", either 'string' or 'int'", Type: "string", Def: Def_ProcKeytype}
+		fs.Entries[OPT_PROC_TRY] = cfg.Entry{Desc: "number of invoke tries", Type: "int", Def: Def_ProcTry}
+
+		modeExec = modeCombined
 	case MODE_CONFIRM_FULL, MODE_CONFIRM_SC:
-		fs.Entries[OPT_FAB_CERT] = cfg.Entry{Desc: "path to client pem certificate to populate the wallet with, default is $TC_RAWAPI_CERTPATH if set", Type: "string", Def: DefaultPathCert}
-		fs.Entries[OPT_FAB_CC] = cfg.Entry{Desc: "chaincode to query", Type: "string", Def: DefaultFabConfirmCc}
-		fs.Entries[OPT_FAB_ENDPOINT] = cfg.Entry{Desc: "fabric endpoint, default is $TC_RAWAPI_PEERENDPOINT if set", Type: "string", Def: DefaultFabEndpoint}
-		fs.Entries[OPT_FAB_FUNC] = cfg.Entry{Desc: "function of -" + OPT_FAB_CC, Type: "string", Def: DefaultFabConfirmFunc}
-		fs.Entries[OPT_FAB_GATEWAY] = cfg.Entry{Desc: "default gateway, default is $TC_RAWAPI_GATEWAYPEER if set", Type: "string", Def: DefaultFabGw}
+		fs.Entries[OPT_FAB_CERT] = cfg.Entry{Desc: "path to client pem certificate to populate the wallet with, default is $TC_RAWAPI_CERTPATH if set", Type: "string", Def: Def_FabCert}
+		fs.Entries[OPT_FAB_CC_CONFIRM] = cfg.Entry{Desc: "chaincode to query", Type: "string", Def: Def_FabCcConfirm}
+		fs.Entries[OPT_FAB_ENDPOINT] = cfg.Entry{Desc: "fabric endpoint, default is $TC_RAWAPI_PEERENDPOINT if set", Type: "string", Def: Def_FabEndpoint}
+		fs.Entries[OPT_FAB_FUNC_CONFIRM] = cfg.Entry{Desc: "function of -" + OPT_FAB_CC_CONFIRM, Type: "string", Def: Def_FabFuncConfirm}
+		fs.Entries[OPT_FAB_GATEWAY] = cfg.Entry{Desc: "default gateway, default is $TC_RAWAPI_GATEWAYPEER if set", Type: "string", Def: Def_FabGateway}
 		fs.Entries[OPT_IO_INPUT] = cfg.Entry{Desc: "file, which contains the output of previous submit attempt, empty means stdin", Type: "string", Def: ""}
-		fs.Entries[OPT_FAB_KEYSTORE] = cfg.Entry{Desc: "path to client keystore, default is $TC_RAWAPI_KEYPATH if set", Type: "string", Def: DefaultPathKeystore}
-		fs.Entries[OPT_LATOR_BIND] = cfg.Entry{Desc: "address to bind configtxlator's rest api to, default is TC_RAWAPI_LATOR_BIND if set", Type: "string", Def: DefaultLatorBind}
-		fs.Entries[OPT_LATOR_EXE] = cfg.Entry{Desc: "path to configtxlator (if empty, will dump protobuf as base64 encoded string), default is $TC_PATH_BIN/configtxlator if set", Type: "string", Def: DefaultLatorExe}
-		fs.Entries[OPT_LATOR_PORT] = cfg.Entry{Desc: "port where configtxlator will listen, default is $TC_RAWAPI_LATOR_PORT if set, 0 means random", Type: "int", Def: DefaultLatorPort}
-		fs.Entries[OPT_LATOR_PROTO] = cfg.Entry{Desc: "protobuf format, configtxlator will be used if set", Type: "string", Def: DefaultLatorProto}
-		fs.Entries[OPT_FAB_MSPID] = cfg.Entry{Desc: "fabric MSPID, default is $TC_RAWAPI_MSPID if set", Type: "string", Def: DefaultFabMspId}
-		fs.Entries[OPT_PROC_TRY] = cfg.Entry{Desc: "number of invoke tries", Type: "int", Def: DefaultFabTry}
-		fs.Entries[OPT_FAB_TLSCERT] = cfg.Entry{Desc: "path to TLS cert, default is $TC_RAWAPI_TLSCERTPATH if set", Type: "string", Def: DefaultPathTlsCert}
+		fs.Entries[OPT_FAB_KEYSTORE] = cfg.Entry{Desc: "path to client keystore, default is $TC_RAWAPI_KEYPATH if set", Type: "string", Def: Def_FabKeystore}
+		fs.Entries[OPT_LATOR_BIND] = cfg.Entry{Desc: "address to bind configtxlator's rest api to, default is TC_RAWAPI_LATOR_BIND if set", Type: "string", Def: Def_LatorBind}
+		fs.Entries[OPT_LATOR_EXE] = cfg.Entry{Desc: "path to configtxlator (if empty, will dump protobuf as base64 encoded string), default is $TC_PATH_BIN/configtxlator if set", Type: "string", Def: Def_LatorExe}
+		fs.Entries[OPT_LATOR_PORT] = cfg.Entry{Desc: "port where configtxlator will listen, default is $TC_RAWAPI_LATOR_PORT if set, 0 means random", Type: "int", Def: Def_LatorPort}
+		fs.Entries[OPT_LATOR_PROTO] = cfg.Entry{Desc: "protobuf format, configtxlator will be used if set", Type: "string", Def: Def_LatorProto}
+		fs.Entries[OPT_FAB_MSPID] = cfg.Entry{Desc: "fabric MSPID, default is $TC_RAWAPI_MSPID if set", Type: "string", Def: Def_FabMspId}
+		fs.Entries[OPT_PROC_TRY] = cfg.Entry{Desc: "number of invoke tries", Type: "int", Def: Def_ProcTry}
+		fs.Entries[OPT_FAB_TLSCERT] = cfg.Entry{Desc: "path to TLS cert, default is $TC_RAWAPI_TLSCERTPATH if set", Type: "string", Def: Def_FabTlscert}
 
 		modeExec = modeConfirm
 	case MODE_CONFIRMBATCH_FULL, MODE_CONFIRMBATCH_SC:
 		fs.Entries[OPT_IO_BATCH] = cfg.Entry{Desc: "list of files to process, one file path per line, -" + OPT_IO_INPUT + " ignored if specified", Type: "string", Def: ""}
-		fs.Entries[OPT_FAB_CERT] = cfg.Entry{Desc: "path to client pem certificate to populate the wallet with, default is $TC_RAWAPI_CERTPATH if set", Type: "string", Def: DefaultPathCert}
-		fs.Entries[OPT_FAB_CC] = cfg.Entry{Desc: "chaincode to query", Type: "string", Def: DefaultFabConfirmCc}
-		fs.Entries[OPT_FAB_ENDPOINT] = cfg.Entry{Desc: "fabric endpoint, default is $TC_RAWAPI_PEERENDPOINT if set", Type: "string", Def: DefaultFabEndpoint}
-		fs.Entries[OPT_FAB_FUNC] = cfg.Entry{Desc: "function of -" + OPT_FAB_CC, Type: "string", Def: DefaultFabConfirmFunc}
-		fs.Entries[OPT_FAB_GATEWAY] = cfg.Entry{Desc: "default gateway, default is $TC_RAWAPI_GATEWAYPEER if set", Type: "string", Def: DefaultFabGw}
+		fs.Entries[OPT_FAB_CERT] = cfg.Entry{Desc: "path to client pem certificate to populate the wallet with, default is $TC_RAWAPI_CERTPATH if set", Type: "string", Def: Def_FabCert}
+		fs.Entries[OPT_FAB_CC_CONFIRM] = cfg.Entry{Desc: "chaincode to query", Type: "string", Def: Def_FabCcConfirm}
+		fs.Entries[OPT_FAB_ENDPOINT] = cfg.Entry{Desc: "fabric endpoint, default is $TC_RAWAPI_PEERENDPOINT if set", Type: "string", Def: Def_FabEndpoint}
+		fs.Entries[OPT_FAB_FUNC_CONFIRM] = cfg.Entry{Desc: "function of -" + OPT_FAB_CC_CONFIRM, Type: "string", Def: Def_FabFuncConfirm}
+		fs.Entries[OPT_FAB_GATEWAY] = cfg.Entry{Desc: "default gateway, default is $TC_RAWAPI_GATEWAYPEER if set", Type: "string", Def: Def_FabGateway}
 		fs.Entries[OPT_IO_INPUT] = cfg.Entry{Desc: ", separated list of files, which contain the output of previous submit attempts, empty causes panic", Type: "string", Def: ""}
-		fs.Entries[OPT_FAB_KEYSTORE] = cfg.Entry{Desc: "path to client keystore, default is $TC_RAWAPI_KEYPATH if set", Type: "string", Def: DefaultPathKeystore}
-		fs.Entries[OPT_LATOR_BIND] = cfg.Entry{Desc: "address to bind configtxlator's rest api to, default is TC_RAWAPI_LATOR_BIND if set", Type: "string", Def: DefaultLatorBind}
-		fs.Entries[OPT_LATOR_EXE] = cfg.Entry{Desc: "path to configtxlator (if empty, will dump protobuf as base64 encoded string), default is $TC_PATH_BIN/configtxlator if set", Type: "string", Def: DefaultLatorExe}
-		fs.Entries[OPT_LATOR_PORT] = cfg.Entry{Desc: "port where configtxlator will listen, default is $TC_RAWAPI_LATOR_PORT if set, 0 means random", Type: "int", Def: DefaultLatorPort}
-		fs.Entries[OPT_LATOR_PROTO] = cfg.Entry{Desc: "protobuf format, configtxlator will be used if set", Type: "string", Def: DefaultLatorProto}
-		fs.Entries[OPT_FAB_MSPID] = cfg.Entry{Desc: "fabric MSPID, default is $TC_RAWAPI_MSPID if set", Type: "string", Def: DefaultFabMspId}
+		fs.Entries[OPT_FAB_KEYSTORE] = cfg.Entry{Desc: "path to client keystore, default is $TC_RAWAPI_KEYPATH if set", Type: "string", Def: Def_FabKeystore}
+		fs.Entries[OPT_LATOR_BIND] = cfg.Entry{Desc: "address to bind configtxlator's rest api to, default is TC_RAWAPI_LATOR_BIND if set", Type: "string", Def: Def_LatorBind}
+		fs.Entries[OPT_LATOR_EXE] = cfg.Entry{Desc: "path to configtxlator (if empty, will dump protobuf as base64 encoded string), default is $TC_PATH_BIN/configtxlator if set", Type: "string", Def: Def_LatorExe}
+		fs.Entries[OPT_LATOR_PORT] = cfg.Entry{Desc: "port where configtxlator will listen, default is $TC_RAWAPI_LATOR_PORT if set, 0 means random", Type: "int", Def: Def_LatorPort}
+		fs.Entries[OPT_LATOR_PROTO] = cfg.Entry{Desc: "protobuf format, configtxlator will be used if set", Type: "string", Def: Def_LatorProto}
+		fs.Entries[OPT_FAB_MSPID] = cfg.Entry{Desc: "fabric MSPID, default is $TC_RAWAPI_MSPID if set", Type: "string", Def: Def_FabMspId}
 		fs.Entries[OPT_IO_SUFFIX] = cfg.Entry{Desc: "suffix with which the name of the processed file is appended as output (-" + OPT_IO_OUTPUT + " is ignored if supplied)", Type: "string", Def: ""}
-		fs.Entries[OPT_PROC_TRY] = cfg.Entry{Desc: "number of invoke tries", Type: "int", Def: DefaultFabTry}
-		fs.Entries[OPT_FAB_TLSCERT] = cfg.Entry{Desc: "path to TLS cert, default is $TC_RAWAPI_TLSCERTPATH if set", Type: "string", Def: DefaultPathTlsCert}
+		fs.Entries[OPT_PROC_TRY] = cfg.Entry{Desc: "number of invoke tries", Type: "int", Def: Def_ProcTry}
+		fs.Entries[OPT_FAB_TLSCERT] = cfg.Entry{Desc: "path to TLS cert, default is $TC_RAWAPI_TLSCERTPATH if set", Type: "string", Def: Def_FabTlscert}
 
 		modeExec = modeConfirmBatch
 	case MODE_CONFIRMRAWAPI_FULL, MODE_CONFIRMRAWAPI_SC:
-		fs.Entries[OPT_HTTP_APIKEY] = cfg.Entry{Desc: "api key, skip if not set, default is $TC_HTTP_API_KEY if set", Type: "string", Def: DefaultHttpApikey}
-		fs.Entries[OPT_FAB_CC] = cfg.Entry{Desc: "chaincode to query", Type: "string", Def: "qscc"}
-		fs.Entries[OPT_FAB_FUNC] = cfg.Entry{Desc: "function of -" + OPT_FAB_CC, Type: "string", Def: DefaultFabConfirmFunc}
-		fs.Entries[OPT_HTTP_HOST] = cfg.Entry{Desc: "api host in http(s)://host:port format, default port is $TC_RAWAPI_HTTP_PORT if set", Type: "string", Def: "http://localhost:" + strconv.Itoa(DefaultHttpPort)}
+		fs.Entries[OPT_HTTP_APIKEY] = cfg.Entry{Desc: "api key, skip if not set, default is $TC_HTTP_API_KEY if set", Type: "string", Def: Def_HttpApikey}
+		fs.Entries[OPT_FAB_CC_CONFIRM] = cfg.Entry{Desc: "chaincode to query", Type: "string", Def: "qscc"}
+		fs.Entries[OPT_FAB_FUNC_CONFIRM] = cfg.Entry{Desc: "function of -" + OPT_FAB_CC_CONFIRM, Type: "string", Def: Def_FabFuncConfirm}
+		fs.Entries[OPT_HTTP_HOST] = cfg.Entry{Desc: "api host in http(s)://host:port format, default port is $TC_RAWAPI_HTTP_PORT if set", Type: "string", Def: "http://localhost:" + strconv.Itoa(Def_HttpPort)}
 		fs.Entries[OPT_IO_INPUT] = cfg.Entry{Desc: "| separated file with args for query, empty means stdin", Type: "string", Def: ""}
-		fs.Entries[OPT_HTTP_QUERY] = cfg.Entry{Desc: "query endpoint", Type: "string", Def: "/query"}
+		fs.Entries[OPT_HTTP_QUERY] = cfg.Entry{Desc: "query endpoint", Type: "string", Def: Def_HttpQuery}
 
 		modeExec = modeConfirmRawapi
-	case MODE_COMBINED_FULL, MODE_COMBINED_SC:
-		fs.Entries[OPT_IO_BATCH] = cfg.Entry{Desc: "list of files to process, one file path per line, -" + OPT_IO_INPUT + " ignored if specified", Type: "string", Def: ""}
-		fs.Entries[OPT_IO_BUFFER] = cfg.Entry{Desc: "fills up the temporary buffer with this many transactions, which first get submitted, then confirmed, should be large enough for the submited transactions to be finalized by the time of confirmation begins", Type: "int", Def: DefaultBundleBuffered}
-		fs.Entries[OPT_IO_INPUT] = cfg.Entry{Desc: ", separated list of files, which contain the output of previous submit attempts, empty causes panic", Type: "string", Def: ""}
-		fs.Entries[OPT_IO_SUFFIX] = cfg.Entry{Desc: "suffix with which the name of the processed file is appended as output (-" + OPT_IO_OUTPUT + " is ignored if supplied)", Type: "string", Def: ""}
-
-		fs.Entries[OPT_FAB_CERT] = cfg.Entry{Desc: "path to client pem certificate to populate the wallet with, default is $TC_RAWAPI_CERTPATH if set", Type: "string", Def: DefaultPathCert}
-		fs.Entries[OPT_FAB_CC_CONFIRM] = cfg.Entry{Desc: "chaincode to invoke", Type: "string", Def: DefaultFabConfirmCc}
-		fs.Entries[OPT_FAB_FUNC_CONFIRM] = cfg.Entry{Desc: "function of -" + OPT_FAB_CC_CONFIRM, Type: "string", Def: DefaultFabConfirmFunc}
-		fs.Entries[OPT_FAB_ENDPOINT] = cfg.Entry{Desc: "fabric endpoint, default is $TC_RAWAPI_PEERENDPOINT if set", Type: "string", Def: DefaultFabEndpoint}
-		fs.Entries[OPT_FAB_GATEWAY] = cfg.Entry{Desc: "default gateway, default is $TC_RAWAPI_GATEWAYPEER if set", Type: "string", Def: DefaultFabGw}
-		fs.Entries[OPT_FAB_KEYSTORE] = cfg.Entry{Desc: "path to client keystore, default is $TC_RAWAPI_KEYPATH if set", Type: "string", Def: DefaultPathKeystore}
-		fs.Entries[OPT_FAB_MSPID] = cfg.Entry{Desc: "fabric MSPID, default is $TC_RAWAPI_MSPID if set", Type: "string", Def: DefaultFabMspId}
-		fs.Entries[OPT_FAB_CC_SUBMIT] = cfg.Entry{Desc: "chaincode to invoke", Type: "string", Def: DefaultFabSubmitCc}
-		fs.Entries[OPT_FAB_FUNC_SUBMIT] = cfg.Entry{Desc: "function of -" + OPT_FAB_CC_SUBMIT, Type: "string", Def: DefaultFabSubmitFunc}
-		fs.Entries[OPT_FAB_TLSCERT] = cfg.Entry{Desc: "path to TLS cert, default is $TC_RAWAPI_TLSCERTPATH if set", Type: "string", Def: DefaultPathTlsCert}
-
-		fs.Entries[OPT_PROC_KEYNAME] = cfg.Entry{Desc: "the name of the field containing the unique identifier", Type: "string", Def: DefaultBundleKeyName}
-		fs.Entries[OPT_PROC_KEYPOS] = cfg.Entry{Desc: "Nth field in -in that contains the unique identifier identified by -" + OPT_PROC_KEYNAME, Type: "int", Def: DefaultBundleKeyPos}
-		fs.Entries[OPT_PROC_KEYTYPE] = cfg.Entry{Desc: "type of -" + OPT_PROC_KEYNAME + ", either 'string' or 'int'", Type: "string", Def: DefaultBundleKeyType}
-		fs.Entries[OPT_PROC_TRY] = cfg.Entry{Desc: "number of invoke tries", Type: "int", Def: DefaultFabTry}
-
-		fs.Entries[OPT_LATOR_BIND] = cfg.Entry{Desc: "address to bind configtxlator's rest api to, default is TC_RAWAPI_LATOR_BIND if set", Type: "string", Def: DefaultLatorBind}
-		fs.Entries[OPT_LATOR_EXE] = cfg.Entry{Desc: "path to configtxlator (if empty, will dump protobuf as base64 encoded string), default is $TC_PATH_BIN/configtxlator if set", Type: "string", Def: DefaultLatorExe}
-		fs.Entries[OPT_LATOR_PORT] = cfg.Entry{Desc: "port where configtxlator will listen, default is $TC_RAWAPI_LATOR_PORT if set, 0 means random", Type: "int", Def: DefaultLatorPort}
-		fs.Entries[OPT_LATOR_PROTO] = cfg.Entry{Desc: "protobuf format, configtxlator will be used if set", Type: "string", Def: DefaultLatorProto}
-
-		modeExec = modeCombined
-	case "help", "h", "-h", "--help":
+	case MODE_HELP_FULL, MODE_HELP_SC:
 		os.Args[1] = ""
 		msg := helperUsage(fs.FlagSet)
 		msg()
 		os.Exit(0)
 	case MODE_SUBMIT_FULL, MODE_SUBMIT_SC:
-		fs.Entries[OPT_FAB_CERT] = cfg.Entry{Desc: "path to client pem certificate to populate the wallet with, default is $TC_RAWAPI_CERTPATH if set", Type: "string", Def: DefaultPathCert}
-		fs.Entries[OPT_FAB_CC] = cfg.Entry{Desc: "chaincode to invoke", Type: "string", Def: DefaultFabSubmitCc}
-		fs.Entries[OPT_FAB_ENDPOINT] = cfg.Entry{Desc: "fabric endpoint, default is $TC_RAWAPI_PEERENDPOINT if set", Type: "string", Def: DefaultFabEndpoint}
-		fs.Entries[OPT_FAB_FUNC] = cfg.Entry{Desc: "function of -" + OPT_FAB_CC, Type: "string", Def: DefaultFabSubmitFunc}
-		fs.Entries[OPT_FAB_GATEWAY] = cfg.Entry{Desc: "default gateway, default is $TC_RAWAPI_GATEWAYPEER if set", Type: "string", Def: DefaultFabGw}
+		fs.Entries[OPT_FAB_CERT] = cfg.Entry{Desc: "path to client pem certificate to populate the wallet with, default is $TC_RAWAPI_CERTPATH if set", Type: "string", Def: Def_FabCert}
+		fs.Entries[OPT_FAB_CC_SUBMIT] = cfg.Entry{Desc: "chaincode to invoke", Type: "string", Def: Def_FabCcSubmit}
+		fs.Entries[OPT_FAB_ENDPOINT] = cfg.Entry{Desc: "fabric endpoint, default is $TC_RAWAPI_PEERENDPOINT if set", Type: "string", Def: Def_FabEndpoint}
+		fs.Entries[OPT_FAB_FUNC_SUBMIT] = cfg.Entry{Desc: "function of -" + OPT_FAB_CC_SUBMIT, Type: "string", Def: Def_FabFuncSubmit}
+		fs.Entries[OPT_FAB_GATEWAY] = cfg.Entry{Desc: "default gateway, default is $TC_RAWAPI_GATEWAYPEER if set", Type: "string", Def: Def_FabGateway}
 		fs.Entries[OPT_IO_INPUT] = cfg.Entry{Desc: "file, which contains the parameters of one transaction per line, separated by |, empty means stdin", Type: "string", Def: ""}
-		fs.Entries[OPT_PROC_KEYNAME] = cfg.Entry{Desc: "the name of the field containing the unique identifier", Type: "string", Def: DefaultBundleKeyName}
-		fs.Entries[OPT_PROC_KEYPOS] = cfg.Entry{Desc: "Nth field in -" + OPT_IO_INPUT + " that contains the unique identifier identified by -" + OPT_PROC_KEYNAME, Type: "int", Def: DefaultBundleKeyPos}
-		fs.Entries[OPT_FAB_KEYSTORE] = cfg.Entry{Desc: "path to client keystore, default is $TC_RAWAPI_KEYPATH if set", Type: "string", Def: DefaultPathKeystore}
-		fs.Entries[OPT_PROC_KEYTYPE] = cfg.Entry{Desc: "type of -" + OPT_PROC_KEYNAME + ", either 'string' or 'int'", Type: "string", Def: DefaultBundleKeyType}
-		fs.Entries[OPT_FAB_MSPID] = cfg.Entry{Desc: "fabric MSPID, default is $TC_RAWAPI_MSPID if set", Type: "string", Def: DefaultFabMspId}
-		fs.Entries[OPT_PROC_TRY] = cfg.Entry{Desc: "number of invoke tries", Type: "int", Def: DefaultFabTry}
-		fs.Entries[OPT_FAB_TLSCERT] = cfg.Entry{Desc: "path to TLS cert, default is $TC_RAWAPI_TLSCERTPATH if set", Type: "string", Def: DefaultPathTlsCert}
+		fs.Entries[OPT_PROC_KEYNAME] = cfg.Entry{Desc: "the name of the field containing the unique identifier", Type: "string", Def: Def_ProcKeyname}
+		fs.Entries[OPT_PROC_KEYPOS] = cfg.Entry{Desc: "Nth field in -" + OPT_IO_INPUT + " that contains the unique identifier identified by -" + OPT_PROC_KEYNAME, Type: "int", Def: Def_ProcKeypos}
+		fs.Entries[OPT_FAB_KEYSTORE] = cfg.Entry{Desc: "path to client keystore, default is $TC_RAWAPI_KEYPATH if set", Type: "string", Def: Def_FabKeystore}
+		fs.Entries[OPT_PROC_KEYTYPE] = cfg.Entry{Desc: "type of -" + OPT_PROC_KEYNAME + ", either 'string' or 'int'", Type: "string", Def: Def_ProcKeytype}
+		fs.Entries[OPT_FAB_MSPID] = cfg.Entry{Desc: "fabric MSPID, default is $TC_RAWAPI_MSPID if set", Type: "string", Def: Def_FabMspId}
+		fs.Entries[OPT_PROC_TRY] = cfg.Entry{Desc: "number of invoke tries", Type: "int", Def: Def_ProcTry}
+		fs.Entries[OPT_FAB_TLSCERT] = cfg.Entry{Desc: "path to TLS cert, default is $TC_RAWAPI_TLSCERTPATH if set", Type: "string", Def: Def_FabTlscert}
 
 		modeExec = modeSubmit
 	case MODE_SUBMITBATCH_FULL, MODE_SUBMITBATCH_SC:
 		fs.Entries[OPT_IO_BATCH] = cfg.Entry{Desc: "list of files to process, one file path per line, -in ignored if specified", Type: "string", Def: ""}
-		fs.Entries[OPT_FAB_CERT] = cfg.Entry{Desc: "path to client pem certificate to populate the wallet with, default is $TC_RAWAPI_CERTPATH if set", Type: "string", Def: DefaultPathCert}
-		fs.Entries[OPT_FAB_CC] = cfg.Entry{Desc: "chaincode to invoke", Type: "string", Def: DefaultFabSubmitCc}
-		fs.Entries[OPT_FAB_ENDPOINT] = cfg.Entry{Desc: "fabric endpoint, default is $TC_RAWAPI_PEERENDPOINT if set", Type: "string", Def: DefaultFabEndpoint}
-		fs.Entries[OPT_FAB_FUNC] = cfg.Entry{Desc: "function of -" + OPT_FAB_CC, Type: "string", Def: DefaultFabSubmitFunc}
-		fs.Entries[OPT_FAB_GATEWAY] = cfg.Entry{Desc: "default gateway, default is $TC_RAWAPI_GATEWAYPEER if set", Type: "string", Def: DefaultFabGw}
+		fs.Entries[OPT_FAB_CERT] = cfg.Entry{Desc: "path to client pem certificate to populate the wallet with, default is $TC_RAWAPI_CERTPATH if set", Type: "string", Def: Def_FabCert}
+		fs.Entries[OPT_FAB_CC_SUBMIT] = cfg.Entry{Desc: "chaincode to invoke", Type: "string", Def: Def_FabCcSubmit}
+		fs.Entries[OPT_FAB_ENDPOINT] = cfg.Entry{Desc: "fabric endpoint, default is $TC_RAWAPI_PEERENDPOINT if set", Type: "string", Def: Def_FabEndpoint}
+		fs.Entries[OPT_FAB_FUNC_SUBMIT] = cfg.Entry{Desc: "function of -" + OPT_FAB_CC_SUBMIT, Type: "string", Def: Def_FabFuncSubmit}
+		fs.Entries[OPT_FAB_GATEWAY] = cfg.Entry{Desc: "default gateway, default is $TC_RAWAPI_GATEWAYPEER if set", Type: "string", Def: Def_FabGateway}
 		fs.Entries[OPT_IO_INPUT] = cfg.Entry{Desc: ", separated list of files, which contain the | separated parameters of one transaction per line, empty causes panic", Type: "string", Def: ""}
-		fs.Entries[OPT_PROC_KEYNAME] = cfg.Entry{Desc: "the name of the field containing the unique identifier", Type: "string", Def: DefaultBundleKeyName}
-		fs.Entries[OPT_PROC_KEYPOS] = cfg.Entry{Desc: "Nth field in -in that contains the unique identifier identified by -keyname", Type: "int", Def: DefaultBundleKeyPos}
-		fs.Entries[OPT_FAB_KEYSTORE] = cfg.Entry{Desc: "path to client keystore, default is $TC_RAWAPI_KEYPATH if set", Type: "string", Def: DefaultPathKeystore}
-		fs.Entries[OPT_PROC_KEYTYPE] = cfg.Entry{Desc: "type of -" + OPT_PROC_KEYNAME + ", either 'string' or 'int'", Type: "string", Def: DefaultBundleKeyType}
-		fs.Entries[OPT_FAB_MSPID] = cfg.Entry{Desc: "fabric MSPID, default is $TC_RAWAPI_MSPID if set", Type: "string", Def: DefaultFabMspId}
+		fs.Entries[OPT_PROC_KEYNAME] = cfg.Entry{Desc: "the name of the field containing the unique identifier", Type: "string", Def: Def_ProcKeyname}
+		fs.Entries[OPT_PROC_KEYPOS] = cfg.Entry{Desc: "Nth field in -in that contains the unique identifier identified by -keyname", Type: "int", Def: Def_ProcKeypos}
+		fs.Entries[OPT_FAB_KEYSTORE] = cfg.Entry{Desc: "path to client keystore, default is $TC_RAWAPI_KEYPATH if set", Type: "string", Def: Def_FabKeystore}
+		fs.Entries[OPT_PROC_KEYTYPE] = cfg.Entry{Desc: "type of -" + OPT_PROC_KEYNAME + ", either 'string' or 'int'", Type: "string", Def: Def_ProcKeytype}
+		fs.Entries[OPT_FAB_MSPID] = cfg.Entry{Desc: "fabric MSPID, default is $TC_RAWAPI_MSPID if set", Type: "string", Def: Def_FabMspId}
 		fs.Entries[OPT_IO_SUFFIX] = cfg.Entry{Desc: "suffix with which the name of the processed file is appended as output (-" + OPT_IO_OUTPUT + " is ignored if supplied)", Type: "string", Def: ""}
-		fs.Entries[OPT_PROC_TRY] = cfg.Entry{Desc: "number of invoke tries", Type: "int", Def: DefaultFabTry}
-		fs.Entries[OPT_FAB_TLSCERT] = cfg.Entry{Desc: "path to TLS cert, default is $TC_RAWAPI_TLSCERTPATH if set", Type: "string", Def: DefaultPathTlsCert}
+		fs.Entries[OPT_PROC_TRY] = cfg.Entry{Desc: "number of invoke tries", Type: "int", Def: Def_ProcTry}
+		fs.Entries[OPT_FAB_TLSCERT] = cfg.Entry{Desc: "path to TLS cert, default is $TC_RAWAPI_TLSCERTPATH if set", Type: "string", Def: Def_FabTlscert}
 
 		modeExec = modeSubmitBatch
 	case MODE_RESUBMIT_FULL, MODE_RESUBMIT_SC:
 		shift := strconv.Itoa(reflect.TypeOf(PSV{}).NumField())
-		fs.Entries[OPT_FAB_CERT] = cfg.Entry{Desc: "path to client pem certificate to populate the wallet with, default is $TC_RAWAPI_CERTPATH if set", Type: "string", Def: DefaultPathCert}
-		fs.Entries[OPT_FAB_CC] = cfg.Entry{Desc: "chaincode to invoke", Type: "string", Def: "te-food-bundles"}
-		fs.Entries[OPT_FAB_ENDPOINT] = cfg.Entry{Desc: "fabric endpoint, default is $TC_RAWAPI_PEERENDPOINT if set", Type: "string", Def: DefaultFabEndpoint}
-		fs.Entries[OPT_FAB_FUNC] = cfg.Entry{Desc: "function of -" + OPT_FAB_CC, Type: "string", Def: "CreateBundle"}
-		fs.Entries[OPT_FAB_GATEWAY] = cfg.Entry{Desc: "default gateway", Type: "string", Def: DefaultFabGw}
+		fs.Entries[OPT_FAB_CERT] = cfg.Entry{Desc: "path to client pem certificate to populate the wallet with, default is $TC_RAWAPI_CERTPATH if set", Type: "string", Def: Def_FabCert}
+		fs.Entries[OPT_FAB_CC_SUBMIT] = cfg.Entry{Desc: "chaincode to invoke", Type: "string", Def: "te-food-bundles"}
+		fs.Entries[OPT_FAB_ENDPOINT] = cfg.Entry{Desc: "fabric endpoint, default is $TC_RAWAPI_PEERENDPOINT if set", Type: "string", Def: Def_FabEndpoint}
+		fs.Entries[OPT_FAB_FUNC_SUBMIT] = cfg.Entry{Desc: "function of -" + OPT_FAB_CC_SUBMIT, Type: "string", Def: "CreateBundle"}
+		fs.Entries[OPT_FAB_GATEWAY] = cfg.Entry{Desc: "default gateway", Type: "string", Def: Def_FabGateway}
 		fs.Entries[OPT_IO_INPUT] = cfg.Entry{Desc: "file, which contains the output of previous submit attempt, empty means stdin", Type: "string", Def: ""}
-		fs.Entries[OPT_PROC_KEYNAME] = cfg.Entry{Desc: "the name of the field containing the unique identifier", Type: "string", Def: DefaultBundleKeyName}
-		fs.Entries[OPT_PROC_KEYPOS] = cfg.Entry{Desc: shift + "+Nth field in -in that contains the unique identifier identified by -" + OPT_PROC_KEYNAME, Type: "int", Def: DefaultBundleKeyPos}
-		fs.Entries[OPT_FAB_KEYSTORE] = cfg.Entry{Desc: "path to client keystore, default is $TC_RAWAPI_KEYPATH if set", Type: "string", Def: DefaultPathKeystore}
-		fs.Entries[OPT_PROC_KEYTYPE] = cfg.Entry{Desc: "type of -" + OPT_PROC_KEYNAME + ", either 'string' or 'int'", Type: "string", Def: DefaultBundleKeyType}
-		fs.Entries[OPT_FAB_MSPID] = cfg.Entry{Desc: "fabric MSPID, default is $TC_RAWAPI_MSPID if set", Type: "string", Def: DefaultFabMspId}
-		fs.Entries[OPT_PROC_TRY] = cfg.Entry{Desc: "number of invoke tries", Type: "int", Def: DefaultFabTry}
-		fs.Entries[OPT_FAB_TLSCERT] = cfg.Entry{Desc: "path to TLS cert, default is $TC_RAWAPI_TLSCERTPATH if set", Type: "string", Def: DefaultPathTlsCert}
+		fs.Entries[OPT_PROC_KEYNAME] = cfg.Entry{Desc: "the name of the field containing the unique identifier", Type: "string", Def: Def_ProcKeyname}
+		fs.Entries[OPT_PROC_KEYPOS] = cfg.Entry{Desc: shift + "+Nth field in -in that contains the unique identifier identified by -" + OPT_PROC_KEYNAME, Type: "int", Def: Def_ProcKeypos}
+		fs.Entries[OPT_FAB_KEYSTORE] = cfg.Entry{Desc: "path to client keystore, default is $TC_RAWAPI_KEYPATH if set", Type: "string", Def: Def_FabKeystore}
+		fs.Entries[OPT_PROC_KEYTYPE] = cfg.Entry{Desc: "type of -" + OPT_PROC_KEYNAME + ", either 'string' or 'int'", Type: "string", Def: Def_ProcKeytype}
+		fs.Entries[OPT_FAB_MSPID] = cfg.Entry{Desc: "fabric MSPID, default is $TC_RAWAPI_MSPID if set", Type: "string", Def: Def_FabMspId}
+		fs.Entries[OPT_PROC_TRY] = cfg.Entry{Desc: "number of invoke tries", Type: "int", Def: Def_ProcTry}
+		fs.Entries[OPT_FAB_TLSCERT] = cfg.Entry{Desc: "path to TLS cert, default is $TC_RAWAPI_TLSCERTPATH if set", Type: "string", Def: Def_FabTlscert}
 
 		modeExec = modeResubmit
 	default:
@@ -496,6 +502,156 @@ func main() {
 
 // endregion: main
 // region: modes
+
+func modeCombined(config *cfg.Config) {
+
+	// region: input
+
+	var input []string
+	if len(config.Entries[OPT_IO_BATCH].Value.(string)) == 0 {
+		input = strings.Split(config.Entries[OPT_IO_INPUT].Value.(string), ",")
+	} else {
+		input = procBundles2Batch(ioRead(config.Entries[OPT_IO_BATCH].Value.(string), procParseBundles))
+	}
+	count := ioCount(input)
+
+	// endregion: input
+	// region: output
+
+	var output *os.File
+	var suffix string = config.Entries[OPT_IO_SUFFIX].Value.(string)
+
+	if len(suffix) == 0 {
+		output = ioOutputOpen(config.Entries[OPT_IO_OUTPUT].Value.(string))
+		defer output.Close()
+	}
+
+	// endregion: output
+	// region: client
+
+	client, err := fabricClient(config)
+	if err != nil {
+		helperPanic("cannot init fabric gw", err.Error())
+	}
+	Lout(LOG_DEBUG, "fabric client", client)
+
+	// endregion: client
+	// region: configtxlator
+
+	err = fabricLator(config, client)
+	defer client.Lator.Close()
+	if err != nil {
+		helperPanic("error while initializing configtxlator")
+	}
+	Lout(LOG_INFO, "protobuf decode", client.Lator.Which, fmt.Sprintf("%s:%d", client.Lator.Bind, client.Lator.Port))
+
+	// endregion: configtxlator
+	// region: process batch
+
+	bufferSize := config.Entries[OPT_IO_BUFFER].Value.(int)
+	count = 2 * count
+
+	for _, file := range input {
+
+		// region: check for brake
+
+		brake, err := os.Stat(config.Entries[OPT_IO_BRAKE].Value.(string))
+		if err == nil {
+			// file exists
+			Lout(LOG_NOTICE, "someone pulled the handbrake", brake.ModTime())
+			break
+		} else if !errors.Is(err, fs.ErrNotExist) {
+			// file does not exist, bur err indicates something different
+			helperPanic("an unexpected error occurred while checking the brake file", err.Error())
+		}
+
+		// endregion: check for brake
+		// region: io
+
+		batchPtr := ioRead(file, procParseBundles)
+		batch := *batchPtr // needs to be dereferenced
+
+		path := file + suffix
+		if len(suffix) > 0 {
+			output = ioOutputOpen(path)
+			defer output.Close()
+		}
+
+		// endregion: io
+		// region: iteration
+
+		var wg sync.WaitGroup
+
+		for i := 0; i < len(batch); i += bufferSize {
+
+			// region: read buffer
+
+			bufferEnd := i + bufferSize
+			if bufferEnd > len(batch) {
+				bufferEnd = len(batch)
+			}
+
+			// submited := batch[i:bufferEnd]
+			var submited []PSV
+
+			// endregion: read buffer
+			// region: submit buffer
+
+			for _, bundle := range batch[i:bufferEnd] {
+				err := fabricSubmit(config, client, &bundle)
+				if err != nil {
+					Lout(LOG_NOTICE, helperProgress(count), err)
+				} else {
+					Lout(LOG_INFO, helperProgress(count), " submited", fmt.Sprintf("%20s", bundle.Key), file)
+				}
+				submited = append(submited, bundle)
+			}
+
+			// endregion: submit buffer
+			// region: confirm and write buffer
+
+			wg.Add(1)
+			go func(confirm []PSV) {
+				defer wg.Done()
+				for _, bundle := range confirm {
+					if bundle.Status != STATUS_SUBMIT_OK && !strings.HasPrefix(bundle.Status, STATUS_CONFIRM_ERROR_PREFIX) {
+						Lout(LOG_INFO, helperProgress(count), "bypassed status", bundle.Status)
+						ioOutputAppend(output, bundle, procCompilePSV)
+						continue
+					}
+					if !TxRegexp.MatchString(bundle.Txid) {
+						bundle.Status = STATUS_CONFIRM_ERROR_TXID
+						Lout(LOG_ERR, helperProgress(count), "invalid txid", bundle.Txid)
+						ioOutputAppend(output, bundle, procCompilePSV)
+						continue
+					}
+
+					err = fabricConfirm(config, client, &bundle)
+					if err != nil {
+						Lout(LOG_NOTICE, helperProgress(count), err)
+					} else {
+						Lout(LOG_INFO, helperProgress(count), "confirmed", fmt.Sprintf("%20s", bundle.Key), file, output.Name())
+					}
+					ioOutputAppend(output, bundle, procCompilePSV)
+				}
+			}(submited)
+
+			// endregion: confirm and write buffer
+
+		}
+		wg.Wait()
+		if len(suffix) > 0 {
+			output.Close()
+			ioTimestamp(path)
+		}
+
+		// endregion: iteration
+
+	}
+
+	// endregion: process
+
+}
 
 func modeConfirm(config *cfg.Config) {
 
@@ -665,8 +821,8 @@ func modeConfirmRawapi(config *cfg.Config) {
 	defer fasthttp.ReleaseURI(baseurl)
 	baseurl.Parse(nil, []byte(config.Entries[OPT_HTTP_HOST].Value.(string)+config.Entries[OPT_HTTP_QUERY].Value.(string)))
 	baseurl.QueryArgs().Add("channel", config.Entries[OPT_FAB_CHANNEL].Value.(string))
-	baseurl.QueryArgs().Add("chaincode", config.Entries[OPT_FAB_CC].Value.(string))
-	baseurl.QueryArgs().Add("function", config.Entries[OPT_FAB_FUNC].Value.(string))
+	baseurl.QueryArgs().Add("chaincode", config.Entries[OPT_FAB_CC_CONFIRM].Value.(string))
+	baseurl.QueryArgs().Add("function", config.Entries[OPT_FAB_FUNC_CONFIRM].Value.(string))
 	baseurl.QueryArgs().Add("proto_decode", "common.Block")
 	baseurl.QueryArgs().Add("args", config.Entries[OPT_FAB_CHANNEL].Value.(string))
 	Lout(LOG_INFO, "base url", baseurl.String())
@@ -778,136 +934,6 @@ func modeConfirmRawapi(config *cfg.Config) {
 	}
 
 	// endregion: process batch
-
-}
-
-func modeCombined(config *cfg.Config) {
-
-	// region: input
-
-	var input []string
-	if len(config.Entries[OPT_IO_BATCH].Value.(string)) == 0 {
-		input = strings.Split(config.Entries[OPT_IO_INPUT].Value.(string), ",")
-	} else {
-		input = procBundles2Batch(ioRead(config.Entries[OPT_IO_BATCH].Value.(string), procParseBundles))
-	}
-	count := ioCount(input)
-
-	// endregion: input
-	// region: output
-
-	var output *os.File
-	var suffix string = config.Entries[OPT_IO_SUFFIX].Value.(string)
-
-	if len(suffix) == 0 {
-		output = ioOutputOpen(config.Entries[OPT_IO_OUTPUT].Value.(string))
-		defer output.Close()
-	}
-
-	// endregion: output
-	// region: client
-
-	client, err := fabricClient(config)
-	if err != nil {
-		helperPanic("cannot init fabric gw", err.Error())
-	}
-	Lout(LOG_DEBUG, "fabric client", client)
-
-	// endregion: client
-	// region: configtxlator
-
-	err = fabricLator(config, client)
-	defer client.Lator.Close()
-	if err != nil {
-		helperPanic("error while initializing configtxlator")
-	}
-	Lout(LOG_INFO, "protobuf decode", client.Lator.Which, fmt.Sprintf("%s:%d", client.Lator.Bind, client.Lator.Port))
-
-	// endregion: configtxlator
-	// region: process batch
-
-	bufferSize := config.Entries[OPT_IO_BUFFER].Value.(int)
-	count = 2 * count
-
-	for _, file := range input {
-
-		var wg sync.WaitGroup
-
-		// region: read batch
-
-		batchPointer := ioRead(file, procParseBundles)
-		if len(suffix) > 0 {
-			output = ioOutputOpen(file + suffix)
-			defer output.Close()
-		}
-		batch := *batchPointer // needs to be dereferenced
-
-		// endregion: read batch
-
-		for i := 0; i < len(batch); i += bufferSize {
-
-			// region: read buffer
-
-			bufferEnd := i + bufferSize
-			if bufferEnd > len(batch) {
-				bufferEnd = len(batch)
-			}
-
-			// submited := batch[i:bufferEnd]
-			var submited []PSV
-
-			// endregion: read buffer
-			// region: submit buffer
-
-			for _, bundle := range batch[i:bufferEnd] {
-				err := fabricSubmit(config, client, &bundle)
-				if err != nil {
-					Lout(LOG_NOTICE, helperProgress(count), err)
-				} else {
-					Lout(LOG_INFO, helperProgress(count), " submited", fmt.Sprintf("%20s", bundle.Key), file)
-				}
-				submited = append(submited, bundle)
-			}
-
-			// endregion: submit buffer
-			// region: confirm and write buffer
-
-			wg.Add(1)
-			go func(confirm []PSV) {
-				defer wg.Done()
-				for _, bundle := range confirm {
-					if bundle.Status != STATUS_SUBMIT_OK && !strings.HasPrefix(bundle.Status, STATUS_CONFIRM_ERROR_PREFIX) {
-						Lout(LOG_INFO, helperProgress(count), "bypassed status", bundle.Status)
-						ioOutputAppend(output, bundle, procCompilePSV)
-						continue
-					}
-					if !TxRegexp.MatchString(bundle.Txid) {
-						bundle.Status = STATUS_CONFIRM_ERROR_TXID
-						Lout(LOG_ERR, helperProgress(count), "invalid txid", bundle.Txid)
-						ioOutputAppend(output, bundle, procCompilePSV)
-						continue
-					}
-
-					err = fabricConfirm(config, client, &bundle)
-					if err != nil {
-						Lout(LOG_NOTICE, helperProgress(count), err)
-					} else {
-						Lout(LOG_INFO, helperProgress(count), "confirmed", fmt.Sprintf("%20s", bundle.Key), file, output.Name())
-					}
-					ioOutputAppend(output, bundle, procCompilePSV)
-				}
-			}(submited)
-
-			// endregion: confirm and write buffer
-
-		}
-		wg.Wait()
-		if len(suffix) > 0 {
-			output.Close()
-		}
-	}
-
-	// endregion: process
 
 }
 
@@ -1077,14 +1103,11 @@ func fabricConfirm(config *cfg.Config, client *fabric.Client, bundle *PSV) error
 	// region: shorten variables coming from config
 
 	channel := config.Entries[OPT_FAB_CHANNEL].Value.(string)
-	chaincode := config.Entries[OPT_FAB_CC].Value.(string)
-	function := config.Entries[OPT_FAB_FUNC].Value.(string)
+	chaincode := config.Entries[OPT_FAB_CC_CONFIRM].Value.(string)
+	function := config.Entries[OPT_FAB_FUNC_CONFIRM].Value.(string)
 	proto := config.Entries[OPT_LATOR_PROTO].Value.(string)
 	try := config.Entries[OPT_PROC_TRY].Value.(int)
 
-	if config.Entries[OPT_FAB_CC_CONFIRM].Value != nil {
-		chaincode = config.Entries[OPT_FAB_CC_CONFIRM].Value.(string)
-	}
 	if config.Entries[OPT_FAB_FUNC_CONFIRM].Value != nil {
 		function = config.Entries[OPT_FAB_FUNC_CONFIRM].Value.(string)
 	}
@@ -1173,8 +1196,8 @@ func fabricLator(config *cfg.Config, client *fabric.Client) error {
 		helperPanic("error initializing configtxlator instance", err.Error())
 	}
 	Lout(LOG_DEBUG, "configtxlator instance", client.Lator)
-	Lout(LOG_INFO, "waiting for configtxlator launch", DefaultLatorSleep)
-	time.Sleep(time.Duration(DefaultLatorSleep) * time.Second)
+	Lout(LOG_INFO, "waiting for configtxlator launch", LATOR_LATENCY)
+	time.Sleep(time.Duration(LATOR_LATENCY) * time.Second)
 
 	return nil
 }
@@ -1183,13 +1206,10 @@ func fabricSubmit(config *cfg.Config, client *fabric.Client, bundle *PSV) error 
 
 	// region: shorten variables coming from config
 
-	chaincode := config.Entries[OPT_FAB_CC].Value.(string)
+	chaincode := config.Entries[OPT_FAB_CC_SUBMIT].Value.(string)
 	channel := config.Entries[OPT_FAB_CHANNEL].Value.(string)
-	function := config.Entries[OPT_FAB_FUNC].Value.(string)
+	function := config.Entries[OPT_FAB_FUNC_SUBMIT].Value.(string)
 
-	if config.Entries[OPT_FAB_CC_SUBMIT].Value != nil {
-		chaincode = config.Entries[OPT_FAB_CC_SUBMIT].Value.(string)
-	}
 	if config.Entries[OPT_FAB_FUNC_SUBMIT].Value != nil {
 		function = config.Entries[OPT_FAB_FUNC_SUBMIT].Value.(string)
 	}
@@ -1483,6 +1503,18 @@ func ioRead(f string, fn Parser) *[]PSV {
 
 	// endregion: actual file
 
+}
+
+func ioTimestamp(path string) {
+	timestamp := time.Now().Format("060102_1504_")
+	basename := filepath.Base(path)
+	prefixed := timestamp + basename
+
+	err := os.Rename(path, filepath.Join(filepath.Dir(path), prefixed))
+	if err != nil {
+		helperPanic("error renaming the file: " + err.Error())
+	}
+	Lout(LOG_INFO, "file renamed", basename, prefixed)
 }
 
 // endregion: io
