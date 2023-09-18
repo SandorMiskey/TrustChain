@@ -47,6 +47,17 @@ $out"
 
 function _chInfo() {
 	for chname in "$TC_CHANNEL1_NAME" "$TC_CHANNEL2_NAME"; do
+		base=$(
+			export FABRIC_CFG_PATH=$TC_PATH_CHANNELS
+			export CORE_PEER_TLS_ENABLED=true
+			export CORE_PEER_LOCALMSPID="${TC_ORG1_STACK}MSP"
+			export CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG1_DATA}/msp/tlscacerts/ca-cert.pem
+			export CORE_PEER_MSPCONFIGPATH=$TC_ORG1_ADMINMSP
+			export CORE_PEER_ADDRESS=localhost:${TC_ORG1_P1_PORT}
+			peer channel getinfo -c $chname 2>&1 | grep -v "channelCmd" | sed "s/.*Blockchain info: //" | jq -r ".height" 2>&1
+		)
+		commonVerify $? "failed: $out" "height of $chname at localhost:${TC_ORG1_P1_PORT} -> $base"
+
 		for port in "$TC_ORG1_P1_PORT" "$TC_ORG1_P2_PORT" "$TC_ORG1_P3_PORT"; do
 			# commonPrintf "get info for $chname on localhost:$port"
 			out=$(
@@ -56,9 +67,11 @@ function _chInfo() {
 				export CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG1_DATA}/msp/tlscacerts/ca-cert.pem
 				export CORE_PEER_MSPCONFIGPATH=$TC_ORG1_ADMINMSP
 				export CORE_PEER_ADDRESS=localhost:${port}
-				peer channel getinfo -c $chname 2>&1 | grep -v "channelCmd" | sed "s/.*Blockchain info: //" | jq -r ".height" 2>&1
+				height=$(peer channel getinfo -c $chname 2>&1 | grep -v "channelCmd" | sed "s/.*Blockchain info: //" | jq -r ".height" 2>&1)
+				percentage=$(( (height * 100) / base ))
+				echo "$height (${percentage}%)"
 			)
-			commonVerify $? "failed: $out" "$chname -> $port -> $out"
+			commonVerify $? "failed: $out" "$chname -> localhost:${port} -> $out"
 		done
 
 		for port in "$TC_ORG2_P1_PORT" "$TC_ORG2_P2_PORT" "$TC_ORG2_P3_PORT"; do
@@ -70,9 +83,11 @@ function _chInfo() {
 				export CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG2_DATA}/msp/tlscacerts/ca-cert.pem
 				export CORE_PEER_MSPCONFIGPATH=$TC_ORG2_ADMINMSP
 				export CORE_PEER_ADDRESS=localhost:${port}
-				peer channel getinfo -c $chname 2>&1 | grep -v "channelCmd" | sed "s/.*Blockchain info: //" | jq -r ".height" 2>&1
+				height=$(peer channel getinfo -c $chname 2>&1 | grep -v "channelCmd" | sed "s/.*Blockchain info: //" | jq -r ".height" 2>&1)
+				percentage=$(( (height * 100) / base ))
+				echo "$height (${percentage}%)"
 			)
-			commonVerify $? "failed: $out" "$chname -> $port -> $out"
+			commonVerify $? "failed: $out" "$chname -> localhost:${port} -> $out"
 		done
 
 
@@ -85,9 +100,11 @@ function _chInfo() {
 				export CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG3_DATA}/msp/tlscacerts/ca-cert.pem
 				export CORE_PEER_MSPCONFIGPATH=$TC_ORG3_ADMINMSP
 				export CORE_PEER_ADDRESS=localhost:${port}
-				peer channel getinfo -c $chname 2>&1 | grep -v "channelCmd" | sed "s/.*Blockchain info: //" | jq -r ".height" 2>&1
+				height=$(peer channel getinfo -c $chname 2>&1 | grep -v "channelCmd" | sed "s/.*Blockchain info: //" | jq -r ".height" 2>&1)
+				percentage=$(( (height * 100) / base ))
+				echo "$height (${percentage}%)"
 			)
-			commonVerify $? "failed: $out" "$chname -> $port -> $out"
+			commonVerify $? "failed: $out" "$chname -> localhost:${port} -> $out"
 		done
 	done
 }
