@@ -1148,7 +1148,6 @@ func fabricConfirm(config *cfg.Config, client *fabric.Client, bundle *PSV) error
 		request.Args = []string{channel, bundle.Txid}
 		response, responseErr = fabric.Query(client, &request)
 		if responseErr == nil {
-			Lout(LOG_DEBUG, "error in fabric query", responseErr)
 			break
 		}
 		Lout(LOG_NOTICE, fmt.Sprintf("unsuccessful confirm attempt %d/%d", cnt, try))
@@ -1584,21 +1583,11 @@ func procParseBundles(scanner *bufio.Scanner) *[]PSV {
 func procParseHeader(response []byte) (*Header, error) {
 
 	var responseHeader Header
+	var err error
 
-	// region: get header
-
-	blockHeader, blockHeaderType, _, err := jsonparser.Get(response, "header")
-	if err != nil {
-		return nil, err
-	}
-	if blockHeaderType != jsonparser.Object {
-		return nil, errors.New("header type mismatch")
-	}
-
-	// endregion: get header
 	// region: get block #
 
-	responseHeader.Number, err = jsonparser.GetString(blockHeader, "number")
+	responseHeader.Number, err = jsonparser.GetString(response, "header", "number")
 	if err != nil {
 		return nil, err
 	}
@@ -1608,55 +1597,62 @@ func procParseHeader(response []byte) (*Header, error) {
 
 	if _, exists := BlockCache[responseHeader.Number]; exists {
 		responseHeader = BlockCache[responseHeader.Number]
+		Lout(LOG_DEBUG, "cache hit", responseHeader.Number)
 	} else {
-
-		// region: parse .result.header
-
-		responseHeader.DataHash, err = jsonparser.GetString(blockHeader, "data_hash")
-		if err != nil {
-			return nil, err
+		paths := [][]string{
+			{"data", "data"},
+			// {"data", "data", "[0]", "payload", "header", "channel_header", "timestamp"},
+			{"header", "data_hash"},
+			{"header", "previous_hash"},
 		}
 
-		responseHeader.PreviousHash, err = jsonparser.GetString(blockHeader, "previous_hash")
-		if err != nil {
-			return nil, err
+		var errOverall error
+		jsonparser.EachKey(response, func(idx int, value []byte, vt jsonparser.ValueType, errEachKey error) {
+			switch idx {
+			case 0:
+				errOverall = errEachKey
+				if errOverall == nil {
+					if vt == jsonparser.Array {
+						length := 0
+						_, errArrayEachOuter := jsonparser.ArrayEach(value, func(v []byte, dataType jsonparser.ValueType, offset int, errArrayEachInner error) {
+							errOverall = errArrayEachInner
+							if errOverall == nil {
+								length++
+							}
+							if length == 1 {
+								responseHeader.Timestamp, errOverall = jsonparser.GetString(value, "[0]", "payload", "header", "channel_header", "timestamp")
+							}
+						})
+						errOverall = errArrayEachOuter
+						if errOverall == nil {
+							responseHeader.Length = length
+						}
+					} else {
+						errOverall = errors.New("payload is not an array")
+					}
+				}
+			// case 1:
+			// 	errOverall = errEachKey
+			// 	if errOverall == nil {
+			// 		responseHeader.Timestamp = string(value)
+			// 	}
+			case 1:
+				errOverall = errEachKey
+				if errOverall == nil {
+					responseHeader.DataHash = string(value)
+				}
+			case 2:
+				errOverall = errEachKey
+				if errOverall == nil {
+					responseHeader.PreviousHash = string(value)
+				}
+			}
+		}, paths...)
+		if errOverall != nil {
+			return nil, errOverall
 		}
-
-		// endregion: parse .result.header
-		// region: get payload (.result.data.data)
-
-		blockPayload, blockPayloadType, _, err := jsonparser.Get(response, "data", "data")
-		if err != nil {
-			return nil, err
-		}
-		if blockPayloadType != jsonparser.Array {
-			return nil, errors.New("payload type mismatch")
-		}
-
-		// endregion: get payload
-		// region: parse timestamp and length from payload
-
-		responseHeader.Timestamp, err = jsonparser.GetString(blockPayload, "[0]", "payload", "header", "channel_header", "timestamp")
-		if err != nil {
-			return nil, err
-		}
-
-		responseHeader.Length = 0
-		_, err = jsonparser.ArrayEach(blockPayload, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
-			responseHeader.Length++
-			// fmt.Println(header.Length)
-		})
-		if err != nil {
-			return nil, err
-		}
-
-		// endregion: parse timestamp and length from payload
-		// region: fill blockCache
 
 		BlockCache[responseHeader.Number] = responseHeader
-
-		// endregion: blockCache
-
 	}
 
 	// endregion: parse or cache

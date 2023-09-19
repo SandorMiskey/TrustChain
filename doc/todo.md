@@ -16,10 +16,6 @@
   * Lator.Exe on-the-fly
   * Lator.Exe -> raw binary
   * batch process via file upload (MaxRequestBodySize: math.MaxInt32)
-* migration/main.go -> implementation over http
-  * confirm: common client, req & resp [https://gist.github.com/erikdubbelboer/fe4095419fca55e2c92b3d0432ccd7fc]
-  * submit
-  * resubmit
 * tcGlusterServers.sh
   * auth.allow
   * fstab backupvolfile-server
