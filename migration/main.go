@@ -34,7 +34,8 @@ import (
 // region: globals
 
 var (
-	BlockCache = make(map[string]Header)
+	BlockCache      = make(map[string]Header)
+	BlockCacheMutex = sync.RWMutex{}
 
 	Def_FabCert        string = "./cert.pem"
 	Def_FabCcConfirm   string = "qscc"
@@ -66,8 +67,10 @@ var (
 	Logger *log.Logger
 	Lout   func(s ...interface{}) *[]error
 
-	StatStart time.Time = time.Now()
-	StatTrs   int       = 0
+	StatStart       time.Time = time.Now()
+	StatTrs         int       = 0
+	StatCacheHists  int       = 0
+	StatCacheWrites int       = 0
 
 	TxRegexp *regexp.Regexp
 )
@@ -498,6 +501,8 @@ func main() {
 	Lout(LOG_INFO, "start time:   ", StatStart.Format(time.RFC3339))
 	Lout(LOG_INFO, "end time:     ", statEnd.Format(time.RFC3339))
 	Lout(LOG_INFO, "elapsed time: ", statElapsed.Truncate(time.Second).String())
+	Lout(LOG_INFO, "cache writes: ", StatCacheWrites)
+	Lout(LOG_INFO, "cache hits:   ", StatCacheHists)
 	Lout(LOG_INFO, "trx per hour: ", float64(StatTrs)/statElapsed.Hours())
 	Lout(LOG_INFO, "trx per min:  ", float64(StatTrs)/statElapsed.Minutes())
 	Lout(LOG_INFO, "trx per sec:  ", float64(StatTrs)/statElapsed.Seconds())
@@ -1124,10 +1129,6 @@ func fabricConfirm(config *cfg.Config, client *fabric.Client, bundle *PSV) error
 	proto := config.Entries[OPT_LATOR_PROTO].Value.(string)
 	try := config.Entries[OPT_PROC_TRY].Value.(int)
 
-	if config.Entries[OPT_FAB_FUNC_CONFIRM].Value != nil {
-		function = config.Entries[OPT_FAB_FUNC_CONFIRM].Value.(string)
-	}
-
 	// endregion: shorten variables coming from config
 	// region: request
 
@@ -1535,6 +1536,25 @@ func ioTimestamp(path string) {
 // endregion: io
 // region: proc
 
+func procBlockCacheRead(block string) (*Header, bool) {
+	BlockCacheMutex.RLock()
+	defer BlockCacheMutex.RUnlock()
+	if header, exists := BlockCache[block]; exists {
+		StatCacheHists++
+		Lout(LOG_DEBUG, "cache hit", block)
+		return &header, true
+	}
+	return nil, false
+}
+
+func procBlockCacheWrite(header Header) {
+	BlockCacheMutex.Lock()
+	defer BlockCacheMutex.Unlock()
+	StatCacheWrites++
+	Lout(LOG_DEBUG, "cache write", header.Number)
+	BlockCache[header.Number] = header
+}
+
 func procCompilePSV(psv PSV) string {
 	v := reflect.ValueOf(psv)
 	if v.Kind() != reflect.Struct {
@@ -1595,9 +1615,11 @@ func procParseHeader(response []byte) (*Header, error) {
 	// endregion: block #
 	// region: parse or cache
 
-	if _, exists := BlockCache[responseHeader.Number]; exists {
-		responseHeader = BlockCache[responseHeader.Number]
-		Lout(LOG_DEBUG, "cache hit", responseHeader.Number)
+	// if _, exists := BlockCache[responseHeader.Number]; exists {
+	// 	responseHeader = BlockCache[responseHeader.Number]
+	// 	Lout(LOG_DEBUG, "cache hit", responseHeader.Number)
+	if header, exists := procBlockCacheRead(responseHeader.Number); exists {
+		responseHeader = *header
 	} else {
 		paths := [][]string{
 			{"data", "data"},
@@ -1652,7 +1674,8 @@ func procParseHeader(response []byte) (*Header, error) {
 			return nil, errOverall
 		}
 
-		BlockCache[responseHeader.Number] = responseHeader
+		procBlockCacheWrite(responseHeader)
+		// BlockCache[responseHeader.Number] = responseHeader
 	}
 
 	// endregion: parse or cache
