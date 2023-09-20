@@ -237,8 +237,9 @@ fi
 function _commit() {
 	export FABRIC_CFG_PATH=$TC_PATH_CHANNELS
 	export CORE_PEER_LOCALMSPID="${TC_ORDERER1_STACK}MSP"
-	export CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORDERER1_DATA}/msp/tlscacerts/ca-cert.pem
 	export CORE_PEER_MSPCONFIGPATH=$TC_ORDERER1_ADMINMSP
+	export CORE_PEER_TLS_ENABLED=true
+	export CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORDERER1_DATA}/msp/tlscacerts/ca-cert.pem
 	export ORDERER_CA="${TC_ORDERER1_O1_TLSMSP}/tlscacerts/tls-0-0-0-0-${TC_COMMON1_C1_PORT}.pem"
 
 	out=$( peer channel update -f "${setArgs[update]}" -c ${setArgs[channel]} -o localhost:${TC_ORDERER1_O1_PORT} --tls --cafile $ORDERER_CA  2>&1 )
