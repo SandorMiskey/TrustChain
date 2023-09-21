@@ -41,7 +41,7 @@ var (
 	Def_FabCcConfirm   string = "qscc"
 	Def_FabCcSubmit    string = "te-food-bundles"
 	Def_FabChannel     string = "trustchain-test"
-	Def_FabEndpoint    string = "localhost:7051"
+	Def_FabEndpoint    string = "localhost:8101"
 	Def_FabFuncConfirm string = "GetBlockByTxID"
 	Def_FabFuncSubmit  string = "CreateBundle"
 	Def_FabGateway     string = "localhost"
@@ -53,7 +53,8 @@ var (
 	Def_HttpQuery      string = "/query"
 	Def_IoBrake        string = "./BRAKE"
 	Def_IoBuffer       int    = 150
-	Def_IoLoglevel     int    = 7
+	Def_IoLoglevel     int    = 5
+	Def_IoTick         int    = 1000
 	Def_IoTimestamp    bool   = false
 	Def_LatorBind      string = "127.0.0.1"
 	Def_LatorExe       string = "/usr/local/bin/configtxlator"
@@ -62,10 +63,11 @@ var (
 	Def_ProcKeyname    string = "bundle_id"
 	Def_ProcKeypos     int    = 0
 	Def_ProcKeytype    string = "string"
-	Def_ProcTry        int    = 25
+	Def_ProcTry        int    = 250
 
-	Logger *log.Logger
-	Lout   func(s ...interface{}) *[]error
+	Logger  *log.Logger
+	Lout    func(s ...interface{}) *[]error
+	Logmark int
 
 	StatStart       time.Time = time.Now()
 	StatTrs         int       = 0
@@ -137,6 +139,7 @@ const (
 	OPT_IO_INPUT             string = "in"
 	OPT_IO_OUTPUT            string = "out"
 	OPT_IO_SUFFIX            string = "suffix"
+	OPT_IO_TICK              string = "tick"
 	OPT_IO_TIMESTAMP         string = "ts"
 	OPT_LATOR_BIND           string = "lator_bind"
 	OPT_LATOR_EXE            string = "lator_exe"
@@ -247,12 +250,10 @@ func main() {
 					switch kv[0] {
 					case TC_FAB_CHANNEL:
 						Def_FabChannel = kv[1]
-					// case TC_FAB_CLIENT:
-					// 	DefaultFabClient = kv[1]
-					case TC_FAB_GW:
-						Def_FabGateway = kv[1]
-					case TC_FAB_ENDPOINT:
-						Def_FabEndpoint = kv[1]
+					// case TC_FAB_GW:
+					// 	Def_FabGateway = kv[1]
+					// case TC_FAB_ENDPOINT:
+					// 	Def_FabEndpoint = kv[1]
 					case TC_FAB_MSPID:
 						Def_FabMspId = kv[1]
 					case TC_HTTP_APIKEY:
@@ -264,18 +265,18 @@ func main() {
 						}
 					case TC_LATOR_BIND:
 						Def_LatorBind = kv[1]
-					case TC_LATOR_PORT:
-						_, err := strconv.Atoi(kv[1])
-						if err == nil {
-							Def_LatorPort, _ = strconv.Atoi(kv[1])
-						}
+					// case TC_LATOR_PORT:
+					// 	_, err := strconv.Atoi(kv[1])
+					// 	if err == nil {
+					// 		Def_LatorPort, _ = strconv.Atoi(kv[1])
+					// 	}
 					case TC_LATOR_EXE:
 						Def_LatorExe = kv[1] + "/configtxlator"
-					case TC_LOGLEVEL:
-						_, err = strconv.Atoi(kv[1])
-						if err == nil {
-							Def_IoLoglevel, _ = strconv.Atoi(kv[1])
-						}
+					// case TC_LOGLEVEL:
+					// 	_, err = strconv.Atoi(kv[1])
+					// 	if err == nil {
+					// 		Def_IoLoglevel, _ = strconv.Atoi(kv[1])
+					// 	}
 					case TC_PATH_CERT:
 						Def_FabCert = kv[1]
 					case TC_PATH_KEYSTORE:
@@ -298,6 +299,7 @@ func main() {
 	fs.Entries = map[string]cfg.Entry{
 		OPT_FAB_CHANNEL: {Desc: "[string] as channel id, default is $TC_CHANNEL1_NAME if set", Type: "string", Def: Def_FabChannel},
 		OPT_IO_LOGLEVEL: {Desc: "loglevel as syslog.Priority, default is $TC_RAWAPI_LOGLEVEL if set", Type: "int", Def: Def_IoLoglevel},
+		OPT_IO_TICK:     {Desc: "progress message at LOG_NOTICE level per this many transactions, 0 means no message", Type: "int", Def: Def_IoTick},
 		OPT_IO_OUTPUT:   {Desc: "path for output, empty means stdout", Type: "string", Def: ""},
 	}
 
@@ -314,9 +316,9 @@ func main() {
 
 	switch strings.ToLower(os.Args[1]) {
 	case MODE_COMBINED_FULL, MODE_COMBINED_SC:
-		fs.Entries[OPT_FAB_CERT] = cfg.Entry{Desc: "path to client pem certificate to populate the wallet with, default is $TC_RAWAPI_CERTPATH if set", Type: "string", Def: Def_FabCert}
 		fs.Entries[OPT_FAB_CC_CONFIRM] = cfg.Entry{Desc: "chaincode to invoke", Type: "string", Def: Def_FabCcConfirm}
 		fs.Entries[OPT_FAB_CC_SUBMIT] = cfg.Entry{Desc: "chaincode to invoke", Type: "string", Def: Def_FabCcSubmit}
+		fs.Entries[OPT_FAB_CERT] = cfg.Entry{Desc: "path to client pem certificate to populate the wallet with, default is $TC_RAWAPI_CERTPATH if set", Type: "string", Def: Def_FabCert}
 		fs.Entries[OPT_FAB_ENDPOINT_CONFIRM] = cfg.Entry{Desc: "fabric confirm endpoint, default is $TC_RAWAPI_PEERENDPOINT if set", Type: "string", Def: Def_FabEndpoint}
 		fs.Entries[OPT_FAB_ENDPOINT_SUBMIT] = cfg.Entry{Desc: "fabric invoke endpoint, default is $TC_RAWAPI_PEERENDPOINT if set", Type: "string", Def: Def_FabEndpoint}
 		fs.Entries[OPT_FAB_FUNC_CONFIRM] = cfg.Entry{Desc: "function of -" + OPT_FAB_CC_CONFIRM, Type: "string", Def: Def_FabFuncConfirm}
@@ -477,6 +479,7 @@ func main() {
 	_, _ = Logger.NewCh(log.ChConfig{Severity: &level})
 	defer Logger.Close()
 	Lout = Logger.Out
+	Logmark = config.Entries[OPT_IO_TICK].Value.(int)
 
 	// endregion: init logger
 	// region: precompile txid regexp
@@ -498,14 +501,14 @@ func main() {
 	statEnd := time.Now()
 	statElapsed := time.Since(StatStart)
 
-	Lout(LOG_INFO, "start time:   ", StatStart.Format(time.RFC3339))
-	Lout(LOG_INFO, "end time:     ", statEnd.Format(time.RFC3339))
-	Lout(LOG_INFO, "elapsed time: ", statElapsed.Truncate(time.Second).String())
-	Lout(LOG_INFO, "cache writes: ", StatCacheWrites)
-	Lout(LOG_INFO, "cache hits:   ", StatCacheHists)
-	Lout(LOG_INFO, "trx per hour: ", float64(StatTrs)/statElapsed.Hours())
-	Lout(LOG_INFO, "trx per min:  ", float64(StatTrs)/statElapsed.Minutes())
-	Lout(LOG_INFO, "trx per sec:  ", float64(StatTrs)/statElapsed.Seconds())
+	Lout(LOG_NOTICE, "start time:   ", StatStart.Format(time.RFC3339))
+	Lout(LOG_NOTICE, "end time:     ", statEnd.Format(time.RFC3339))
+	Lout(LOG_NOTICE, "elapsed time: ", statElapsed.Truncate(time.Second).String())
+	Lout(LOG_NOTICE, "cache writes: ", StatCacheWrites)
+	Lout(LOG_NOTICE, "cache hits:   ", StatCacheHists)
+	Lout(LOG_NOTICE, "trx per hour: ", float64(StatTrs)/statElapsed.Hours())
+	Lout(LOG_NOTICE, "trx per min:  ", float64(StatTrs)/statElapsed.Minutes())
+	Lout(LOG_NOTICE, "trx per sec:  ", float64(StatTrs)/statElapsed.Seconds())
 
 	// endregion: stats
 
@@ -1353,6 +1356,13 @@ func helperProgress(totalTransactions int) string {
 
 	// format and return the result as a string
 	formattedString := fmt.Sprintf("progress: %6.2f%% %7d/%-7d elapsed: %s remaining: %s tx/s: %6.2f", percentage, StatTrs, totalTransactions, elapsedTimeFormatted, remainingTimeFormatted, transactionsPerSecond)
+
+	// check
+	if Logmark != 0 {
+		if StatTrs%Logmark == 0 {
+			Lout(LOG_NOTICE, formattedString)
+		}
+	}
 
 	return formattedString
 }
