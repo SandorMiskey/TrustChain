@@ -1172,7 +1172,7 @@ func fabricConfirm(config *cfg.Config, client *fabric.Client, bundle *PSV) error
 			if err != nil {
 				bundle.Response = err.Error()
 				bundle.Status = STATUS_CONFIRM_ERROR_DECODE
-				responseErr.Err = err
+				responseErr = &fabric.ResponseError{Err: err}
 				Lout(LOG_NOTICE, fmt.Sprintf("unsuccessful protobuf decode %d/%d", cnt, try))
 				continue
 			}
@@ -1186,7 +1186,7 @@ func fabricConfirm(config *cfg.Config, client *fabric.Client, bundle *PSV) error
 		if err != nil {
 			bundle.Response = err.Error()
 			bundle.Status = STATUS_CONFIRM_ERROR_HEADER
-			responseErr.Err = err
+			responseErr = &fabric.ResponseError{Err: err}
 			Lout(LOG_NOTICE, fmt.Sprintf("unable to parse header %d/%d", cnt, try))
 			continue
 		}
