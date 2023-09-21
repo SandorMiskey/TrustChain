@@ -652,7 +652,7 @@ func modeCombined(config *cfg.Config) {
 
 					err = fabricConfirm(config, clientConfirm, &bundle)
 					if err != nil {
-						Lout(LOG_NOTICE, helperProgress(count), err)
+						Lout(LOG_ERR, helperProgress(count), err)
 					} else {
 						Lout(LOG_INFO, helperProgress(count), "confirmed", fmt.Sprintf("%20s", bundle.Key), file, output.Name())
 					}
@@ -1143,51 +1143,65 @@ func fabricConfirm(config *cfg.Config, client *fabric.Client, bundle *PSV) error
 	Lout(LOG_DEBUG, "fabric query request", request)
 
 	// endregion: request
-	// region: response
+	// region: tries
 
 	var response *fabric.Response
 	var responseErr *fabric.ResponseError
+	var headerStruct *Header
 
 	for cnt := 1; cnt <= try; cnt++ {
+
+		// region: response
+
 		request.Args = []string{channel, bundle.Txid}
 		response, responseErr = fabric.Query(client, &request)
-		if responseErr == nil {
-			break
+		if responseErr != nil {
+			bundle.Response = responseErr.Error()
+			bundle.Status = STATUS_CONFIRM_ERROR_QUERY
+			Lout(LOG_NOTICE, fmt.Sprintf("unsuccessful confirm attempt %d/%d", cnt, try))
+			continue
 		}
-		Lout(LOG_NOTICE, fmt.Sprintf("unsuccessful confirm attempt %d/%d", cnt, try))
+
+		// endregion: response
+		// region: proto decode
+
+		if len(proto) != 0 {
+			Lout(LOG_DEBUG, "protobuf format", proto)
+
+			block, err := client.Lator.Exe(response.Result, proto)
+			if err != nil {
+				bundle.Response = err.Error()
+				bundle.Status = STATUS_CONFIRM_ERROR_DECODE
+				responseErr.Err = err
+				Lout(LOG_NOTICE, fmt.Sprintf("unsuccessful protobuf decode %d/%d", cnt, try))
+				continue
+			}
+			response.Result = block
+		}
+
+		// endregion: proto decode
+		// region: parse header
+
+		header, err := procParseHeader(response.Result)
+		if err != nil {
+			bundle.Response = err.Error()
+			bundle.Status = STATUS_CONFIRM_ERROR_HEADER
+			responseErr.Err = err
+			Lout(LOG_NOTICE, fmt.Sprintf("unable to parse header %d/%d", cnt, try))
+			continue
+		}
+
+		headerStruct = header
+		break
+
+		// endregion: parse header
+
 	}
 	if responseErr != nil {
-		bundle.Response = responseErr.Error()
-		bundle.Status = STATUS_CONFIRM_ERROR_QUERY
 		return responseErr
 	}
 
-	// endregion: response
-	// region: proto decode
-
-	if len(proto) != 0 {
-		Lout(LOG_DEBUG, "protobuf format", proto)
-
-		block, err := client.Lator.Exe(response.Result, proto)
-		if err != nil {
-			bundle.Response = err.Error()
-			bundle.Status = STATUS_CONFIRM_ERROR_DECODE
-			return err
-		}
-		response.Result = block
-	}
-
-	// endregion: proto decode
-	// region: parse header
-
-	headerStruct, err := procParseHeader(response.Result)
-	if err != nil {
-		bundle.Response = err.Error()
-		bundle.Status = STATUS_CONFIRM_ERROR_HEADER
-		return err
-	}
-
-	// endregion: parse header
+	// endregion: tries
 	// region: out
 
 	headerBytes, err := json.Marshal(headerStruct)
@@ -1625,9 +1639,6 @@ func procParseHeader(response []byte) (*Header, error) {
 	// endregion: block #
 	// region: parse or cache
 
-	// if _, exists := BlockCache[responseHeader.Number]; exists {
-	// 	responseHeader = BlockCache[responseHeader.Number]
-	// 	Lout(LOG_DEBUG, "cache hit", responseHeader.Number)
 	if header, exists := procBlockCacheRead(responseHeader.Number); exists {
 		responseHeader = *header
 	} else {
