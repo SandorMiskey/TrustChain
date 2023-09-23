@@ -12,12 +12,12 @@ type Client struct {
 	CertPath     string `json:"CertPath"`
 	GatewayPeer  string `json:"GatewayPeer"`
 	KeyPath      string `json:"KeyPath"`
-	Lator        *Lator `json:"-"`
 	MSPID        string `json:"MSPID"`
 	PeerEndpoint string `json:"PeerEndpoint"`
 	TLSCertPath  string `json:"TLSCertPath"`
 
-	gateway *client.Gateway `json:"-"`
+	Lator   *Lator          `json:"-"`
+	Gateway *client.Gateway `json:"-"`
 }
 
 type LatorExe func([]byte, string) ([]byte, error)

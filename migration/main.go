@@ -118,12 +118,14 @@ const (
 	MODE_SUBMITBATCH_SC     string = "sb"
 
 	OPT_FAB_CERT             string = "cert"
+	OPT_FAB_CC               string = "cc"
 	OPT_FAB_CC_CONFIRM       string = "cc_confirm"
 	OPT_FAB_CC_SUBMIT        string = "cc_submit"
 	OPT_FAB_CHANNEL          string = "ch"
 	OPT_FAB_ENDPOINT         string = "endpoint"
 	OPT_FAB_ENDPOINT_CONFIRM string = "endpoint_confirm"
 	OPT_FAB_ENDPOINT_SUBMIT  string = "endpoint_submit"
+	OPT_FAB_FUNC             string = "func"
 	OPT_FAB_FUNC_CONFIRM     string = "func_confirm"
 	OPT_FAB_FUNC_SUBMIT      string = "func_submit"
 	OPT_FAB_GATEWAY          string = "gw"
@@ -174,7 +176,7 @@ const (
 	TC_FAB_MSPID     string = "TC_MIG_FAB_MSPID"
 	TC_HTTP_PORT     string = "TC_MIG_HTTP_PORT"
 	TC_HTTP_APIKEY   string = "TC_MIG_HTTP_APIKEY"
-	TC_LATOR_BIN     string = "TC_MIG_LATOR_BIN"
+	TC_LATOR_EXE     string = "TC_MIG_LATOR_EXE"
 	TC_LATOR_BIND    string = "TC_MIG_LATOR_BIND"
 	TC_LATOR_PORT    string = "TC_MIG_LATOR_PORT"
 	TC_LOGLEVEL      string = "TC_MIG_LOGLEVEL"
@@ -269,7 +271,7 @@ func main() {
 						if err == nil {
 							Def_LatorPort, _ = strconv.Atoi(kv[1])
 						}
-					case TC_LATOR_BIN:
+					case TC_LATOR_EXE:
 						Def_LatorExe = kv[1]
 					case TC_LOGLEVEL:
 						_, err = strconv.Atoi(kv[1])
@@ -333,11 +335,11 @@ func main() {
 		fs.Entries[OPT_IO_BUFFER] = cfg.Entry{Desc: "fills up the temporary buffer with this many transactions, which first get submitted, then confirmed, should be large enough for the submited transactions to be finalized by the time of confirmation begins", Type: "int", Def: Def_IoBuffer}
 		fs.Entries[OPT_IO_INPUT] = cfg.Entry{Desc: ", separated list of files, which contain the output of previous submit attempts, empty causes panic", Type: "string", Def: ""}
 		fs.Entries[OPT_IO_SUFFIX] = cfg.Entry{Desc: "suffix with which the name of the processed file is appended as output (-" + OPT_IO_OUTPUT + " is ignored if supplied)", Type: "string", Def: ""}
-		fs.Entries[OPT_IO_TIMESTAMP] = cfg.Entry{Desc: "prefixes the file with a timestamp (YYMMDD_HHMM_) if true, only valid if the -" + OPT_IO_SUFFIX + "suffix is also set", Type: "bool", Def: Def_IoTimestamp}
+		fs.Entries[OPT_IO_TIMESTAMP] = cfg.Entry{Desc: "prefixes the file with a timestamp (YYMMDD_HHMM_) if true, only valid if the -" + OPT_IO_SUFFIX + " is also set", Type: "bool", Def: Def_IoTimestamp}
 
-		fs.Entries[OPT_LATOR_BIND] = cfg.Entry{Desc: "address to bind configtxlator's rest api to, default is TC_RAWAPI_LATOR_BIND if set", Type: "string", Def: Def_LatorBind}
-		fs.Entries[OPT_LATOR_EXE] = cfg.Entry{Desc: "path to configtxlator (if empty, will dump protobuf as base64 encoded string), default is $TC_PATH_BIN/configtxlator if set", Type: "string", Def: Def_LatorExe}
-		fs.Entries[OPT_LATOR_PORT] = cfg.Entry{Desc: "port where configtxlator will listen, default is $TC_RAWAPI_LATOR_PORT if set, 0 means random", Type: "int", Def: Def_LatorPort}
+		fs.Entries[OPT_LATOR_BIND] = cfg.Entry{Desc: "address to bind configtxlator's rest api to, default is $" + TC_LATOR_BIND + " if set", Type: "string", Def: Def_LatorBind}
+		fs.Entries[OPT_LATOR_EXE] = cfg.Entry{Desc: "path to configtxlator (if empty, will dump protobuf as base64 encoded string), default is $" + TC_LATOR_EXE + " if set", Type: "string", Def: Def_LatorExe}
+		fs.Entries[OPT_LATOR_PORT] = cfg.Entry{Desc: "port where configtxlator will listen, default is $" + TC_LATOR_PORT + " if set, 0 means random", Type: "int", Def: Def_LatorPort}
 		fs.Entries[OPT_LATOR_PROTO] = cfg.Entry{Desc: "protobuf format, configtxlator will be used if set", Type: "string", Def: Def_LatorProto}
 
 		fs.Entries[OPT_PROC_KEYNAME] = cfg.Entry{Desc: "the name of the field containing the unique identifier", Type: "string", Def: Def_ProcKeyname}
@@ -354,9 +356,9 @@ func main() {
 		fs.Entries[OPT_FAB_GATEWAY] = cfg.Entry{Desc: "default gateway, default is $" + TC_FAB_GW + " if set", Type: "string", Def: Def_FabGateway}
 		fs.Entries[OPT_IO_INPUT] = cfg.Entry{Desc: "file, which contains the output of previous submit attempt, empty means stdin", Type: "string", Def: ""}
 		fs.Entries[OPT_FAB_KEYSTORE] = cfg.Entry{Desc: "path to client keystore, default is $" + TC_PATH_KEYSTORE + " if set", Type: "string", Def: Def_FabKeystore}
-		fs.Entries[OPT_LATOR_BIND] = cfg.Entry{Desc: "address to bind configtxlator's rest api to, default is TC_RAWAPI_LATOR_BIND if set", Type: "string", Def: Def_LatorBind}
-		fs.Entries[OPT_LATOR_EXE] = cfg.Entry{Desc: "path to configtxlator (if empty, will dump protobuf as base64 encoded string), default is $TC_PATH_BIN/configtxlator if set", Type: "string", Def: Def_LatorExe}
-		fs.Entries[OPT_LATOR_PORT] = cfg.Entry{Desc: "port where configtxlator will listen, default is $TC_RAWAPI_LATOR_PORT if set, 0 means random", Type: "int", Def: Def_LatorPort}
+		fs.Entries[OPT_LATOR_BIND] = cfg.Entry{Desc: "address to bind configtxlator's rest api to, default is " + TC_LATOR_BIND + " if set", Type: "string", Def: Def_LatorBind}
+		fs.Entries[OPT_LATOR_EXE] = cfg.Entry{Desc: "path to configtxlator (if empty, will dump protobuf as base64 encoded string), default is $" + TC_LATOR_EXE + ", if set", Type: "string", Def: Def_LatorExe}
+		fs.Entries[OPT_LATOR_PORT] = cfg.Entry{Desc: "port where configtxlator will listen, default is $" + TC_LATOR_PORT + " if set, 0 means random", Type: "int", Def: Def_LatorPort}
 		fs.Entries[OPT_LATOR_PROTO] = cfg.Entry{Desc: "protobuf format, configtxlator will be used if set", Type: "string", Def: Def_LatorProto}
 		fs.Entries[OPT_FAB_MSPID] = cfg.Entry{Desc: "fabric MSPID, default is $" + TC_FAB_MSPID + " if set", Type: "string", Def: Def_FabMspId}
 		fs.Entries[OPT_PROC_TRY] = cfg.Entry{Desc: "number of invoke tries", Type: "int", Def: Def_ProcTry}
@@ -372,9 +374,9 @@ func main() {
 		fs.Entries[OPT_FAB_GATEWAY] = cfg.Entry{Desc: "default gateway, default is $" + TC_FAB_GW + " if set", Type: "string", Def: Def_FabGateway}
 		fs.Entries[OPT_IO_INPUT] = cfg.Entry{Desc: ", separated list of files, which contain the output of previous submit attempts, empty causes panic", Type: "string", Def: ""}
 		fs.Entries[OPT_FAB_KEYSTORE] = cfg.Entry{Desc: "path to client keystore, default is $" + TC_PATH_KEYSTORE + " if set", Type: "string", Def: Def_FabKeystore}
-		fs.Entries[OPT_LATOR_BIND] = cfg.Entry{Desc: "address to bind configtxlator's rest api to, default is TC_RAWAPI_LATOR_BIND if set", Type: "string", Def: Def_LatorBind}
-		fs.Entries[OPT_LATOR_EXE] = cfg.Entry{Desc: "path to configtxlator (if empty, will dump protobuf as base64 encoded string), default is $TC_PATH_BIN/configtxlator if set", Type: "string", Def: Def_LatorExe}
-		fs.Entries[OPT_LATOR_PORT] = cfg.Entry{Desc: "port where configtxlator will listen, default is $TC_RAWAPI_LATOR_PORT if set, 0 means random", Type: "int", Def: Def_LatorPort}
+		fs.Entries[OPT_LATOR_BIND] = cfg.Entry{Desc: "address to bind configtxlator's rest api to, default is " + TC_LATOR_BIND + " if set", Type: "string", Def: Def_LatorBind}
+		fs.Entries[OPT_LATOR_EXE] = cfg.Entry{Desc: "path to configtxlator (if empty, will dump protobuf as base64 encoded string), default is $" + TC_LATOR_EXE + ", if set", Type: "string", Def: Def_LatorExe}
+		fs.Entries[OPT_LATOR_PORT] = cfg.Entry{Desc: "port where configtxlator will listen, default is $" + TC_LATOR_PORT + " if set, 0 means random", Type: "int", Def: Def_LatorPort}
 		fs.Entries[OPT_LATOR_PROTO] = cfg.Entry{Desc: "protobuf format, configtxlator will be used if set", Type: "string", Def: Def_LatorProto}
 		fs.Entries[OPT_FAB_MSPID] = cfg.Entry{Desc: "fabric MSPID, default is $" + TC_FAB_MSPID + " if set", Type: "string", Def: Def_FabMspId}
 		fs.Entries[OPT_IO_SUFFIX] = cfg.Entry{Desc: "suffix with which the name of the processed file is appended as output (-" + OPT_IO_OUTPUT + " is ignored if supplied)", Type: "string", Def: ""}
@@ -383,10 +385,10 @@ func main() {
 
 		modeExec = modeConfirmBatch
 	case MODE_CONFIRMRAWAPI_FULL, MODE_CONFIRMRAWAPI_SC:
-		fs.Entries[OPT_HTTP_APIKEY] = cfg.Entry{Desc: "api key, skip if not set, default is $TC_HTTP_API_KEY if set", Type: "string", Def: Def_HttpApikey}
+		fs.Entries[OPT_HTTP_APIKEY] = cfg.Entry{Desc: "api key, skip if not set, default is $" + TC_HTTP_APIKEY + ", if set", Type: "string", Def: Def_HttpApikey}
 		fs.Entries[OPT_FAB_CC_CONFIRM] = cfg.Entry{Desc: "chaincode to query", Type: "string", Def: "qscc"}
 		fs.Entries[OPT_FAB_FUNC_CONFIRM] = cfg.Entry{Desc: "function of -" + OPT_FAB_CC_CONFIRM, Type: "string", Def: Def_FabFuncConfirm}
-		fs.Entries[OPT_HTTP_HOST] = cfg.Entry{Desc: "api host in http(s)://host:port format, default port is $TC_RAWAPI_HTTP_PORT if set", Type: "string", Def: "http://localhost:" + strconv.Itoa(Def_HttpPort)}
+		fs.Entries[OPT_HTTP_HOST] = cfg.Entry{Desc: "api host in http(s)://host:port format, default port is $" + TC_HTTP_PORT + " if set", Type: "string", Def: "http://localhost:" + strconv.Itoa(Def_HttpPort)}
 		fs.Entries[OPT_IO_INPUT] = cfg.Entry{Desc: "| separated file with args for query, empty means stdin", Type: "string", Def: ""}
 		fs.Entries[OPT_HTTP_QUERY] = cfg.Entry{Desc: "query endpoint", Type: "string", Def: Def_HttpQuery}
 
@@ -556,7 +558,6 @@ func modeCombined(config *cfg.Config) {
 	if err != nil {
 		helperPanic("cannot init fabric gw", err.Error())
 	}
-	Lout(LOG_DEBUG, "fabric confirm client", clientConfirm)
 
 	// endregion: client
 	// region: configtxlator

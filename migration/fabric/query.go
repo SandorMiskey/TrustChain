@@ -2,7 +2,9 @@ package fabric
 
 func Query(c *Client, r *Request) (*Response, *ResponseError) {
 
-	network := c.gateway.GetNetwork(r.Channel)
+	// region: fetch
+
+	network := c.Gateway.GetNetwork(r.Channel)
 	contract := network.GetContract(r.Chaincode)
 
 	result, err := contract.EvaluateTransaction(r.Function, r.Args...)

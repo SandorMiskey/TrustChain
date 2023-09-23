@@ -8,7 +8,7 @@ func Invoke(c *Client, r *Request) (*Response, *ResponseError) {
 
 	// region: proposal
 
-	network := c.gateway.GetNetwork(r.Channel)
+	network := c.Gateway.GetNetwork(r.Channel)
 	contract := network.GetContract(r.Chaincode)
 	proposal, err := contract.NewProposal(r.Function, client.WithArguments(r.Args...))
 	if err != nil {

@@ -33,7 +33,7 @@ func (c *Client) Init() error {
 		return err
 	}
 
-	gateway, err := client.Connect(
+	c.Gateway, err = client.Connect(
 		id,
 		client.WithSign(sign),
 		client.WithClientConnection(clientConnection),
@@ -46,7 +46,6 @@ func (c *Client) Init() error {
 		return err
 	}
 
-	c.gateway = gateway
 	return nil
 }
 
