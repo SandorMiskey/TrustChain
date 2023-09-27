@@ -421,10 +421,11 @@ func (t *Chaincode) CreateBundle(ctx contractapi.TransactionContextInterface, bu
 	// region: bundle out
 
 	now := time.Now()
+	stub := ctx.GetStub()
 
 	bundleOut := bundleIn
 	bundleOut.DocType = "bundle"
-	bundleOut.TxID = ctx.GetStub().GetTxID()
+	bundleOut.TxID = stub.GetTxID()
 	// bundleOut.TxTimestamp = now.Format(time.RFC3339)
 	bundleOut.TxTimestamp = now.Format("2006-01-02T15:04:00Z")
 	bundleOut.UpdateTxID = nil
@@ -442,13 +443,18 @@ func (t *Chaincode) CreateBundle(ctx contractapi.TransactionContextInterface, bu
 	}
 	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("bundle marshaled -> %#v", bundleOut))
 
-	err = ctx.GetStub().PutState(bundleOut.BundleID, bundleBytes)
+	err = stub.PutState(bundleOut.BundleID, bundleBytes)
 	if err != nil {
 		msg := fmt.Errorf("failed to put bundle: %s", err)
 		Logger.Out(log.LOG_ERR, msg)
 		return nil, msg
 	}
 	Logger.Out(log.LOG_DEBUG, "world state updated with no errors")
+
+	err = stub.SetEvent("CreateBundle", bundleBytes)
+	if err != nil {
+		return nil, err
+	}
 
 	return &bundleOut, nil
 
