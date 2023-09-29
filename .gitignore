@@ -3,10 +3,10 @@ chaincode/te-food-bundles/vendor
 doc/fabric-samples
 doc/fabric-samples.tgz
 doc/legacy_to_port/SASC.tgz
-listener/main
-listener/data
+migration/checkpoint
 migration/data
 migration/main
+migration2/checkpoint
 migration2/data
 migration2/main
 rawapi/main

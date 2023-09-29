@@ -36,11 +36,19 @@ func modeListener(c *cfg.Config) {
 	// endregion: fabric
 	// region: checkpoint, ctx
 
-	// TODO: load/save checkpointer
-
-	checkpointer := new(client.InMemoryCheckpointer)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
+
+	// checkpointer := new(client.FileCheckpointer)
+	var checkpointer *client.FileCheckpointer
+	if len(c.Entries[OPT_IO_CHECKPOINT].Value.(string)) > 0 {
+		ch, err := client.NewFileCheckpointer(c.Entries[OPT_IO_CHECKPOINT].Value.(string))
+		if err != nil {
+			helperPanic(err.Error())
+		}
+		checkpointer = ch
+		checkpointer.Sync()
+	}
 
 	// endregion: checkpoint, ctx
 	// region: prepare for sigint
@@ -66,7 +74,7 @@ func modeListener(c *cfg.Config) {
 		blockEvents, err := network.BlockEvents(
 			ctx,
 			// client.WithStartBlock(3605), // ignored if the checkpointer has checkpoint state
-			// client.WithCheckpoint(checkpointer),
+			client.WithCheckpoint(checkpointer),
 		)
 		if err != nil {
 			helperPanic(err.Error())
@@ -116,7 +124,7 @@ func modeListener(c *cfg.Config) {
 					PreviousHash: previous_hash,
 					Timestamp:    time.Now().Format(time.RFC3339),
 				})
-				checkpointer.CheckpointBlock(event.GetHeader().GetNumber())
+				// checkpointer.CheckpointBlock(event.GetHeader().GetNumber())
 				Lout(LOG_DEBUG, "block event", blockCnt, string(header))
 			}
 		}
@@ -127,7 +135,6 @@ func modeListener(c *cfg.Config) {
 
 	chCache := make(map[string]*PSV)
 	chCacheMutex := sync.RWMutex{}
-	chCnt := 0
 	chErr := 0
 
 	wg.Add(1)
@@ -139,7 +146,7 @@ func modeListener(c *cfg.Config) {
 			ctx,
 			c.Entries[OPT_FAB_CC].Value.(string),
 			// client.WithStartBlock(3605), // ignored if the checkpointer has checkpoint state
-			// client.WithCheckpoint(checkpointer),
+			client.WithCheckpoint(checkpointer),
 		)
 		if err != nil {
 			helperPanic(err.Error())
@@ -149,10 +156,9 @@ func modeListener(c *cfg.Config) {
 			select {
 			case <-cleanupCh:
 				Lout(LOG_NOTICE, "chaincode event listener is closing")
-
 				return
 			case event := <-chEvents:
-				chCnt++
+				StatTrs++
 
 				var tx_id string
 				var bundle_id string
@@ -184,9 +190,9 @@ func modeListener(c *cfg.Config) {
 					Payload:  []string{string(event.Payload)},
 					Response: strconv.FormatUint(event.BlockNumber, 10),
 				}
+				Lout(LOG_DEBUG, "chaincode event", StatTrs, chCache[tx_id])
 				chCacheMutex.Unlock()
 				checkpointer.CheckpointChaincodeEvent(event)
-				Lout(LOG_DEBUG, "chaincode event", chCnt, chCache[tx_id])
 			}
 		}
 	}()
@@ -285,15 +291,16 @@ func modeListener(c *cfg.Config) {
 		go func() {
 			for {
 				time.Sleep(interval)
-				Lout(LOG_NOTICE, "=== listener status ===")
+				Lout(LOG_NOTICE, "=== >>> listener status <<< ===")
+				Lout(LOG_NOTICE, "event listener status:")
 
 				Lout(LOG_NOTICE, "cached block headers:             ", blockCnt)
 				Lout(LOG_NOTICE, "purged block headers:             ", blockCnt-len(BlockCache))
 				Lout(LOG_NOTICE, "length of block cache:            ", len(BlockCache))
 				Lout(LOG_NOTICE, "block event caching errors:       ", blockErr)
 
-				Lout(LOG_NOTICE, "all buffered chaincode events:    ", chCnt)
-				Lout(LOG_NOTICE, "purged chaincode events:          ", chCnt-len(chCache))
+				Lout(LOG_NOTICE, "all buffered chaincode events:    ", StatTrs)
+				Lout(LOG_NOTICE, "purged chaincode events:          ", StatTrs-len(chCache))
 				Lout(LOG_NOTICE, "length of chaincode event buffer: ", len(chCache))
 				Lout(LOG_NOTICE, "chaincode event buffering errors: ", chErr)
 			}
@@ -309,6 +316,10 @@ func modeListener(c *cfg.Config) {
 	wg.Wait()
 	for tx_id := range chCache {
 		ioOutputAppend(output, chCache[tx_id], procCompilePSV)
+	}
+	if checkpointer != nil {
+		checkpointer.Sync()
+		checkpointer.Close()
 	}
 	if c.Entries[OPT_IO_TIMESTAMP].Value.(bool) {
 		output.Close()

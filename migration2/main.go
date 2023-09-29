@@ -42,8 +42,9 @@ var (
 	// Def_HttpPort       int    = 5088
 	// Def_HttpQuery      string = "/query"
 	// Def_IoBrake        string = "./BRAKE"
-	Def_IoBuffer   int = 150
-	Def_IoLoglevel int = 6
+	Def_IoBuffer     int    = 150
+	Def_IoCheckpoint string = "checkpoint"
+	Def_IoLoglevel   int    = 6
 	// Def_IoTick         int    = 1000
 	Def_IoTimestamp bool = false
 	// Def_LatorBind  string = "127.0.0.1"
@@ -60,10 +61,10 @@ var (
 	Lout   func(s ...interface{}) *[]error
 	// Logmark int
 
-	// StatStart       time.Time = time.Now()
-	// StatTrs         int       = 0
-	StatCacheHists  int = 0
-	StatCacheWrites int = 0
+	StatStart       time.Time = time.Now()
+	StatTrs         int       = 0
+	StatCacheHists  int       = 0
+	StatCacheWrites int       = 0
 
 	TxRegexp *regexp.Regexp
 )
@@ -130,8 +131,9 @@ const (
 	OPT_FAB_TLSCERT  string = "tlscert"
 	// OPT_IO_BATCH             string = "batch"
 	// OPT_IO_BRAKE             string = "brake"
-	OPT_IO_BUFFER   string = "buffer"
-	OPT_IO_LOGLEVEL string = "loglevel"
+	OPT_IO_CHECKPOINT string = "checkpoint"
+	OPT_IO_BUFFER     string = "buffer"
+	OPT_IO_LOGLEVEL   string = "loglevel"
 	// OPT_IO_INPUT             string = "in"
 	OPT_IO_OUTPUT string = "out"
 	// OPT_IO_SUFFIX            string = "suffix"
@@ -329,6 +331,7 @@ func main() {
 		fs.Entries[OPT_FAB_MSPID] = cfg.Entry{Desc: "fabric MSPID, default is $" + TC_FAB_MSPID + " if set", Type: "string", Def: Def_FabMspId}
 		fs.Entries[OPT_FAB_TLSCERT] = cfg.Entry{Desc: "path to TLS cert, default is $" + TC_PATH_CERT + " if set", Type: "string", Def: Def_FabTlscert}
 
+		fs.Entries[OPT_IO_CHECKPOINT] = cfg.Entry{Desc: "file checkpointer, empty means next block", Type: "string", Def: Def_IoCheckpoint}
 		fs.Entries[OPT_IO_BUFFER] = cfg.Entry{Desc: "maximum block cache size", Type: "int", Def: Def_IoBuffer}
 		fs.Entries[OPT_IO_TIMESTAMP] = cfg.Entry{Desc: "prefixes the -" + OPT_IO_OUTPUT + " with a timestamp (YYMMDD_HHMM_) if true", Type: "bool", Def: Def_IoTimestamp}
 
@@ -385,17 +388,17 @@ func main() {
 	// endregion: exec mode
 	// region: stats
 
-	// statEnd := time.Now()
-	// statElapsed := time.Since(StatStart)
+	statEnd := time.Now()
+	statElapsed := time.Since(StatStart)
 
-	// Lout(LOG_NOTICE, "start time:   ", StatStart.Format(time.RFC3339))
-	// Lout(LOG_NOTICE, "end time:     ", statEnd.Format(time.RFC3339))
-	// Lout(LOG_NOTICE, "elapsed time: ", statElapsed.Truncate(time.Second).String())
-	// Lout(LOG_NOTICE, "cache writes: ", StatCacheWrites)
-	// Lout(LOG_NOTICE, "cache hits:   ", StatCacheHists)
-	// Lout(LOG_NOTICE, "trx per hour: ", float64(StatTrs)/statElapsed.Hours())
-	// Lout(LOG_NOTICE, "trx per min:  ", float64(StatTrs)/statElapsed.Minutes())
-	// Lout(LOG_NOTICE, "trx per sec:  ", float64(StatTrs)/statElapsed.Seconds())
+	Lout(LOG_NOTICE, "start time:   ", StatStart.Format(time.RFC3339))
+	Lout(LOG_NOTICE, "end time:     ", statEnd.Format(time.RFC3339))
+	Lout(LOG_NOTICE, "elapsed time: ", statElapsed.Truncate(time.Second).String())
+	Lout(LOG_NOTICE, "cache writes: ", StatCacheWrites)
+	Lout(LOG_NOTICE, "cache hits:   ", StatCacheHists)
+	Lout(LOG_NOTICE, "trx per hour: ", float64(StatTrs)/statElapsed.Hours())
+	Lout(LOG_NOTICE, "trx per min:  ", float64(StatTrs)/statElapsed.Minutes())
+	Lout(LOG_NOTICE, "trx per sec:  ", float64(StatTrs)/statElapsed.Seconds())
 
 	// endregion: stats
 
