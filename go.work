@@ -4,5 +4,6 @@ use (
 	./chaincode/basic
 	./chaincode/te-food-bundles
 	./migration
+	./migration2
 	./rawapi
 )
