@@ -5,6 +5,7 @@ import (
 
 	"github.com/hyperledger/fabric-gateway/pkg/client"
 	"github.com/valyala/fasthttp"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 )
 
@@ -16,8 +17,9 @@ type Client struct {
 	PeerEndpoint string `json:"PeerEndpoint"`
 	TLSCertPath  string `json:"TLSCertPath"`
 
-	Lator   *Lator          `json:"-"`
-	Gateway *client.Gateway `json:"-"`
+	Lator      *Lator           `json:"-"`
+	Gateway    *client.Gateway  `json:"-"`
+	Connection *grpc.ClientConn `json:"-"`
 }
 
 type LatorExe func([]byte, string) ([]byte, error)

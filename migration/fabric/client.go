@@ -33,6 +33,7 @@ func (c *Client) Init() error {
 		return err
 	}
 
+	c.Connection = clientConnection
 	c.Gateway, err = client.Connect(
 		id,
 		client.WithSign(sign),
@@ -50,6 +51,14 @@ func (c *Client) Init() error {
 }
 
 // endregion: init client
+// region: close
+
+func (c *Client) Close() {
+	defer c.Connection.Close()
+	defer c.Gateway.Close()
+}
+
+// endregion: close
 // region: helpers
 
 // newGrpcConnection creates a gRPC connection to the Gateway server.
