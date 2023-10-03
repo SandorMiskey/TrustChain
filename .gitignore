@@ -9,6 +9,7 @@ migration/main
 migration2/checkpoint
 migration2/data
 migration2/main
+proto/
 rawapi/main
 rawapi/vendor
 scripts/.env.sh
