@@ -2,6 +2,10 @@
 
 ## now
 
+* configtx 20 -> 100
+
+## next
+
 * backup
 * delete legacy
   * Contabo
@@ -9,7 +13,7 @@
   * Vultr
   * OVH
 
-## later
+## backlog
 
 * Rawapi:
   * rewrite: use migration/fabric

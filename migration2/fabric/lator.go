@@ -1,6 +1,18 @@
 package fabric
 
-/*
+import (
+	"encoding/base64"
+	"fmt"
+	"io"
+	"math/rand"
+	"net"
+	"os/exec"
+	"strconv"
+	"time"
+
+	"github.com/valyala/fasthttp"
+)
+
 func (l *Lator) Init() error {
 
 	// region: rest api
@@ -158,4 +170,3 @@ func (l *Lator) exeDump(pb []byte, typ string) ([]byte, error) {
 	// encodedData = append([]byte{'"'}, append(encodedData, '"')...)
 	return encodedData, nil
 }
-*/

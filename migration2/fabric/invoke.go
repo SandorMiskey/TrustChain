@@ -4,13 +4,11 @@ import (
 	"github.com/hyperledger/fabric-gateway/pkg/client"
 )
 
-func Invoke(c *Client, r *Request) (*Response, *ResponseError) {
+func Invoke(r *Request) (*Response, *ResponseError) {
 
 	// region: proposal
 
-	network := c.Gateway.GetNetwork(r.Channel)
-	contract := network.GetContract(r.Chaincode)
-	proposal, err := contract.NewProposal(r.Function, client.WithArguments(r.Args...))
+	proposal, err := r.Contract.NewProposal(r.Function, client.WithArguments(r.Args...))
 	if err != nil {
 		return nil, Error(err)
 	}
@@ -45,10 +43,6 @@ func Invoke(c *Client, r *Request) (*Response, *ResponseError) {
 
 }
 
-func (c *Client) Invoke(r *Request) (*Response, *ResponseError) {
-	return Invoke(c, r)
-}
-
-func (r *Request) Invoke(c *Client) (*Response, *ResponseError) {
-	return Invoke(c, r)
+func (r *Request) Invoke() (*Response, *ResponseError) {
+	return Invoke(r)
 }

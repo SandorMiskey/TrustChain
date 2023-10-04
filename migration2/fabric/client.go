@@ -30,7 +30,7 @@ var (
 
 func (c *Client) Init() (err error) {
 
-	c.Connection, err = c.newGrpcConnection()
+	c.connection, err = c.newGrpcConnection()
 	if err != nil {
 		return err
 	}
@@ -46,7 +46,7 @@ func (c *Client) Init() (err error) {
 	c.Gateway, err = client.Connect(
 		id,
 		client.WithSign(sign),
-		client.WithClientConnection(c.Connection),
+		client.WithClientConnection(c.connection),
 		client.WithEvaluateTimeout(EvaluateTimeout),
 		client.WithEndorseTimeout(EndorseTimeout),
 		client.WithSubmitTimeout(SubmitTimeout),
@@ -63,7 +63,7 @@ func (c *Client) Init() (err error) {
 // region: close
 
 func (c *Client) Close() {
-	defer c.Connection.Close()
+	defer c.connection.Close()
 	defer c.Gateway.Close()
 }
 
