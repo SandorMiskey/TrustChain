@@ -2,8 +2,6 @@
 
 ## now
 
-* configtx 20 -> 100
-
 ## next
 
 * backup

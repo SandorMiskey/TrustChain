@@ -492,6 +492,7 @@ func main() {
 		fs.Entries[OPT_FAB_TLSCERT] = cfg.Entry{Desc: "path to TLS cert, default is $" + TC_PATH_CERT + " if set", Type: "string", Def: Def_FabTlscert}
 
 		fs.Entries[OPT_IO_BATCH] = cfg.Entry{Desc: "list of files to process, one file path per line, -in ignored if specified", Type: "string", Def: ""}
+		fs.Entries[OPT_IO_BRAKE] = cfg.Entry{Desc: "file path, which if appears, processing stops before opening the next file", Type: "string", Def: Def_IoBrake}
 		fs.Entries[OPT_IO_INPUT] = cfg.Entry{Desc: ", separated list of files, which contain the | separated parameters of one transaction per line, empty causes panic", Type: "string", Def: ""}
 		fs.Entries[OPT_IO_SUFFIX] = cfg.Entry{Desc: "suffix with which the name of the processed file is appended as output (-" + OPT_IO_OUTPUT + " is ignored if supplied)", Type: "string", Def: ""}
 		fs.Entries[OPT_IO_TICK] = cfg.Entry{Desc: "progress message at LOG_NOTICE level per this many transactions, 0 means no message", Type: "int", Def: Def_IoTick}
@@ -1396,15 +1397,15 @@ func modeSubmit(c *cfg.Config) {
 
 }
 
-func modeSubmitBatch(config *cfg.Config) {
+func modeSubmitBatch(c *cfg.Config) {
 
 	// region: input
 
 	var input []string
-	if len(config.Entries[OPT_IO_BATCH].Value.(string)) == 0 {
-		input = strings.Split(config.Entries[OPT_IO_INPUT].Value.(string), ",")
+	if len(c.Entries[OPT_IO_BATCH].Value.(string)) == 0 {
+		input = strings.Split(c.Entries[OPT_IO_INPUT].Value.(string), ",")
 	} else {
-		input = procBundles2Batch(ioRead(config.Entries[OPT_IO_BATCH].Value.(string), procParseBundles))
+		input = procBundles2Batch(ioRead(c.Entries[OPT_IO_BATCH].Value.(string), procParseBundles))
 	}
 	count := ioCount(input)
 
@@ -1412,30 +1413,44 @@ func modeSubmitBatch(config *cfg.Config) {
 	// region: output
 
 	var output *os.File
-	var suffix string = config.Entries[OPT_IO_SUFFIX].Value.(string)
+	var suffix string = c.Entries[OPT_IO_SUFFIX].Value.(string)
 
 	if len(suffix) == 0 {
-		output = ioOutputOpen(config.Entries[OPT_IO_OUTPUT].Value.(string))
+		output = ioOutputOpen(c.Entries[OPT_IO_OUTPUT].Value.(string))
 		defer output.Close()
 	}
 
 	// endregion: output
 	// region: client
 
-	contract := fabricContract(config)
+	contract := fabricContract(c)
 	Lout(LOG_DEBUG, "fabric client", contract)
 
 	// endregion: client
 	// region: process batch
 
 	for _, file := range input {
+		// region: check for brake
+
+		brake, err := os.Stat(c.Entries[OPT_IO_BRAKE].Value.(string))
+		if err == nil {
+			// file exists
+			Lout(LOG_NOTICE, "someone pulled the handbrake", brake.ModTime())
+			break
+		} else if !errors.Is(err, fs.ErrNotExist) {
+			// file does not exist, bur err indicates something different
+			helperPanic("an unexpected error occurred while checking the brake file", err.Error())
+		}
+
+		// endregion: check for brake
+
 		batch := ioRead(file, procParseBundles)
 		if len(suffix) > 0 {
 			output = ioOutputOpen(file + suffix)
 			defer output.Close()
 		}
 		for _, bundle := range *batch {
-			err := fabricSubmit(config, contract, &bundle)
+			err := fabricSubmit(c, contract, &bundle)
 			if err != nil {
 				Lout(LOG_NOTICE, helperProgress(count), err)
 			} else {
