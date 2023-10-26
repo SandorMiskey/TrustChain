@@ -6,4 +6,5 @@ use (
 	./migration2
 	./proto
 	./rawapi
+	./migration-tui
 )
