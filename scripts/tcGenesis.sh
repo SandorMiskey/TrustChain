@@ -299,6 +299,7 @@ _TLS1() (
 		out=$(
 			_setClient
 			fabric-ca-client register --id.name $TC_ORDERER1_ADMIN --id.secret $TC_ORDERER1_ADMINPW --id.type admin --id.attrs "$TC_ORDERER1_ADMINATRS" -u https://0.0.0.0:${TC_COMMON1_C1_PORT} 2>&1
+			# fabric-ca-client register --id.name $TC_ORDERER1_ADMIN --id.secret $TC_ORDERER1_ADMINPW --id.affiliation $TC_COMMON1_STACK --id.type client --id.attrs "$TC_ORDERER1_ADMINATRS" -u https://0.0.0.0:${TC_COMMON1_C1_PORT} 2>&1
 		)
 		commonVerify $? "failed to register ${TC_ORDERER1_ADMIN}: $out" "$out"
 
@@ -306,16 +307,19 @@ _TLS1() (
 		out=$(
 			_setClient
 			fabric-ca-client register --id.name $TC_ORDERER1_O1_TLS_NAME --id.secret $TC_ORDERER1_O1_TLS_PW --id.type orderer -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
+			# fabric-ca-client register --id.name $TC_ORDERER1_O1_TLS_NAME --id.secret $TC_ORDERER1_O1_TLS_PW --id.affiliation $TC_COMMON1_STACK --id.type orderer -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
 		)
 		commonVerify $? "failed to register tls identity: $out" "$out"
 		out=$(
 			_setClient
 			fabric-ca-client register --id.name $TC_ORDERER1_O2_TLS_NAME --id.secret $TC_ORDERER1_O2_TLS_PW --id.type orderer -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
+			# fabric-ca-client register --id.name $TC_ORDERER1_O2_TLS_NAME --id.secret $TC_ORDERER1_O2_TLS_PW --id.affiliation $TC_COMMON1_STACK --id.type orderer -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
 		)
 		commonVerify $? "failed to register tls identity: $out" "$out"
 		out=$(
 			_setClient
 			fabric-ca-client register --id.name $TC_ORDERER1_O3_TLS_NAME --id.secret $TC_ORDERER1_O3_TLS_PW --id.type orderer -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
+			# fabric-ca-client register --id.name $TC_ORDERER1_O3_TLS_NAME --id.secret $TC_ORDERER1_O3_TLS_PW --id.affiliation $TC_COMMON1_STACK --id.type orderer -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
 		)
 		commonVerify $? "failed to register tls identity: $out" "$out"
 	}
@@ -332,16 +336,19 @@ _TLS1() (
 		out=$(
 			_setClient
 			fabric-ca-client register --id.name $TC_ORG1_GW1_TLS_NAME --id.secret $TC_ORG1_GW1_TLS_PW --id.type client -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
+			# fabric-ca-client register --id.name $TC_ORG1_GW1_TLS_NAME --id.secret $TC_ORG1_GW1_TLS_PW --id.affiliation $TC_ORG1_STACK --id.type client -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
 		)
 		commonVerify $? "failed to register tls identity: $out" "$out"
 		out=$(
 			_setClient
 			fabric-ca-client register --id.name $TC_ORG1_GW2_TLS_NAME --id.secret $TC_ORG1_GW2_TLS_PW --id.type client -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
+			# fabric-ca-client register --id.name $TC_ORG1_GW2_TLS_NAME --id.secret $TC_ORG1_GW2_TLS_PW --id.affiliation $TC_ORG1_STACK --id.type client -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
 		)
 		commonVerify $? "failed to register tls identity: $out" "$out"
 		out=$(
 			_setClient
 			fabric-ca-client register --id.name $TC_ORG1_GW3_TLS_NAME --id.secret $TC_ORG1_GW3_TLS_PW --id.type client -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
+			# fabric-ca-client register --id.name $TC_ORG1_GW3_TLS_NAME --id.secret $TC_ORG1_GW3_TLS_PW --id.affiliation $TC_ORG1_STACK --id.type client -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
 		)
 		commonVerify $? "failed to register tls identity: $out" "$out"
 
@@ -351,16 +358,19 @@ _TLS1() (
 		out=$(
 			_setClient
 			fabric-ca-client register --id.name $TC_ORG1_P1_TLS_NAME --id.secret $TC_ORG1_P1_TLS_PW --id.type peer -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
+			# fabric-ca-client register --id.name $TC_ORG1_P1_TLS_NAME --id.secret $TC_ORG1_P1_TLS_PW --id.affiliation $TC_ORG1_STACK --id.type peer -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
 		)
 		commonVerify $? "failed to register tls identity: $out" "$out"
 		out=$(
 			_setClient
 			fabric-ca-client register --id.name $TC_ORG1_P2_TLS_NAME --id.secret $TC_ORG1_P2_TLS_PW --id.type peer -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
+			# fabric-ca-client register --id.name $TC_ORG1_P2_TLS_NAME --id.secret $TC_ORG1_P2_TLS_PW --id.affiliation $TC_ORG1_STACK --id.type peer -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
 		)
 		commonVerify $? "failed to register tls identity: $out" "$out"
 		out=$(
 			_setClient
 			fabric-ca-client register --id.name $TC_ORG1_P3_TLS_NAME --id.secret $TC_ORG1_P3_TLS_PW --id.type peer -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
+			# fabric-ca-client register --id.name $TC_ORG1_P3_TLS_NAME --id.secret $TC_ORG1_P3_TLS_PW --id.affiliation $TC_ORG1_STACK --id.type peer -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
 		)
 		commonVerify $? "failed to register tls identity: $out" "$out"
 
@@ -378,22 +388,26 @@ _TLS1() (
 		out=$(
 			_setClient
 			fabric-ca-client register --id.name $TC_ORG2_GW1_TLS_NAME --id.secret $TC_ORG2_GW1_TLS_PW --id.type client -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
+			# fabric-ca-client register --id.name $TC_ORG2_GW1_TLS_NAME --id.secret $TC_ORG2_GW1_TLS_PW --id.affiliation $TC_ORG2_STACK --id.type client -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
 		)
 		commonVerify $? "failed to register tls identity: $out" "$out"
 
 		out=$(
 			_setClient
 			fabric-ca-client register --id.name $TC_ORG2_P1_TLS_NAME --id.secret $TC_ORG2_P1_TLS_PW --id.type peer -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
+			# fabric-ca-client register --id.name $TC_ORG2_P1_TLS_NAME --id.secret $TC_ORG2_P1_TLS_PW --id.affiliation $TC_ORG2_STACK --id.type peer -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
 		)
 		commonVerify $? "failed to register tls identity: $out" "$out"
 		out=$(
 			_setClient
 			fabric-ca-client register --id.name $TC_ORG2_P2_TLS_NAME --id.secret $TC_ORG2_P2_TLS_PW --id.type peer -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
+			# fabric-ca-client register --id.name $TC_ORG2_P2_TLS_NAME --id.secret $TC_ORG2_P2_TLS_PW --id.affiliation $TC_ORG2_STACK --id.type peer -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
 		)
 		commonVerify $? "failed to register tls identity: $out" "$out"
 		out=$(
 			_setClient
 			fabric-ca-client register --id.name $TC_ORG2_P3_TLS_NAME --id.secret $TC_ORG2_P3_TLS_PW --id.type peer -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
+			# fabric-ca-client register --id.name $TC_ORG2_P3_TLS_NAME --id.secret $TC_ORG2_P3_TLS_PW --id.affiliation $TC_ORG2_STACK --id.type peer -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
 		)
 		commonVerify $? "failed to register tls identity: $out" "$out"
 	}
@@ -408,22 +422,26 @@ _TLS1() (
 		out=$(
 			_setClient
 			fabric-ca-client register --id.name $TC_ORG3_GW1_TLS_NAME --id.secret $TC_ORG3_GW1_TLS_PW --id.type client -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
+			# fabric-ca-client register --id.name $TC_ORG3_GW1_TLS_NAME --id.secret $TC_ORG3_GW1_TLS_PW --id.affiliation $TC_ORG3_STACK --id.type client -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
 		)
 		commonVerify $? "failed to register tls identity: $out" "$out"
 
 		out=$(
 			_setClient
 			fabric-ca-client register --id.name $TC_ORG3_P1_TLS_NAME --id.secret $TC_ORG3_P1_TLS_PW --id.type peer -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
+			# fabric-ca-client register --id.name $TC_ORG3_P1_TLS_NAME --id.secret $TC_ORG3_P1_TLS_PW --id.affiliation $TC_ORG3_STACK --id.type peer -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
 		)
 		commonVerify $? "failed to register tls identity: $out" "$out"
 		out=$(
 			_setClient
 			fabric-ca-client register --id.name $TC_ORG3_P2_TLS_NAME --id.secret $TC_ORG3_P2_TLS_PW --id.type peer -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
+			# fabric-ca-client register --id.name $TC_ORG3_P2_TLS_NAME --id.secret $TC_ORG3_P2_TLS_PW --id.affiliation $TC_ORG3_STACK --id.type peer -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
 		)
 		commonVerify $? "failed to register tls identity: $out" "$out"
 		out=$(
 			_setClient
 			fabric-ca-client register --id.name $TC_ORG3_P3_TLS_NAME --id.secret $TC_ORG3_P3_TLS_PW --id.type peer -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
+			# fabric-ca-client register --id.name $TC_ORG3_P3_TLS_NAME --id.secret $TC_ORG3_P3_TLS_PW --id.affiliation $TC_ORG3_STACK --id.type peer -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
 		)
 		commonVerify $? "failed to register tls identity: $out" "$out"
 	}
@@ -1671,7 +1689,7 @@ _Orderer1() {
 		${TC_PATH_SCRIPTS}/tcBootstrap.sh -m up -s ${TC_COMMON2_STACK}
 		commonVerify $? "failed!"
 	}
-	commonYN "bootstrap ${TC_COMMON2_STACK}?" _bootstrapCommon2
+	# commonYN "bootstrap ${TC_COMMON2_STACK}?" _bootstrapCommon2
 
 	# endregion: bootstrap COMMON2
 	# region: bootstrap COMMON3
@@ -1681,7 +1699,7 @@ _Orderer1() {
 		${TC_PATH_SCRIPTS}/tcBootstrap.sh -m up -s ${TC_COMMON3_STACK}
 		commonVerify $? "failed!"
 	}
-	commonYN "bootstrap ${TC_COMMON3_STACK}?" _bootstrapCommon3
+	# commonYN "bootstrap ${TC_COMMON3_STACK}?" _bootstrapCommon3
 
 	# endregion: bootstrap COMMON3
 
