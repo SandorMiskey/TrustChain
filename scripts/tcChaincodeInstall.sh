@@ -93,7 +93,7 @@ _deploy() {
 	done
 
 	commonPrintf "install chaincode on $TC_ORG3_STACK peers"
-	# for port in $TC_ORG3_P1_PORT
+	# for port in $TC_ORG3_P1_PORT
 	for port in $TC_ORG3_P1_PORT $TC_ORG3_P2_PORT $TC_ORG3_P3_PORT
 	do
 		commonPrintf "targeting localhost:${port}"

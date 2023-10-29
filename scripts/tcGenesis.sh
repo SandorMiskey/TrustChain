@@ -299,7 +299,6 @@ _TLS1() (
 		out=$(
 			_setClient
 			fabric-ca-client register --id.name $TC_ORDERER1_ADMIN --id.secret $TC_ORDERER1_ADMINPW --id.type admin --id.attrs "$TC_ORDERER1_ADMINATRS" -u https://0.0.0.0:${TC_COMMON1_C1_PORT} 2>&1
-			# fabric-ca-client register --id.name $TC_ORDERER1_ADMIN --id.secret $TC_ORDERER1_ADMINPW --id.affiliation $TC_COMMON1_STACK --id.type client --id.attrs "$TC_ORDERER1_ADMINATRS" -u https://0.0.0.0:${TC_COMMON1_C1_PORT} 2>&1
 		)
 		commonVerify $? "failed to register ${TC_ORDERER1_ADMIN}: $out" "$out"
 
@@ -307,19 +306,16 @@ _TLS1() (
 		out=$(
 			_setClient
 			fabric-ca-client register --id.name $TC_ORDERER1_O1_TLS_NAME --id.secret $TC_ORDERER1_O1_TLS_PW --id.type orderer -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
-			# fabric-ca-client register --id.name $TC_ORDERER1_O1_TLS_NAME --id.secret $TC_ORDERER1_O1_TLS_PW --id.affiliation $TC_COMMON1_STACK --id.type orderer -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
 		)
 		commonVerify $? "failed to register tls identity: $out" "$out"
 		out=$(
 			_setClient
 			fabric-ca-client register --id.name $TC_ORDERER1_O2_TLS_NAME --id.secret $TC_ORDERER1_O2_TLS_PW --id.type orderer -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
-			# fabric-ca-client register --id.name $TC_ORDERER1_O2_TLS_NAME --id.secret $TC_ORDERER1_O2_TLS_PW --id.affiliation $TC_COMMON1_STACK --id.type orderer -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
 		)
 		commonVerify $? "failed to register tls identity: $out" "$out"
 		out=$(
 			_setClient
 			fabric-ca-client register --id.name $TC_ORDERER1_O3_TLS_NAME --id.secret $TC_ORDERER1_O3_TLS_PW --id.type orderer -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
-			# fabric-ca-client register --id.name $TC_ORDERER1_O3_TLS_NAME --id.secret $TC_ORDERER1_O3_TLS_PW --id.affiliation $TC_COMMON1_STACK --id.type orderer -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
 		)
 		commonVerify $? "failed to register tls identity: $out" "$out"
 	}
@@ -336,19 +332,16 @@ _TLS1() (
 		out=$(
 			_setClient
 			fabric-ca-client register --id.name $TC_ORG1_GW1_TLS_NAME --id.secret $TC_ORG1_GW1_TLS_PW --id.type client -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
-			# fabric-ca-client register --id.name $TC_ORG1_GW1_TLS_NAME --id.secret $TC_ORG1_GW1_TLS_PW --id.affiliation $TC_ORG1_STACK --id.type client -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
 		)
 		commonVerify $? "failed to register tls identity: $out" "$out"
 		out=$(
 			_setClient
 			fabric-ca-client register --id.name $TC_ORG1_GW2_TLS_NAME --id.secret $TC_ORG1_GW2_TLS_PW --id.type client -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
-			# fabric-ca-client register --id.name $TC_ORG1_GW2_TLS_NAME --id.secret $TC_ORG1_GW2_TLS_PW --id.affiliation $TC_ORG1_STACK --id.type client -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
 		)
 		commonVerify $? "failed to register tls identity: $out" "$out"
 		out=$(
 			_setClient
 			fabric-ca-client register --id.name $TC_ORG1_GW3_TLS_NAME --id.secret $TC_ORG1_GW3_TLS_PW --id.type client -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
-			# fabric-ca-client register --id.name $TC_ORG1_GW3_TLS_NAME --id.secret $TC_ORG1_GW3_TLS_PW --id.affiliation $TC_ORG1_STACK --id.type client -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
 		)
 		commonVerify $? "failed to register tls identity: $out" "$out"
 
@@ -358,19 +351,16 @@ _TLS1() (
 		out=$(
 			_setClient
 			fabric-ca-client register --id.name $TC_ORG1_P1_TLS_NAME --id.secret $TC_ORG1_P1_TLS_PW --id.type peer -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
-			# fabric-ca-client register --id.name $TC_ORG1_P1_TLS_NAME --id.secret $TC_ORG1_P1_TLS_PW --id.affiliation $TC_ORG1_STACK --id.type peer -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
 		)
 		commonVerify $? "failed to register tls identity: $out" "$out"
 		out=$(
 			_setClient
 			fabric-ca-client register --id.name $TC_ORG1_P2_TLS_NAME --id.secret $TC_ORG1_P2_TLS_PW --id.type peer -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
-			# fabric-ca-client register --id.name $TC_ORG1_P2_TLS_NAME --id.secret $TC_ORG1_P2_TLS_PW --id.affiliation $TC_ORG1_STACK --id.type peer -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
 		)
 		commonVerify $? "failed to register tls identity: $out" "$out"
 		out=$(
 			_setClient
 			fabric-ca-client register --id.name $TC_ORG1_P3_TLS_NAME --id.secret $TC_ORG1_P3_TLS_PW --id.type peer -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
-			# fabric-ca-client register --id.name $TC_ORG1_P3_TLS_NAME --id.secret $TC_ORG1_P3_TLS_PW --id.affiliation $TC_ORG1_STACK --id.type peer -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
 		)
 		commonVerify $? "failed to register tls identity: $out" "$out"
 
@@ -388,26 +378,22 @@ _TLS1() (
 		out=$(
 			_setClient
 			fabric-ca-client register --id.name $TC_ORG2_GW1_TLS_NAME --id.secret $TC_ORG2_GW1_TLS_PW --id.type client -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
-			# fabric-ca-client register --id.name $TC_ORG2_GW1_TLS_NAME --id.secret $TC_ORG2_GW1_TLS_PW --id.affiliation $TC_ORG2_STACK --id.type client -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
 		)
 		commonVerify $? "failed to register tls identity: $out" "$out"
 
 		out=$(
 			_setClient
 			fabric-ca-client register --id.name $TC_ORG2_P1_TLS_NAME --id.secret $TC_ORG2_P1_TLS_PW --id.type peer -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
-			# fabric-ca-client register --id.name $TC_ORG2_P1_TLS_NAME --id.secret $TC_ORG2_P1_TLS_PW --id.affiliation $TC_ORG2_STACK --id.type peer -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
 		)
 		commonVerify $? "failed to register tls identity: $out" "$out"
 		out=$(
 			_setClient
 			fabric-ca-client register --id.name $TC_ORG2_P2_TLS_NAME --id.secret $TC_ORG2_P2_TLS_PW --id.type peer -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
-			# fabric-ca-client register --id.name $TC_ORG2_P2_TLS_NAME --id.secret $TC_ORG2_P2_TLS_PW --id.affiliation $TC_ORG2_STACK --id.type peer -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
 		)
 		commonVerify $? "failed to register tls identity: $out" "$out"
 		out=$(
 			_setClient
 			fabric-ca-client register --id.name $TC_ORG2_P3_TLS_NAME --id.secret $TC_ORG2_P3_TLS_PW --id.type peer -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
-			# fabric-ca-client register --id.name $TC_ORG2_P3_TLS_NAME --id.secret $TC_ORG2_P3_TLS_PW --id.affiliation $TC_ORG2_STACK --id.type peer -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
 		)
 		commonVerify $? "failed to register tls identity: $out" "$out"
 	}
@@ -422,26 +408,22 @@ _TLS1() (
 		out=$(
 			_setClient
 			fabric-ca-client register --id.name $TC_ORG3_GW1_TLS_NAME --id.secret $TC_ORG3_GW1_TLS_PW --id.type client -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
-			# fabric-ca-client register --id.name $TC_ORG3_GW1_TLS_NAME --id.secret $TC_ORG3_GW1_TLS_PW --id.affiliation $TC_ORG3_STACK --id.type client -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
 		)
 		commonVerify $? "failed to register tls identity: $out" "$out"
 
 		out=$(
 			_setClient
 			fabric-ca-client register --id.name $TC_ORG3_P1_TLS_NAME --id.secret $TC_ORG3_P1_TLS_PW --id.type peer -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
-			# fabric-ca-client register --id.name $TC_ORG3_P1_TLS_NAME --id.secret $TC_ORG3_P1_TLS_PW --id.affiliation $TC_ORG3_STACK --id.type peer -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
 		)
 		commonVerify $? "failed to register tls identity: $out" "$out"
 		out=$(
 			_setClient
 			fabric-ca-client register --id.name $TC_ORG3_P2_TLS_NAME --id.secret $TC_ORG3_P2_TLS_PW --id.type peer -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
-			# fabric-ca-client register --id.name $TC_ORG3_P2_TLS_NAME --id.secret $TC_ORG3_P2_TLS_PW --id.affiliation $TC_ORG3_STACK --id.type peer -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
 		)
 		commonVerify $? "failed to register tls identity: $out" "$out"
 		out=$(
 			_setClient
 			fabric-ca-client register --id.name $TC_ORG3_P3_TLS_NAME --id.secret $TC_ORG3_P3_TLS_PW --id.type peer -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
-			# fabric-ca-client register --id.name $TC_ORG3_P3_TLS_NAME --id.secret $TC_ORG3_P3_TLS_PW --id.affiliation $TC_ORG3_STACK --id.type peer -u https://0.0.0.0:${TC_COMMON1_C1_PORT}  2>&1
 		)
 		commonVerify $? "failed to register tls identity: $out" "$out"
 	}
@@ -589,6 +571,7 @@ _Orderer1() {
 
 		commonPrintf "enrolling $TC_ORDERER1_O1_NAME with $TC_COMMON1_C1_FQDN"
 		out=$(
+			export FABRIC_CA_CLIENT_HOME=${TC_ORDERER1_O1_DATA}
 			export FABRIC_CA_CLIENT_TLS_CERTFILES=$TC_ORDERER1_O1_ASSETS_TLSCERT
 			export FABRIC_CA_CLIENT_MSPDIR=$TC_ORDERER1_O1_TLSMSP
 			fabric-ca-client enroll -u https://${TC_ORDERER1_O1_TLS_NAME}:${TC_ORDERER1_O1_TLS_PW}@0.0.0.0:${TC_COMMON1_C1_PORT} --enrollment.profile tls --csr.hosts ${TC_ORDERER1_O1_FQDN},${TC_ORDERER1_O1_NAME},localhost 2>&1
@@ -611,6 +594,7 @@ _Orderer1() {
 
 		commonPrintf "enrolling $TC_ORDERER1_O2_NAME with $TC_COMMON1_C1_FQDN"
 		out=$(
+			export FABRIC_CA_CLIENT_HOME=${TC_ORDERER1_O2_DATA}
 			export FABRIC_CA_CLIENT_TLS_CERTFILES=$TC_ORDERER1_O2_ASSETS_TLSCERT
 			export FABRIC_CA_CLIENT_MSPDIR=$TC_ORDERER1_O2_TLSMSP
 			fabric-ca-client enroll -u https://${TC_ORDERER1_O2_TLS_NAME}:${TC_ORDERER1_O2_TLS_PW}@0.0.0.0:${TC_COMMON1_C1_PORT} --enrollment.profile tls --csr.hosts ${TC_ORDERER1_O2_FQDN},${TC_ORDERER1_O2_NAME},localhost 2>&1
@@ -633,6 +617,7 @@ _Orderer1() {
 
 		commonPrintf "enrolling $TC_ORDERER1_O3_NAME with $TC_COMMON1_C1_FQDN"
 		out=$(
+			export FABRIC_CA_CLIENT_HOME=${TC_ORDERER1_O3_DATA}
 			export FABRIC_CA_CLIENT_TLS_CERTFILES=$TC_ORDERER1_O3_ASSETS_TLSCERT
 			export FABRIC_CA_CLIENT_MSPDIR=$TC_ORDERER1_O3_TLSMSP
 			fabric-ca-client enroll -u https://${TC_ORDERER1_O3_TLS_NAME}:${TC_ORDERER1_O3_TLS_PW}@0.0.0.0:${TC_COMMON1_C1_PORT} --enrollment.profile tls --csr.hosts ${TC_ORDERER1_O3_FQDN},${TC_ORDERER1_O3_NAME},localhost 2>&1
@@ -884,6 +869,7 @@ _Orderer1() {
 
 			commonPrintf "enrolling $TC_ORG1_GW1_NAME with $TC_COMMON1_C1_FQDN"
 			out=$(
+				export FABRIC_CA_CLIENT_HOME=${TC_ORG1_GW1_DATA}
 				export FABRIC_CA_CLIENT_TLS_CERTFILES=$TC_ORG1_GW1_ASSETS_TLSCERT
 				export FABRIC_CA_CLIENT_MSPDIR=$TC_ORG1_GW1_TLSMSP
 				fabric-ca-client enroll -u https://${TC_ORG1_GW1_TLS_NAME}:${TC_ORG1_GW1_TLS_PW}@0.0.0.0:${TC_COMMON1_C1_PORT} --enrollment.profile tls --csr.hosts ${TC_ORG1_GW1_FQDN},${TC_ORG1_GW1_NAME},localhost 2>&1
@@ -906,6 +892,7 @@ _Orderer1() {
 
 			commonPrintf "enrolling $TC_ORG1_GW2_NAME with $TC_COMMON1_C1_FQDN"
 			out=$(
+				export FABRIC_CA_CLIENT_HOME=${TC_ORG1_GW2_DATA}
 				export FABRIC_CA_CLIENT_TLS_CERTFILES=$TC_ORG1_GW2_ASSETS_TLSCERT
 				export FABRIC_CA_CLIENT_MSPDIR=$TC_ORG1_GW2_TLSMSP
 				fabric-ca-client enroll -u https://${TC_ORG1_GW2_TLS_NAME}:${TC_ORG1_GW2_TLS_PW}@0.0.0.0:${TC_COMMON1_C1_PORT} --enrollment.profile tls --csr.hosts ${TC_ORG1_GW2_FQDN},${TC_ORG1_GW2_NAME},localhost 2>&1
@@ -928,6 +915,7 @@ _Orderer1() {
 
 			commonPrintf "enrolling $TC_ORG1_GW3_NAME with $TC_COMMON1_C1_FQDN"
 			out=$(
+				export FABRIC_CA_CLIENT_HOME=${TC_ORG1_GW3_DATA}
 				export FABRIC_CA_CLIENT_TLS_CERTFILES=$TC_ORG1_GW3_ASSETS_TLSCERT
 				export FABRIC_CA_CLIENT_MSPDIR=$TC_ORG1_GW3_TLSMSP
 				fabric-ca-client enroll -u https://${TC_ORG1_GW3_TLS_NAME}:${TC_ORG1_GW3_TLS_PW}@0.0.0.0:${TC_COMMON1_C1_PORT} --enrollment.profile tls --csr.hosts ${TC_ORG1_GW3_FQDN},${TC_ORG1_GW3_NAME},localhost 2>&1
@@ -950,6 +938,7 @@ _Orderer1() {
 
 			commonPrintf "enrolling with $TC_COMMON1_C1_FQDN"
 			out=$(
+				export FABRIC_CA_CLIENT_HOME=${TC_ORG1_P1_DATA}
 				export FABRIC_CA_CLIENT_TLS_CERTFILES=$TC_ORG1_P1_ASSETS_TLSCERT
 				export FABRIC_CA_CLIENT_MSPDIR=$TC_ORG1_P1_TLSMSP
 				fabric-ca-client enroll -u https://${TC_ORG1_P1_TLS_NAME}:${TC_ORG1_P1_TLS_PW}@0.0.0.0:${TC_COMMON1_C1_PORT} --enrollment.profile tls --csr.hosts ${TC_ORG1_P1_FQDN},${TC_ORG1_P1_NAME},localhost 2>&1
@@ -972,6 +961,7 @@ _Orderer1() {
 
 			commonPrintf "enrolling with $TC_COMMON1_C1_FQDN"
 			out=$(
+				export FABRIC_CA_CLIENT_HOME=${TC_ORG1_P2_DATA}
 				export FABRIC_CA_CLIENT_TLS_CERTFILES=$TC_ORG1_P2_ASSETS_TLSCERT
 				export FABRIC_CA_CLIENT_MSPDIR=$TC_ORG1_P2_TLSMSP
 				fabric-ca-client enroll -u https://${TC_ORG1_P2_TLS_NAME}:${TC_ORG1_P2_TLS_PW}@0.0.0.0:${TC_COMMON1_C1_PORT} --enrollment.profile tls --csr.hosts ${TC_ORG1_P2_FQDN},${TC_ORG1_P2_NAME},localhost 2>&1
@@ -994,6 +984,7 @@ _Orderer1() {
 
 			commonPrintf "enrolling with $TC_COMMON1_C1_FQDN"
 			out=$(
+				export FABRIC_CA_CLIENT_HOME=${TC_ORG1_P3_DATA}
 				export FABRIC_CA_CLIENT_TLS_CERTFILES=$TC_ORG1_P3_ASSETS_TLSCERT
 				export FABRIC_CA_CLIENT_MSPDIR=$TC_ORG1_P3_TLSMSP
 				fabric-ca-client enroll -u https://${TC_ORG1_P3_TLS_NAME}:${TC_ORG1_P3_TLS_PW}@0.0.0.0:${TC_COMMON1_C1_PORT} --enrollment.profile tls --csr.hosts ${TC_ORG1_P3_FQDN},${TC_ORG1_P3_NAME},localhost 2>&1
@@ -1216,6 +1207,7 @@ _Orderer1() {
 
 			commonPrintf "enrolling $TC_ORG2_GW1_NAME with $TC_COMMON1_C1_FQDN"
 			out=$(
+				export FABRIC_CA_CLIENT_HOME=${TC_ORG2_GW1_DATA}
 				export FABRIC_CA_CLIENT_TLS_CERTFILES=$TC_ORG2_GW1_ASSETS_TLSCERT
 				export FABRIC_CA_CLIENT_MSPDIR=$TC_ORG2_GW1_TLSMSP
 				fabric-ca-client enroll -u https://${TC_ORG2_GW1_TLS_NAME}:${TC_ORG2_GW1_TLS_PW}@0.0.0.0:${TC_COMMON1_C1_PORT} --enrollment.profile tls --csr.hosts ${TC_ORG2_GW1_FQDN},${TC_ORG2_GW1_NAME},localhost 2>&1
@@ -1238,6 +1230,7 @@ _Orderer1() {
 
 			commonPrintf "enrolling with $TC_COMMON1_C1_FQDN"
 			out=$(
+				export FABRIC_CA_CLIENT_HOME=${TC_ORG2_P1_DATA}
 				export FABRIC_CA_CLIENT_TLS_CERTFILES=$TC_ORG2_P1_ASSETS_TLSCERT
 				export FABRIC_CA_CLIENT_MSPDIR=$TC_ORG2_P1_TLSMSP
 				fabric-ca-client enroll -u https://${TC_ORG2_P1_TLS_NAME}:${TC_ORG2_P1_TLS_PW}@0.0.0.0:${TC_COMMON1_C1_PORT} --enrollment.profile tls --csr.hosts ${TC_ORG2_P1_FQDN},${TC_ORG2_P1_NAME},localhost 2>&1
@@ -1260,6 +1253,7 @@ _Orderer1() {
 
 			commonPrintf "enrolling with $TC_COMMON1_C1_FQDN"
 			out=$(
+				export FABRIC_CA_CLIENT_HOME=${TC_ORG2_P2_DATA}
 				export FABRIC_CA_CLIENT_TLS_CERTFILES=$TC_ORG2_P2_ASSETS_TLSCERT
 				export FABRIC_CA_CLIENT_MSPDIR=$TC_ORG2_P2_TLSMSP
 				fabric-ca-client enroll -u https://${TC_ORG2_P2_TLS_NAME}:${TC_ORG2_P2_TLS_PW}@0.0.0.0:${TC_COMMON1_C1_PORT} --enrollment.profile tls --csr.hosts ${TC_ORG2_P2_FQDN},${TC_ORG2_P2_NAME},localhost 2>&1
@@ -1282,6 +1276,7 @@ _Orderer1() {
 
 			commonPrintf "enrolling with $TC_COMMON1_C1_FQDN"
 			out=$(
+				export FABRIC_CA_CLIENT_HOME=${TC_ORG2_P3_DATA}
 				export FABRIC_CA_CLIENT_TLS_CERTFILES=$TC_ORG2_P3_ASSETS_TLSCERT
 				export FABRIC_CA_CLIENT_MSPDIR=$TC_ORG2_P3_TLSMSP
 				fabric-ca-client enroll -u https://${TC_ORG2_P3_TLS_NAME}:${TC_ORG2_P3_TLS_PW}@0.0.0.0:${TC_COMMON1_C1_PORT} --enrollment.profile tls --csr.hosts ${TC_ORG2_P3_FQDN},${TC_ORG2_P3_NAME},localhost 2>&1
@@ -1504,6 +1499,7 @@ _Orderer1() {
 
 			commonPrintf "enrolling $TC_ORG3_GW1_NAME with $TC_COMMON1_C1_FQDN"
 			out=$(
+				export FABRIC_CA_CLIENT_HOME=${TC_ORG3_GW1_DATA}
 				export FABRIC_CA_CLIENT_TLS_CERTFILES=$TC_ORG3_GW1_ASSETS_TLSCERT
 				export FABRIC_CA_CLIENT_MSPDIR=$TC_ORG3_GW1_TLSMSP
 				fabric-ca-client enroll -u https://${TC_ORG3_GW1_TLS_NAME}:${TC_ORG3_GW1_TLS_PW}@0.0.0.0:${TC_COMMON1_C1_PORT} --enrollment.profile tls --csr.hosts ${TC_ORG3_GW1_FQDN},${TC_ORG3_GW1_NAME},localhost 2>&1
@@ -1526,6 +1522,7 @@ _Orderer1() {
 
 			commonPrintf "enrolling with $TC_COMMON1_C1_FQDN"
 			out=$(
+				export FABRIC_CA_CLIENT_HOME=${TC_ORG3_P1_DATA}
 				export FABRIC_CA_CLIENT_TLS_CERTFILES=$TC_ORG3_P1_ASSETS_TLSCERT
 				export FABRIC_CA_CLIENT_MSPDIR=$TC_ORG3_P1_TLSMSP
 				fabric-ca-client enroll -u https://${TC_ORG3_P1_TLS_NAME}:${TC_ORG3_P1_TLS_PW}@0.0.0.0:${TC_COMMON1_C1_PORT} --enrollment.profile tls --csr.hosts ${TC_ORG3_P1_FQDN},${TC_ORG3_P1_NAME},localhost 2>&1
@@ -1548,6 +1545,7 @@ _Orderer1() {
 
 			commonPrintf "enrolling with $TC_COMMON1_C1_FQDN"
 			out=$(
+				export FABRIC_CA_CLIENT_HOME=${TC_ORG3_P2_DATA}
 				export FABRIC_CA_CLIENT_TLS_CERTFILES=$TC_ORG3_P2_ASSETS_TLSCERT
 				export FABRIC_CA_CLIENT_MSPDIR=$TC_ORG3_P2_TLSMSP
 				fabric-ca-client enroll -u https://${TC_ORG3_P2_TLS_NAME}:${TC_ORG3_P2_TLS_PW}@0.0.0.0:${TC_COMMON1_C1_PORT} --enrollment.profile tls --csr.hosts ${TC_ORG3_P2_FQDN},${TC_ORG3_P2_NAME},localhost 2>&1
@@ -1570,6 +1568,7 @@ _Orderer1() {
 
 			commonPrintf "enrolling with $TC_COMMON1_C1_FQDN"
 			out=$(
+				export FABRIC_CA_CLIENT_HOME=${TC_ORG3_P3_DATA}
 				export FABRIC_CA_CLIENT_TLS_CERTFILES=$TC_ORG3_P3_ASSETS_TLSCERT
 				export FABRIC_CA_CLIENT_MSPDIR=$TC_ORG3_P3_TLSMSP
 				fabric-ca-client enroll -u https://${TC_ORG3_P3_TLS_NAME}:${TC_ORG3_P3_TLS_PW}@0.0.0.0:${TC_COMMON1_C1_PORT} --enrollment.profile tls --csr.hosts ${TC_ORG3_P3_FQDN},${TC_ORG3_P3_NAME},localhost 2>&1

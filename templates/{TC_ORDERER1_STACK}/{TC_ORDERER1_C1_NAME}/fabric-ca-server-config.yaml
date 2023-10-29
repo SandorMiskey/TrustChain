@@ -1,5 +1,5 @@
-port: ${TC_COMMON1_C1_PORT}
-debug: ${TC_COMMON1_C1_DEBUG}
+port: ${TC_ORDERER1_C1_PORT}
+debug: ${TC_ORDERER1_C1_DEBUG}
 
 tls:
   enabled: true
@@ -7,8 +7,8 @@ tls:
 registry:
   maxenrollments: -1
   identities:
-     - name: ${TC_COMMON1_C1_ADMIN}
-       pass: ${TC_COMMON1_C1_ADMINPW}
+     - name: ${TC_ORDERER1_C1_ADMIN}
+       pass: ${TC_ORDERER1_C1_ADMINPW}
        type: client
       #  affiliation: ${TC_COMMON1_STACK}
        attrs:
@@ -22,24 +22,25 @@ registry:
 
 signing:
     default:
-      expiry: ${TC_COMMON1_C1_EXP}
+      expiry: ${TC_ORDERER1_C1_EXP}
     profiles:
       ca:
-         expiry: ${TC_COMMON1_C1_EXP}
+         expiry: ${TC_ORDERER1_C1_EXP}
       tls:
-         expiry: ${TC_COMMON1_C1_EXP}
+         expiry: ${TC_ORDERER1_C1_EXP}
 
 csr:
-  cn: ${TC_COMMON1_C1_FQDN}
+  # cn: ${TC_ORDERER1_STACK}-${TC_ORDERER1_C1_NAME}
+  cn: ${TC_ORDERER1_C1_FQDN}  
   names:
     - C:
       ST:
       L:
       OU:
-      O: "${TC_COMMON1_STACK}"
+      O: "${TC_ORDERER1_STACK}"
   hosts:
-    - ${TC_COMMON1_C1_FQDN}
+    - ${TC_ORDERER1_C1_FQDN}
     - localhost
     - 0.0.0.0
   ca:
-    expiry: ${TC_COMMON1_C1_EXP}
+    expiry: ${TC_ORDERER1_C1_EXP}
