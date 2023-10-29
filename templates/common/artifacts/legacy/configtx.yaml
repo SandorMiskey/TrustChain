@@ -1,0 +1,215 @@
+
+Organizations:
+    - &${TC_ORDERER1_STACK}
+        Name: ${TC_ORDERER1_STACK}MSP
+        ID: ${TC_ORDERER1_STACK}MSP
+        MSPDir: ${TC_ORDERER1_DATA}/msp
+        Policies: &${TC_ORDERER1_STACK}Policies
+            Readers:
+                Type: Signature
+                Rule: "OR('${TC_ORDERER1_STACK}MSP.orderer', '${TC_ORDERER1_STACK}MSP.admin')"
+            Writers:
+                Type: Signature
+                Rule: "OR('${TC_ORDERER1_STACK}MSP.orderer', '${TC_ORDERER1_STACK}MSP.admin')"
+            Admins:
+                Type: Signature
+                Rule: "OR('${TC_ORDERER1_STACK}MSP.admin')"
+        OrdererEndpoints:
+            - ${TC_ORDERER1_O1_FQDN}:${TC_ORDERER1_O1_PORT}
+    - &${TC_ORG1_STACK}
+        Name: ${TC_ORG1_STACK}MSP
+        ID: ${TC_ORG1_STACK}MSP
+        MSPDir: ${TC_ORG1_DATA}/msp
+        Policies: &${TC_ORG1_STACK}Policies
+            Readers:
+                Type: Signature
+                Rule: "OR('${TC_ORG1_STACK}MSP.admin', '${TC_ORG1_STACK}MSP.peer', '${TC_ORG1_STACK}MSP.client')"
+            Writers:
+                Type: Signature
+                Rule: "OR('${TC_ORG1_STACK}MSP.admin', '${TC_ORG1_STACK}MSP.client')"
+            Admins:
+                Type: Signature
+                Rule: "OR('${TC_ORG1_STACK}MSP.admin')"
+            Endorsement:
+                Type: Signature
+                Rule: "OR('${TC_ORG1_STACK}MSP.peer')"
+        AnchorPeers:
+            - Host: $TC_ORG1_P1_FQDN
+              Port: $TC_ORG1_P1_PORT
+Capabilities:
+    Channel: &ChannelCapabilities
+        V2_0: true
+    Orderer: &OrdererCapabilities
+        V2_0: true
+    Application: &ApplicationCapabilities
+        V2_5: true
+Application: &ApplicationDefaults
+    ACLs: &ACLsDefault
+         #---New Lifecycle System Chaincode (_lifecycle) function to policy mapping for access control--#
+
+        # ACL policy for _lifecycle's "CheckCommitReadiness" function
+        _lifecycle/CheckCommitReadiness: /Channel/Application/Writers
+
+        # ACL policy for _lifecycle's "CommitChaincodeDefinition" function
+        _lifecycle/CommitChaincodeDefinition: /Channel/Application/Writers
+
+        # ACL policy for _lifecycle's "QueryChaincodeDefinition" function
+        _lifecycle/QueryChaincodeDefinition: /Channel/Application/Writers
+
+        # ACL policy for _lifecycle's "QueryChaincodeDefinitions" function
+        _lifecycle/QueryChaincodeDefinitions: /Channel/Application/Writers
+
+        #---Lifecycle System Chaincode (lscc) function to policy mapping for access control---#
+
+        # ACL policy for lscc's "getid" function
+        lscc/ChaincodeExists: /Channel/Application/Readers
+
+        # ACL policy for lscc's "getdepspec" function
+        lscc/GetDeploymentSpec: /Channel/Application/Readers
+
+        # ACL policy for lscc's "getccdata" function
+        lscc/GetChaincodeData: /Channel/Application/Readers
+
+        # ACL Policy for lscc's "getchaincodes" function
+        lscc/GetInstantiatedChaincodes: /Channel/Application/Readers
+
+        #---Query System Chaincode (qscc) function to policy mapping for access control---#
+
+        # ACL policy for qscc's "GetChainInfo" function
+        qscc/GetChainInfo: /Channel/Application/Readers
+
+        # ACL policy for qscc's "GetBlockByNumber" function
+        qscc/GetBlockByNumber: /Channel/Application/Readers
+
+        # ACL policy for qscc's  "GetBlockByHash" function
+        qscc/GetBlockByHash: /Channel/Application/Readers
+
+        # ACL policy for qscc's "GetTransactionByID" function
+        qscc/GetTransactionByID: /Channel/Application/Readers
+
+        # ACL policy for qscc's "GetBlockByTxID" function
+        qscc/GetBlockByTxID: /Channel/Application/Readers
+
+        #---Configuration System Chaincode (cscc) function to policy mapping for access control---#
+
+        # ACL policy for cscc's "GetConfigBlock" function
+        cscc/GetConfigBlock: /Channel/Application/Readers
+
+        # ACL policy for cscc's "GetChannelConfig" function
+        cscc/GetChannelConfig: /Channel/Application/Readers
+
+        #---Miscellaneous peer function to policy mapping for access control---#
+
+        # ACL policy for invoking chaincodes on peer
+        peer/Propose: /Channel/Application/Writers
+
+        # ACL policy for chaincode to chaincode invocation
+        peer/ChaincodeToChaincode: /Channel/Application/Writers
+
+        #---Events resource to policy mapping for access control###---#
+
+        # ACL policy for sending block events
+        event/Block: /Channel/Application/Readers
+
+        # ACL policy for sending filtered block events
+        event/FilteredBlock: /Channel/Application/Readers
+    Organizations:
+        # - ${TC_ORG1_STACK}
+        # - ${TC_ORG2_STACK}
+        # - ${TC_ORG3_STACK}
+    Policies:
+        Readers:
+            Type: ImplicitMeta
+            Rule: "ANY Readers"
+        Writers:
+            Type: ImplicitMeta
+            Rule: "ANY Writers"
+        # Admins:
+        #     Type: ImplicitMeta
+        #     Rule: "MAJORITY Admins"
+        # LifecycleEndorsement:
+        #     Type: ImplicitMeta
+        #     Rule: "MAJORITY Endorsement"
+        # Endorsement:
+        #     Type: ImplicitMeta
+        #     Rule: "MAJORITY Endorsement"
+        Admins:
+            Type: Signature
+            Rule: "OR('${TC_ORG1_STACK}MSP.admin')"
+        LifecycleEndorsement:
+            Type: Signature
+            Rule: "OR('${TC_ORG1_STACK}MSP.peer')"
+        Endorsement:
+            Type: Signature
+            Rule: "OR('${TC_ORG1_STACK}MSP.peer')"
+    Capabilities:
+        <<: *ApplicationCapabilities
+Orderer: &OrdererDefaults
+    OrdererType: etcdraft
+    Addresses:
+        - ${TC_ORDERER1_O1_FQDN}:${TC_ORDERER1_O1_PORT}
+    EtcdRaft:
+        Consenters:
+        - Host: ${TC_ORDERER1_O1_FQDN}
+          Port: ${TC_ORDERER1_O1_PORT}
+          ClientTLSCert: ${TC_ORDERER1_O1_TLSMSP}/signcerts/cert.pem
+          ServerTLSCert: ${TC_ORDERER1_O1_TLSMSP}/signcerts/cert.pem
+    BatchTimeout: 10s
+    BatchSize:
+        MaxMessageCount: 500
+        AbsoluteMaxBytes: 49 MB
+        PreferredMaxBytes: 25 MB
+    Organizations:
+        # - ${TC_ORDERER1_STACK}
+    Policies:
+        Readers:
+            Type: ImplicitMeta
+            Rule: "ANY Readers"
+        Writers:
+            Type: ImplicitMeta
+            Rule: "ANY Writers"
+        Admins:
+            Type: ImplicitMeta
+            Rule: "MAJORITY Admins"
+        BlockValidation:
+            Type: ImplicitMeta
+            Rule: "ANY Writers"
+    Capabilities:
+        <<: *OrdererCapabilities
+Channel: &ChannelDefaults
+    Policies:
+        Readers:
+            Type: ImplicitMeta
+            Rule: "ANY Readers"
+        Writers:
+            Type: ImplicitMeta
+            Rule: "ANY Writers"
+        Admins:
+            Type: ImplicitMeta
+            Rule: "MAJORITY Admins"
+    Capabilities:
+        <<: *ChannelCapabilities
+Profiles:
+    ${TC_CHANNEL_PROFILE}:
+        <<: *ChannelDefaults
+        Orderer:
+            <<: *OrdererDefaults
+            OrdererType: etcdraft
+            Organizations:
+                - <<: *${TC_ORDERER1_STACK}
+                  Policies:
+                      <<: *${TC_ORDERER1_STACK}Policies
+                      Admins:
+                          Type: Signature
+                          Rule: "OR('${TC_ORDERER1_STACK}MSP.admin')"
+            Capabilities: *OrdererCapabilities
+        Application:
+            <<: *ApplicationDefaults
+            Organizations:
+                - <<: *${TC_ORG1_STACK}
+                  Policies:
+                      <<: *${TC_ORG1_STACK}Policies
+                      Admins:
+                          Type: Signature
+                          Rule: "OR('${TC_ORG1_STACK}MSP.admin')"
+            Capabilities: *ApplicationCapabilities

@@ -1916,16 +1916,168 @@ _channels() {
 [[ "$TC_EXEC_DRY" == false ]] && commonYN "create channels?" _channels
 
 # endregion: channels
+# region: legacy
+
+_legacy() {
+
+	# commonSleep $TC_SWARM_DELAY "waiting for remote peers"
+
+	local out
+	local cfpath="${TC_PATH_LEGACY}"
+
+	# region: create channels and join orgs
+
+
+	for chname in "$TC_LEGACY1_NAME"
+	do
+
+		
+		local gblock="${TC_PATH_LEGACY}/${chname}/genesis_block.pb"
+
+		# region: genesis block
+
+		_genesis() {
+			commonPrintf "configtxgen genesis block for $chname ($cfpath)"
+			out=$(
+				export FABRIC_CFG_PATH="$cfpath"
+				configtxgen -profile $TC_LEGACY_PROFILE -outputBlock ${gblock} -channelID $chname  2>&1
+			)
+			commonVerify $? "failed: $out" "$out"
+		}
+		commonYN "create genesis block for ${chname}?" _genesis
+
+		# endregion: genesis block
+		# region: join orderers
+
+		_joinOrderers() {
+
+			# region: o1
+
+			commonPrintf "joining $TC_ORDERER1_O1_NAME:${TC_ORDERER1_O1_PORT} to $chname"
+			out=$(
+				export FABRIC_CFG_PATH="$cfpath"
+				export OSN_TLS_CA_ROOT_CERT=$TC_ORDERER1_O1_ASSETS_TLSCERT
+				export ADMIN_TLS_SIGN_CERT=${TC_ORDERER1_ADMINTLSMSP}/signcerts/cert.pem
+				export ADMIN_TLS_PRIVATE_KEY=${TC_ORDERER1_ADMINTLSMSP}/keystore/key.pem
+				osnadmin channel join --channelID $chname  --config-block $gblock -o localhost:${TC_ORDERER1_O1_ADMINPORT} --ca-file $OSN_TLS_CA_ROOT_CERT --client-cert $ADMIN_TLS_SIGN_CERT --client-key $ADMIN_TLS_PRIVATE_KEY  2>&1
+			)
+			commonVerify $? "failed: $out" "$out"
+
+			# endregion: o1
+			# region: status
+
+			commonPrintf "getting status of $chname"
+			out=$(
+				export FABRIC_CFG_PATH="$cfpath"
+				export OSN_TLS_CA_ROOT_CERT=$TC_ORDERER1_O1_ASSETS_TLSCERT
+				export ADMIN_TLS_SIGN_CERT=${TC_ORDERER1_ADMINTLSMSP}/signcerts/cert.pem
+				export ADMIN_TLS_PRIVATE_KEY=${TC_ORDERER1_ADMINTLSMSP}/keystore/key.pem
+				osnadmin channel list --channelID $chname -o localhost:${TC_ORDERER1_O1_ADMINPORT} --ca-file $OSN_TLS_CA_ROOT_CERT --client-cert $ADMIN_TLS_SIGN_CERT --client-key $ADMIN_TLS_PRIVATE_KEY  2>&1
+			)
+			commonVerify $? "failed: $out" "$out"
+
+			# endregion: status
+
+		}
+		commonYN "join orderers?" _joinOrderers
+
+		# endregion: join orderers
+		# region: join peers
+
+		_joinPeers() {
+
+			# region: org1
+
+			_joinOrg1() {
+				commonPrintf "joining $TC_ORG1_STACK peers" 
+				for port in $TC_ORG1_P1_PORT
+				do
+					out=$(
+						export FABRIC_CFG_PATH="$cfpath"
+						export CORE_PEER_TLS_ENABLED=true
+						export CORE_PEER_LOCALMSPID="${TC_ORG1_STACK}MSP"
+						export CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG1_DATA}/msp/tlscacerts/ca-cert.pem
+						export CORE_PEER_MSPCONFIGPATH=$TC_ORG1_ADMINMSP
+						export CORE_PEER_ADDRESS=localhost:${port}
+						peer channel join -b $gblock  2>&1
+					)
+					commonVerify $? "failed: $out" "$out"
+				done
+			}
+			commonYN "join $TC_ORG1_STACK peers to $chname?" _joinOrg1
+
+			# endregion: org1
+
+		}
+		commonYN "join peers to $chname?" _joinPeers
+
+		# endregion: join peers
+
+	done
+
+	# endregion: create channels
+	# region: status
+
+	commonPrintf "listing all the channels on orderer1_o1"
+	out=$(
+		export OSN_TLS_CA_ROOT_CERT=$TC_ORDERER1_O1_ASSETS_TLSCERT
+		export ADMIN_TLS_SIGN_CERT=${TC_ORDERER1_ADMINTLSMSP}/signcerts/cert.pem
+		export ADMIN_TLS_PRIVATE_KEY=${TC_ORDERER1_ADMINTLSMSP}/keystore/key.pem
+		osnadmin channel list -o localhost:${TC_ORDERER1_O1_ADMINPORT} --ca-file $OSN_TLS_CA_ROOT_CERT --client-cert $ADMIN_TLS_SIGN_CERT --client-key $ADMIN_TLS_PRIVATE_KEY  2>&1
+	)
+	commonVerify $? "failed: $out" "$out"
+
+	commonPrintf "listing all the channels on org1_p1"
+	out=$(
+		export FABRIC_CFG_PATH="${cfpath}"
+		export CORE_PEER_TLS_ENABLED=true
+		export CORE_PEER_LOCALMSPID="${TC_ORG1_STACK}MSP"
+		export CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG1_DATA}/msp/tlscacerts/ca-cert.pem
+		export CORE_PEER_MSPCONFIGPATH=$TC_ORG1_ADMINMSP
+		export CORE_PEER_ADDRESS=localhost:${TC_ORG1_P1_PORT}
+		peer channel list  2>&1
+	)
+	commonVerify $? "failed: $out" "$out"
+
+	for chname in "$TC_LEGACY1_NAME"
+	do
+		commonPrintf "get info for $chname on org1_p1"
+		out=$(
+			export FABRIC_CFG_PATH="$cfpath"
+			export CORE_PEER_TLS_ENABLED=true
+			export CORE_PEER_LOCALMSPID="${TC_ORG1_STACK}MSP"
+			export CORE_PEER_TLS_ROOTCERT_FILE=${TC_ORG1_DATA}/msp/tlscacerts/ca-cert.pem
+			export CORE_PEER_MSPCONFIGPATH=$TC_ORG1_ADMINMSP
+			export CORE_PEER_ADDRESS=localhost:${TC_ORG1_P1_PORT}
+			peer channel getinfo -c $chname  2>&1
+		)
+		commonVerify $? "failed: $out" "$out"
+	done
+
+	# endregion: status
+
+}
+
+[[ "$TC_EXEC_DRY" == false ]] && commonYN "create legacy channels?" _legacy
+
+# endregion: channels
 # region: deploy chaincode
 
 ccVersion=1
+
 # [[ "$TC_EXEC_DRY" == false ]] && commonYN "install te-food-bundles chaincode on endoreser peers?" ${TC_PATH_SCRIPTS}/tcChaincodeInstall.sh "basic" $ccVersion
 # [[ "$TC_EXEC_DRY" == false ]] && commonYN "approve te-food-bundles chaincode on ${TC_CHANNEL1_NAME}?" ${TC_PATH_SCRIPTS}/tcChaincodeAprove.sh "basic" "$TC_CHANNEL1_NAME" $ccVersion
 
 [[ "$TC_EXEC_DRY" == false ]] && commonYN "install te-food-bundles chaincode on endoreser peers?" ${TC_PATH_SCRIPTS}/tcChaincodeInstall.sh "te-food-bundles" $ccVersion
 [[ "$TC_EXEC_DRY" == false ]] && commonYN "approve te-food-bundles chaincode on ${TC_CHANNEL1_NAME}?" ${TC_PATH_SCRIPTS}/tcChaincodeAprove.sh "te-food-bundles" "$TC_CHANNEL1_NAME" $ccVersion
 [[ "$TC_EXEC_DRY" == false ]] && commonYN "approve te-food-bundles chaincode on ${TC_CHANNEL2_NAME}?" ${TC_PATH_SCRIPTS}/tcChaincodeAprove.sh "te-food-bundles" "$TC_CHANNEL2_NAME" $ccVersion
+
+[[ "$TC_EXEC_DRY" == false ]] && commonYN "approve te-food-bundles chaincode on ${TC_LEGACY1_NAME}?" ${TC_PATH_SCRIPTS}/tcChaincodeAprove.sh "te-food-bundles" "$TC_LEGACY1_NAME" $ccVersion
 unset ccVersion
+
+# region: legacy
+
+# endregion: legacy
 
 # endregion: deploy chaincode
 # region: raw api

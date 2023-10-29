@@ -34,6 +34,7 @@ export TC_PATH_WORKBENCH_COMMON=${TC_PATH_WORKBENCH}/common
 export TC_PATH_SWARM=${TC_PATH_WORKBENCH_COMMON}/swarm
 export TC_PATH_ORGS=${TC_PATH_WORKBENCH}
 export TC_PATH_CHANNELS=${TC_PATH_WORKBENCH_COMMON}/artifacts/channels
+export TC_PATH_LEGACY=${TC_PATH_WORKBENCH_COMMON}/artifacts/legacy
 export TC_PATH_CHAINCODE=${TC_PATH_WORKBENCH_COMMON}/artifacts/chaincode
 
 # endregion: base paths
@@ -71,6 +72,9 @@ export TC_NETWORK_DOMAIN=$TC_NETWORK_DOMAIN
 export TC_CHANNEL_PROFILE="DefaultProfile"
 export TC_CHANNEL1_NAME=trustchain
 export TC_CHANNEL2_NAME=trustchain-staging
+
+export TC_LEGACY_PROFILE="DefaultProfile"
+export TC_LEGACY1_NAME=trustchain-legacy
 
 # endregion: network and channel
 # region: swarm
