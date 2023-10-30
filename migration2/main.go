@@ -57,7 +57,7 @@ var (
 	Def_HttpQuery      string        = "/query"
 	Def_IoBrake        string        = "./BRAKE"
 	Def_IoBuffer       int           = 150
-	Def_IoCheckpoint   string        = "checkpoint"
+	Def_IoCheckpoint   string        = ""
 	Def_IoLoglevel     int           = 6
 	Def_IoTick         int           = 1000
 	Def_IoTimestamp    bool          = false
@@ -207,6 +207,11 @@ const (
 // endregion: constants
 // region: types
 
+type Checkpointer struct {
+	cp   *client.FileCheckpointer
+	file *os.File
+}
+
 type Compiler func(*PSV) string
 
 type ModeFunction func(*cfg.Config)
@@ -240,17 +245,13 @@ func main() {
 	if ok && len(rc) != 0 {
 		_, err := os.Stat(rc)
 		if os.IsNotExist(err) {
-			helperPanic("$TC_PATH_RC is set but corresponding file does not exist", TC_PATH_RC, err.Error())
+			helperPanic(err, "$TC_PATH_RC is set but corresponding file does not exist", TC_PATH_RC)
 		}
-		if err != nil {
-			helperPanic("$TC_PATH_RC is set but cannot stat file", TC_PATH_RC, err.Error())
-		}
+		helperPanic(err, "$TC_PATH_RC is set but cannot stat file", TC_PATH_RC)
 
 		envCmd := exec.Command("bash", "-c", "source "+rc+" ; echo '<<<ENVIRONMENT>>>' ; env | sort")
 		env, err := envCmd.CombinedOutput()
-		if err != nil {
-			helperPanic(err.Error())
-		}
+		helperPanic(err)
 
 		s := bufio.NewScanner(bytes.NewReader(env))
 		start := false
@@ -315,7 +316,7 @@ func main() {
 		os.Args = append(os.Args, "")
 		usage := helperUsage(nil)
 		usage()
-		helperPanic("missing mode selector")
+		helperPanic(errors.New("missing mode selector"))
 	}
 
 	cfg.FlagSetArguments = os.Args[2:]
@@ -324,7 +325,6 @@ func main() {
 	fs.Entries = map[string]cfg.Entry{
 		OPT_FAB_CHANNEL: {Desc: "[string] as channel id, default is $TC_CHANNEL1_NAME if set", Type: "string", Def: Def_FabChannel},
 		OPT_IO_LOGLEVEL: {Desc: "loglevel as syslog.Priority, default is $TC_RAWAPI_LOGLEVEL if set", Type: "int", Def: Def_IoLoglevel},
-		OPT_IO_TICK:     {Desc: "progress message at LOG_NOTICE level per this many transactions, 0 means no message", Type: "int", Def: Def_IoTick},
 		OPT_IO_OUTPUT:   {Desc: "path for output, empty means stdout", Type: "string", Def: ""},
 	}
 
@@ -353,6 +353,7 @@ func main() {
 		fs.Entries[OPT_IO_BUFFER] = cfg.Entry{Desc: "fills up the temporary buffer with this many transactions, which first get submitted, then confirmed, should be large enough for the submited transactions to be finalized by the time of confirmation begins", Type: "int", Def: Def_IoBuffer}
 		fs.Entries[OPT_IO_INPUT] = cfg.Entry{Desc: ", separated list of files, which contain the output of previous submit attempts, empty causes panic", Type: "string", Def: ""}
 		fs.Entries[OPT_IO_SUFFIX] = cfg.Entry{Desc: "suffix with which the name of the processed file is appended as output (-" + OPT_IO_OUTPUT + " is ignored if supplied)", Type: "string", Def: ""}
+		fs.Entries[OPT_IO_TICK] = cfg.Entry{Desc: "progress message at LOG_NOTICE level per this many transactions, 0 means no message", Type: "int", Def: Def_IoTick}
 		fs.Entries[OPT_IO_TIMESTAMP] = cfg.Entry{Desc: "prefixes the file with a timestamp (YYMMDD_HHMM_) if true, only valid if the -" + OPT_IO_SUFFIX + " is also set", Type: "bool", Def: Def_IoTimestamp}
 
 		fs.Entries[OPT_LATOR_BIND] = cfg.Entry{Desc: "address to bind configtxlator's rest api to, default is $" + TC_LATOR_BIND + " if set", Type: "string", Def: Def_LatorBind}
@@ -436,7 +437,7 @@ func main() {
 		fs.Entries[OPT_FAB_MSPID] = cfg.Entry{Desc: "fabric MSPID, default is $" + TC_FAB_MSPID + " if set", Type: "string", Def: Def_FabMspId}
 		fs.Entries[OPT_FAB_TLSCERT] = cfg.Entry{Desc: "path to TLS cert, default is $" + TC_PATH_CERT + " if set", Type: "string", Def: Def_FabTlscert}
 
-		fs.Entries[OPT_IO_CHECKPOINT] = cfg.Entry{Desc: "file checkpointer, empty means next block", Type: "string", Def: Def_IoCheckpoint}
+		fs.Entries[OPT_IO_CHECKPOINT] = cfg.Entry{Desc: "file checkpointer path and prefix (as in prefix_channel_chaincode), empty forces next block", Type: "string", Def: Def_IoCheckpoint}
 		fs.Entries[OPT_IO_BUFFER] = cfg.Entry{Desc: "maximum block cache size", Type: "int", Def: Def_IoBuffer}
 		fs.Entries[OPT_IO_TIMESTAMP] = cfg.Entry{Desc: "prefixes the -" + OPT_IO_OUTPUT + " with a timestamp (YYMMDD_HHMM_) if true", Type: "bool", Def: Def_IoTimestamp}
 
@@ -474,6 +475,7 @@ func main() {
 		fs.Entries[OPT_FAB_TLSCERT] = cfg.Entry{Desc: "path to TLS cert, default is $" + TC_PATH_CERT + " if set", Type: "string", Def: Def_FabTlscert}
 
 		fs.Entries[OPT_IO_INPUT] = cfg.Entry{Desc: "file, which contains the parameters of one transaction per line, separated by |, empty means stdin", Type: "string", Def: ""}
+		fs.Entries[OPT_IO_TICK] = cfg.Entry{Desc: "progress message at LOG_NOTICE level per this many transactions, 0 means no message", Type: "int", Def: Def_IoTick}
 
 		fs.Entries[OPT_PROC_KEYNAME] = cfg.Entry{Desc: "the name of the field containing the unique identifier", Type: "string", Def: Def_ProcKeyname}
 		fs.Entries[OPT_PROC_KEYPOS] = cfg.Entry{Desc: "Nth field in -" + OPT_IO_INPUT + " that contains the unique identifier identified by -" + OPT_PROC_KEYNAME, Type: "int", Def: Def_ProcKeypos}
@@ -508,16 +510,14 @@ func main() {
 		os.Args[1] = ""
 		usage := helperUsage(fs.FlagSet)
 		usage()
-		helperPanic("invalid mode '" + mode + "'")
+		helperPanic(fmt.Errorf("invalid mode '" + mode + "'"))
 	}
 
 	// endregion: evaluate mode
 	// region: parse flag set
 
 	err := fs.ParseCopy()
-	if err != nil {
-		helperPanic(err.Error())
-	}
+	helperPanic(err)
 
 	// endregion: parse flag set
 	// region: init logger
@@ -534,15 +534,16 @@ func main() {
 	_, _ = Logger.NewCh(log.ChConfig{Severity: &level})
 	defer Logger.Close()
 	Lout = Logger.Out
-	Logmark = config.Entries[OPT_IO_TICK].Value.(int)
+	if config.Entries[OPT_IO_TICK].Value != nil {
+		Logmark = config.Entries[OPT_IO_TICK].Value.(int)
+
+	}
 
 	// endregion: init logger
 	// region: precompile txid regexp
 
 	TxRegexp, err = regexp.Compile(TXID)
-	if err != nil {
-		helperPanic(err.Error())
-	}
+	helperPanic(err)
 
 	// endregion: precompile txid regexp
 	// region: exec mode
@@ -641,7 +642,7 @@ func modeCombined(c *cfg.Config) {
 			break
 		} else if !errors.Is(err, fs.ErrNotExist) {
 			// file does not exist, bur err indicates something different
-			helperPanic("an unexpected error occurred while checking the brake file", err.Error())
+			helperPanic(err, "an unexpected error occurred while checking the brake file")
 		}
 
 		// endregion: check for brake
@@ -1022,19 +1023,10 @@ func modeListener(c *cfg.Config) {
 	// endregion: fabric
 	// region: checkpoint, ctx
 
+	checkpointer := fabricCheckpointer(c)
+	defer checkpointer.cp.Close()
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-
-	// checkpointer := new(client.FileCheckpointer)
-	var checkpointer *client.FileCheckpointer
-	if len(c.Entries[OPT_IO_CHECKPOINT].Value.(string)) > 0 {
-		ch, err := client.NewFileCheckpointer(c.Entries[OPT_IO_CHECKPOINT].Value.(string))
-		if err != nil {
-			helperPanic(err.Error())
-		}
-		checkpointer = ch
-		checkpointer.Sync()
-	}
 
 	// endregion: checkpoint, ctx
 	// region: prepare for sigint
@@ -1057,14 +1049,16 @@ func modeListener(c *cfg.Config) {
 		defer wg.Done()
 		Lout(LOG_INFO, "block event listener started")
 
+		// if checkpointer != nil {
+		// 	checkpointer, _ = client.NewFileCheckpointer("")
+		// }
+
 		blockEvents, err := network.BlockEvents(
 			ctx,
 			// client.WithStartBlock(3605), // ignored if the checkpointer has checkpoint state
-			client.WithCheckpoint(checkpointer),
+			client.WithCheckpoint(checkpointer.cp),
 		)
-		if err != nil {
-			helperPanic(err.Error())
-		}
+		helperPanic(err)
 
 		for {
 			select {
@@ -1132,11 +1126,9 @@ func modeListener(c *cfg.Config) {
 			ctx,
 			c.Entries[OPT_FAB_CC].Value.(string),
 			// client.WithStartBlock(3605), // ignored if the checkpointer has checkpoint state
-			client.WithCheckpoint(checkpointer),
+			client.WithCheckpoint(checkpointer.cp),
 		)
-		if err != nil {
-			helperPanic(err.Error())
-		}
+		helperPanic(err)
 
 		for {
 			select {
@@ -1178,7 +1170,9 @@ func modeListener(c *cfg.Config) {
 				}
 				Lout(LOG_DEBUG, "chaincode event", StatTrs, chCache[tx_id])
 				chCacheMutex.Unlock()
-				checkpointer.CheckpointChaincodeEvent(event)
+				if checkpointer != nil {
+					checkpointer.cp.CheckpointChaincodeEvent(event)
+				}
 			}
 		}
 	}()
@@ -1304,8 +1298,12 @@ func modeListener(c *cfg.Config) {
 		ioOutputAppend(output, chCache[tx_id], procCompilePSV)
 	}
 	if checkpointer != nil {
-		checkpointer.Sync()
-		checkpointer.Close()
+		checkpointer.cp.Sync()
+		checkpointer.cp.Close()
+	}
+	if checkpointer.file != nil {
+		checkpointer.file.Close()
+		os.Remove(checkpointer.file.Name())
 	}
 	if c.Entries[OPT_IO_TIMESTAMP].Value.(bool) {
 		output.Close()
@@ -1430,6 +1428,7 @@ func modeSubmitBatch(c *cfg.Config) {
 	// region: process batch
 
 	for _, file := range input {
+		
 		// region: check for brake
 
 		brake, err := os.Stat(c.Entries[OPT_IO_BRAKE].Value.(string))
@@ -1439,7 +1438,7 @@ func modeSubmitBatch(c *cfg.Config) {
 			break
 		} else if !errors.Is(err, fs.ErrNotExist) {
 			// file does not exist, bur err indicates something different
-			helperPanic("an unexpected error occurred while checking the brake file", err.Error())
+			helperPanic(err, "an unexpected error occurred while checking the brake file")
 		}
 
 		// endregion: check for brake
@@ -1470,6 +1469,33 @@ func modeSubmitBatch(c *cfg.Config) {
 // endregion: modes
 // region: fabric
 
+func fabricCheckpointer(c *cfg.Config) *Checkpointer {
+	if len(c.Entries[OPT_IO_CHECKPOINT].Value.(string)) > 0 {
+		path := []string{
+			c.Entries[OPT_IO_CHECKPOINT].Value.(string),
+			c.Entries[OPT_FAB_CHANNEL].Value.(string),
+			c.Entries[OPT_FAB_CC].Value.(string),
+		}
+		checkpointer, err := client.NewFileCheckpointer(strings.Join(path, "_"))
+		helperPanic(err)
+		checkpointer.Sync()
+		return &Checkpointer{
+			file: nil,
+			cp:   checkpointer,
+		}
+	}
+
+	// tmp, err := ioutil.TempFile("", "tmp_fabric_file_checkpointer_")
+	tmp, err := os.CreateTemp("", "tmp_fabric_file_checkpointer_")
+	helperPanic(err)
+	checkpointer, err := client.NewFileCheckpointer(tmp.Name())
+	helperPanic(err)
+	return &Checkpointer{
+		file: tmp,
+		cp:   checkpointer,
+	}
+}
+
 func fabricClient(c *cfg.Config) *fabric.Client {
 	client := fabric.Client{
 		CertPath:     c.Entries[OPT_FAB_CERT].Value.(string),
@@ -1480,9 +1506,7 @@ func fabricClient(c *cfg.Config) *fabric.Client {
 		TLSCertPath:  c.Entries[OPT_FAB_TLSCERT].Value.(string),
 	}
 	err := client.Init()
-	if err != nil {
-		helperPanic(err.Error())
-	}
+	helperPanic(err)
 
 	Lout(LOG_DEBUG, "fabric client instance", client)
 	return &client
@@ -1598,9 +1622,7 @@ func fabricLator(c *cfg.Config) {
 		Port:  c.Entries[OPT_LATOR_PORT].Value.(int),
 	}
 	err := Lator.Init()
-	if err != nil {
-		helperPanic("error initializing configtxlator instance", err.Error())
-	}
+	helperPanic(err, "error initializing configtxlator instance")
 	Lout(LOG_DEBUG, "configtxlator instance", Lator)
 	Lout(LOG_INFO, "waiting for configtxlator launch", LATOR_LATENCY)
 	time.Sleep(time.Duration(LATOR_LATENCY) * time.Second)
@@ -1637,7 +1659,7 @@ func fabricSubmit(c *cfg.Config, contract *client.Contract, bundle *PSV) error {
 			bundle.Key = strconv.FormatInt(key, 10)
 		}
 	default:
-		helperPanic("invalid keytype")
+		helperPanic(errors.New("invalid keytype"))
 	}
 	if err != nil {
 		bundle.Response = err.Error()
@@ -1718,13 +1740,16 @@ func helperCfgDeepcopy(src map[string]cfg.Entry) map[string]cfg.Entry {
 	return dst
 }
 
-func helperPanic(s ...string) {
-	msg := strings.Join(s, " -> ")
-	if Logger != nil {
-		Lout(LOG_EMERG, msg)
+func helperPanic(err error, s ...string) {
+	if err != nil {
+		s = append([]string{err.Error()}, s...)
+		msg := strings.Join(s, " -> ")
+		if Logger != nil {
+			Lout(LOG_EMERG, msg)
+		}
+		fmt.Fprintln(os.Stderr, msg)
+		os.Exit(1)
 	}
-	fmt.Fprintln(os.Stderr, msg)
-	os.Exit(1)
 }
 
 func helperProgress(totalTransactions int) string {
@@ -1811,7 +1836,7 @@ func ioCombined(in, out string, fn Parser) (*[]PSV, *os.File) {
 	batch := ioRead(in, fn)
 
 	if len(in) != 0 && filepath.Clean(in) == filepath.Clean(out) {
-		helperPanic("in-place update not supported yet", in, out)
+		helperPanic(errors.New("in-place update not supported yet"), in, out)
 	}
 
 	file := ioOutputOpen(out)
@@ -1823,7 +1848,7 @@ func ioCount(input []string) int {
 	count := 0
 	for k, v := range input {
 		if len(v) == 0 {
-			helperPanic(fmt.Sprintf("empty value in position %d of input files", k+1))
+			helperPanic(fmt.Errorf("empty value in position %d of input files", k+1))
 		}
 		batch := ioRead(v, procParseBundles)
 		Lout(LOG_INFO, fmt.Sprintf("%d/%d with  %d lines", k+1, len(input), len(*batch)))
@@ -1836,9 +1861,7 @@ func ioCount(input []string) int {
 func ioOutputAppend(f *os.File, psv *PSV, fn Compiler) {
 	line := fn(psv)
 	_, err := f.WriteString(line + "\n")
-	if err != nil {
-		helperPanic("error appending line to file", err.Error(), f.Name(), line)
-	}
+	helperPanic(err, "error appending line to file", f.Name(), line)
 }
 
 func ioOutputOpen(f string) *os.File {
@@ -1858,9 +1881,7 @@ func ioOutputOpen(f string) *os.File {
 	if _, err := os.Stat(f); os.IsNotExist(err) {
 		Lout(LOG_INFO, "creating new file", f)
 		osFile, err = os.Create(f)
-		if err != nil {
-			helperPanic("cannot create output file", f, err.Error())
-		}
+		helperPanic(err, "cannot create output file", f)
 		return osFile
 	}
 
@@ -1869,9 +1890,7 @@ func ioOutputOpen(f string) *os.File {
 
 	osFile, err := os.OpenFile(f, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
 	Lout(LOG_DEBUG, "output file opened for appending", f)
-	if err != nil {
-		helperPanic("cannot open file, for appending", f, err.Error())
-	}
+	helperPanic(err, "cannot open file, for appending", f)
 	return osFile
 
 	// endregion: open file
@@ -1899,17 +1918,13 @@ func ioRead(f string, fn Parser) *[]PSV {
 	// check if file exists
 	_, err := os.Stat(f)
 	if os.IsNotExist(err) {
-		helperPanic("input file does not exist", err.Error())
+		helperPanic(err, "input file does not exist")
 	}
-	if err != nil {
-		helperPanic("cannot stat input file", err.Error())
-	}
+	helperPanic(err, "cannot stat input file")
 
 	// open for reading
 	file, err := os.Open(f)
-	if err != nil {
-		helperPanic("cannot open input file", err.Error())
-	}
+	helperPanic(err, "cannot open input file")
 	defer file.Close()
 
 	// parse
@@ -2003,9 +2018,11 @@ func procParseBundles(scanner *bufio.Scanner) *[]PSV {
 		batch = append(batch, item)
 	}
 
-	if err := scanner.Err(); err != nil {
-		helperPanic(err.Error())
-	}
+	// if err := scanner.Err(); err != nil {
+	// 	helperPanic(err.Error())
+	// }
+	err := scanner.Err()
+	helperPanic(err)
 
 	return &batch
 }
@@ -2121,9 +2138,11 @@ func procParsePSV(scanner *bufio.Scanner) *[]PSV {
 
 	}
 
-	if err := scanner.Err(); err != nil {
-		helperPanic(err.Error())
-	}
+	// if err := scanner.Err(); err != nil {
+	// 	helperPanic(err.Error())
+	// }
+	err := scanner.Err()
+	helperPanic(err)
 
 	return &batch
 }
