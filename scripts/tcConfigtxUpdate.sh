@@ -58,6 +58,7 @@ function _help_commit() {
 	commonPrintf "  $0 ${setArgs[mode]} <options>"
 	commonPrintf ""
 	commonPrintf "options:"
+	commonPrintf "  -c --channel [name]    set [name] as channel id, default: '${setArgs[channel]}'"
 	commonPrintf "  -d --dry               dry mode don't do anything, use when you are willing to 'source' for functions, default: '${setArgs[dry]}'"
 	commonPrintf "  -u --update [path]     path to the encodet config update default: '${setArgs[update]}'"
 	commonPrintf "  -v --verbose           verbose output, default: '${setArgs[verbose]}'"
