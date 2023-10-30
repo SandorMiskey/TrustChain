@@ -2075,10 +2075,6 @@ ccVersion=1
 [[ "$TC_EXEC_DRY" == false ]] && commonYN "approve te-food-bundles chaincode on ${TC_LEGACY1_NAME}?" ${TC_PATH_SCRIPTS}/tcChaincodeAprove.sh "te-food-bundles" "$TC_LEGACY1_NAME" $ccVersion
 unset ccVersion
 
-# region: legacy
-
-# endregion: legacy
-
 # endregion: deploy chaincode
 # region: raw api
 
