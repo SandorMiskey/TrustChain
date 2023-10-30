@@ -4,7 +4,5 @@ use (
 	./chaincode/basic
 	./chaincode/te-food-bundles
 	./migration2
-	./proto
 	./rawapi
-	./migration-tui
 )
