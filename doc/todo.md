@@ -2,8 +2,6 @@
 
 ## now
 
-* gluster auth.allow (tcGlusterServers.sh)
-
 ## next
 
 * backup
