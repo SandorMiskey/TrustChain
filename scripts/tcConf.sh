@@ -44,7 +44,7 @@ export TC_PATH_RAWAPI=${TC_PATH_BASE}/rawapi
 export TC_PATH_COMMON=${TC_PATH_SCRIPTS}/commonFuncs.sh
 
 # add scripts and bins to PATH
-export PATH=${TC_PATH_BIN}:${TC_PATH_SCRIPTS}:$PATH
+export PATH=${TC_PATH_BIN}:${TC_PATH_SCRIPTS}:${GOBIN}:$PATH
 
 # dirs under workbench
 export TC_PATH_WORKBENCH=$TC_PATH_WORKBENCH
