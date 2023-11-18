@@ -309,3 +309,7 @@ function commonIterate() {
 
 	unset mode prefix type field suffix
 }
+
+function commonSudo() {
+	sudo ls > /dev/null
+}

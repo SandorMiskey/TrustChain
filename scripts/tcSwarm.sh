@@ -26,7 +26,7 @@ _swarmLeave() {
 
 	_leave() {
 		local -n peer=$1
-		local status=$( ssh ${peer[node]} "docker swarm leave --force" 2>&1 )
+		local status=$( ssh ${peer[node]} "$TC_SWARM_DOCKER swarm leave --force" 2>&1 )
 		commonVerify $? "$status" "swarm status: $status"
 	}
 
@@ -48,7 +48,7 @@ _swarmPrune() {
 		local status
 		# status=$( ssh ${peer[node]} "docker network prune -f" 2>&1 )
 		# commonVerify $? "$status" "swarm status: $status"
-		status=$( ssh ${peer[node]} "docker system prune --all -f" 2>&1 )
+		status=$( ssh ${peer[node]} "$TC_SWARM_DOCKER  system prune --all -f" 2>&1 )
 		commonVerify $? "$status" "swarm status: $status"
 		# status=$( ssh ${peer[node]} "docker volume rm $(docker volume ls -q)" 2>&1 )
 		# commonPrintf "volume rm: `echo $status`"
@@ -70,22 +70,22 @@ _swarmInit() {
 
 	local out cmd
 
-	out=$( ssh "${leader[node]}" "docker swarm init ${TC_SWARM_INIT}" 2>&1 )
+	out=$( ssh "${leader[node]}" "$TC_SWARM_DOCKER  swarm init ${TC_SWARM_INIT}" 2>&1 )
 	commonVerify $? "failed: $out" "swarm status: $out"
 
-	cmd="echo \"$TC_HTTP_API_KEY\" | docker secret create tc_http_api_key -"
+	cmd="echo \"$TC_HTTP_API_KEY\" | $TC_SWARM_DOCKER  secret create tc_http_api_key -"
 	out=$( ssh ${leader[node]} "$cmd" 2>&1 )
 	commonVerify $? "failed: $out" "tc_http_api_key external secret is created"
-	cmd="echo \"$TC_HTTPS_CERT\" | docker secret create tc_https_cert -"
+	cmd="echo \"$TC_HTTPS_CERT\" | $TC_SWARM_DOCKER  secret create tc_https_cert -"
 	out=$( ssh ${leader[node]} "$cmd" 2>&1 )
 	commonVerify $? "failed: $out" "tc_https_cert external secret is created"
-	cmd="echo \"$TC_HTTPS_KEY\" | docker secret create tc_https_key -"
+	cmd="echo \"$TC_HTTPS_KEY\" | $TC_SWARM_DOCKER  secret create tc_https_key -"
 	out=$( ssh ${leader[node]} "$cmd" 2>&1 )
 	commonVerify $? "failed: $out" "tc_https_key external secret is created"
 
-	local tokerWorker=$( ssh ${leader[node]} "docker swarm join-token -q worker" 2>&1 )
+	local tokerWorker=$( ssh ${leader[node]} "$TC_SWARM_DOCKER  swarm join-token -q worker" 2>&1 )
 	commonVerify $? "failed: $tokerWorker" "worker token: $tokerWorker"
-	local tokerManager=$( ssh ${leader[node]} "docker swarm join-token -q manager" 2>&1 )
+	local tokerManager=$( ssh ${leader[node]} "$TC_SWARM_DOCKER  swarm join-token -q manager" 2>&1 )
 	commonVerify $? "failed: $tokerManager" "manager token: $tokerManager"
 
 	# unset leader
@@ -98,13 +98,13 @@ _swarmJoin() {
 
 	_joinManager() {
 		local -n peer=$1
-		local cmd="docker swarm join --advertise-addr ${peer[ip]}:2377 --token $( docker swarm join-token -q manager ) ${leader[ip]}:2377"
+		local cmd="$TC_SWARM_DOCKER  swarm join --advertise-addr ${peer[ip]}:2377 --token $( $TC_SWARM_DOCKER  swarm join-token -q manager ) ${leader[ip]}:2377"
 		local status=$( ssh ${peer[node]} "$cmd" 2>&1 )
 		commonVerify $? "$status" "swarm status: $status"
 	}
 	_joinWorker() {
 		local -n peer=$1
-		local cmd="docker swarm join --advertise-addr ${peer[ip]}:2377 --token $( docker swarm join-token -q worker ) ${leader[ip]}:2377"
+		local cmd="$TC_SWARM_DOCKER  swarm join --advertise-addr ${peer[ip]}:2377 --token $( $TC_SWARM_DOCKER  swarm join-token -q worker ) ${leader[ip]}:2377"
 		local status=$( ssh ${peer[node]} "$cmd" 2>&1 )
 		commonVerify $? "$status" "swarm status: $status"
 	}

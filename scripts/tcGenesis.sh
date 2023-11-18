@@ -22,18 +22,6 @@ fi
 commonPP $TC_PATH_SCRIPTS
 
 # endregion: config
-# region: strartup warning
-
-commonPrintfBold " "
-commonPrintfBold "THIS SCRIPT CAN BE DESTRUCTIVE, IT SHOULD BE RUN WITH SPECIAL CARE ON THE MAIN MANAGER NODE"
-commonPrintfBold " "
-force=$COMMON_FORCE
-COMMON_FORCE=$TC_EXEC_SURE
-commonContinue "do you want to continue?"
-COMMON_FORCE=$force
-unset force
-
-# endregion: warning
 # region: check for dependencies and versions
 
 _FabricVersions() {
@@ -66,12 +54,29 @@ commonYN "validate fabric binary versions?" _FabricVersions
 commonYN "validate ca binary versions?" _CAVersions
 
 # endregion: dependencies and versions
+# region: strartup warning
+
+gum style  'THIS SCRIPT CAN BE DESTRUCTIVE' 'IT SHOULD BE RUN WITH SPECIAL CARE ON THE MAIN MANAGER NODE'
+# commonPrintfBold " "
+# commonPrintfBold "THIS SCRIPT CAN BE DESTRUCTIVE, IT SHOULD BE RUN WITH SPECIAL CARE ON THE MAIN MANAGER NODE"
+# commonPrintfBold " "
+force=$COMMON_FORCE
+COMMON_FORCE=$TC_EXEC_SURE
+commonContinue "do you want to continue?"
+COMMON_FORCE=$force
+unset force
+
+# endregion: warning
 # region: remove config and persistent data
 
 _WipePersistent() {
 
 
 	_wipe() {
+		commonPrintf "root privilege required, sudo authorization check"
+		commonSudo
+
+		gum style  "If you are using Docker Desktop and it is in resource-saving mode, you may need to restart it..."
 		docker service ls --format '{{.ID}}' | xargs -I {} docker service rm {}
 		commonPrintf "removing $TC_PATH_LOCALWORKBENCH symlink to $TC_PATH_WORKBENCH"
 		err=$( sudo rm -f "$TC_PATH_LOCALWORKBENCH" )
@@ -103,11 +108,12 @@ _WipePersistent() {
 		unset err
 	}
 
+	gum style "THIS WILL WIPE ALL PERSISTENT DATA OF YOURS..." 
+	# commonPrintfBold " "
+	# commonPrintfBold "THIS WILL WIPE ALL PERSISTENT DATA OF YOURS..."
+	# commonPrintfBold " "
 	local force=$COMMON_FORCE
 	COMMON_FORCE=$TC_EXEC_SURE
-	commonPrintfBold " "
-	commonPrintfBold "THIS WILL WIPE ALL PERSISTENT DATA OF YOURS..."
-	commonPrintfBold " "
 	commonYN "SURE?" _wipe
 	COMMON_FORCE=$force
 }
@@ -142,7 +148,7 @@ _WipePersistent() {
 # endregion: create user and group
 # region: reset glusterd
 
-[[ "$TC_EXEC_DRY" == false ]] && commonYN "reset cluster filesystem?" ${TC_PATH_SCRIPTS}/tcGlusterServers.sh
+[[ "$TC_EXEC_DRY" == false && "$TC_GLUSTER_ENABLED" == true ]] && commonYN "reset cluster filesystem?" ${TC_PATH_SCRIPTS}/tcGlusterServers.sh
 
 # endregion: reset glusterd
 # region: process templates
@@ -186,14 +192,6 @@ _templates() {
 		commonVerify $? "failed: $out" "$out"
 	done
 
-	commonPrintf " "
-	commonPrintf "unpacking private docker repo"
-	commonPrintf " "
-	out=$( tar -C ${TC_COMMON1_REGISTRY_DATA}/ -xzvf ${TC_COMMON1_REGISTRY_DATA}/docker.tgz  )
-	commonVerify $? "failed: $out" "docker repo in place"
-	out=$( rm ${TC_COMMON1_REGISTRY_DATA}/docker.tgz  )
-	commonVerify $? "failed: $out" "docker repo archive removed"
-
 	# commonPrintf " "
 	# commonPrintf "chown -R $TC_USER_NAME:$TC_USER_GROUP $TC_PATH_WORKBENCH"
 	# commonPrintg
@@ -204,17 +202,28 @@ _templates() {
 	unset target
 }
 
+_registry() {
+	commonPrintf " "
+	commonPrintf "unpacking private docker repo"
+	commonPrintf " "
+	out=$( tar -C ${TC_COMMON1_REGISTRY_DATA}/ -xzvf ${TC_COMMON1_REGISTRY_DATA}/docker.tgz  )
+	commonVerify $? "failed: $out" "docker repo in place"
+	out=$( rm ${TC_COMMON1_REGISTRY_DATA}/docker.tgz  )
+	commonVerify $? "failed: $out" "docker repo archive removed"
+}
+
 [[ "$TC_EXEC_DRY" == false ]] && commonYN "process templates?" _templates 
+[[ "$TC_EXEC_DRY" == false ]] && commonYN "unpack docker registry?" _registry 
 
 # endregion: process templates
 # region: gluster clients
 
-[[ "$TC_EXEC_DRY" == false ]] && commonYN "set cluster filesystem on clients?" ${TC_PATH_SCRIPTS}/tcGlusterClients.sh
+[[ "$TC_EXEC_DRY" == false && "$TC_GLUSTER_ENABLED" == true ]] && commonYN "set cluster filesystem on clients?" ${TC_PATH_SCRIPTS}/tcGlusterClients.sh
 
 # endregion: gluster clients
 # region: swarm init
 
-[[ "$TC_EXEC_DRY" == false ]] && commonYN "prune and reset docker swarm?" ${TC_PATH_SCRIPTS}/tcSwarm.sh
+[[ "$TC_EXEC_DRY" == false ]] && commonYN "prune and reset docker swarm?" bash ${TC_PATH_SCRIPTS}/tcSwarm.sh
 
 # endregion: swarm init
 # region: tls ca and file sharing
@@ -243,6 +252,8 @@ _TLS1() (
 
 	local leader=${TC_SWARM_MANAGER1[node]}
 	_inner() {
+		# [[ "$leader" == localhost ]] && return 0
+		# [[ "$leader" == "127.0.0.1" ]] && return 0
 		local -n peer=$1
 		out=$( scp ${TC_COMMON1_REGISTRY_DATA}/${TC_COMMON1_REGISTRY_NAME}.crt ${peer[node]}:ca.crt )
 		commonVerify $? "failed: $out" "ca.crt copied"
@@ -255,7 +266,7 @@ _TLS1() (
 		commonVerify $? "failed: $out" "ca.crt in place"
 		unset out dir cmd
 	}
-	commonIterate _inner "confirm|copy tls cert for registry tls to |array|node|?" "${TC_SWARM_WORKERS[@]}" "${TC_SWARM_MANAGERS[@]}"
+	[[ "$leader" == "127.0.0.1" ]] || commonIterate _inner "confirm|copy tls cert for registry tls to |array|node|?" "${TC_SWARM_WORKERS[@]}" "${TC_SWARM_MANAGERS[@]}"
 	unset _inner
 
 	# endregion: registry
@@ -265,7 +276,7 @@ _TLS1() (
 		commonPrintf " "
 		commonPrintf "bootstrapping >>>${TC_COMMON1_STACK}<<<"
 		commonPrintf " "
-		${TC_PATH_SCRIPTS}/tcBootstrap.sh -m up -s ${TC_COMMON1_STACK}
+		bash ${TC_PATH_SCRIPTS}/tcBootstrap.sh -m up -s ${TC_COMMON1_STACK}
 		commonVerify $? "failed!"
 	}
 	commonYN "bootstrap ${TC_COMMON1_STACK}?" _bootstrap
@@ -466,7 +477,7 @@ _Orderer1() {
 
 	_bootstrap() {
 		commonPrintf "bootstrapping ${TC_ORDERER1_STACK}"
-		${TC_PATH_SCRIPTS}/tcBootstrap.sh -m up -s ${TC_ORDERER1_STACK}
+		bash ${TC_PATH_SCRIPTS}/tcBootstrap.sh -m up -s ${TC_ORDERER1_STACK}
 		commonVerify $? "failed!"
 	}
 	commonYN "bootstrap ${TC_ORDERER1_STACK}?" _bootstrap
@@ -729,7 +740,7 @@ _Orderer1() {
 
 		_bootstrap() {
 			commonPrintf "bootstrapping ${TC_ORG1_STACK}"
-			${TC_PATH_SCRIPTS}/tcBootstrap.sh -m up -s ${TC_ORG1_STACK}
+			bash ${TC_PATH_SCRIPTS}/tcBootstrap.sh -m up -s ${TC_ORG1_STACK}
 			commonVerify $? "failed!"
 		}
 		commonYN "bootstrap ${TC_ORG1_STACK}?" _bootstrap
@@ -1103,7 +1114,7 @@ _Orderer1() {
 
 		_bootstrap() {
 			commonPrintf "bootstrapping ${TC_ORG2_STACK}"
-			${TC_PATH_SCRIPTS}/tcBootstrap.sh -m up -s ${TC_ORG2_STACK}
+			bash ${TC_PATH_SCRIPTS}/tcBootstrap.sh -m up -s ${TC_ORG2_STACK}
 			commonVerify $? "failed!"
 		}
 		commonYN "bootstrap ${TC_ORG2_STACK}?" _bootstrap
@@ -1395,7 +1406,7 @@ _Orderer1() {
 
 		_bootstrap() {
 			commonPrintf "bootstrapping ${TC_ORG3_STACK}"
-			${TC_PATH_SCRIPTS}/tcBootstrap.sh -m up -s ${TC_ORG3_STACK}
+			bash ${TC_PATH_SCRIPTS}/tcBootstrap.sh -m up -s ${TC_ORG3_STACK}
 			commonVerify $? "failed!"
 		}
 		commonYN "bootstrap ${TC_ORG3_STACK}?" _bootstrap
@@ -1685,7 +1696,7 @@ _Orderer1() {
 
 	_bootstrapCommon2() {
 		commonPrintf "bootstrapping >>>${TC_COMMON2_STACK}<<<"
-		${TC_PATH_SCRIPTS}/tcBootstrap.sh -m up -s ${TC_COMMON2_STACK}
+		bash ${TC_PATH_SCRIPTS}/tcBootstrap.sh -m up -s ${TC_COMMON2_STACK}
 		commonVerify $? "failed!"
 	}
 	# commonYN "bootstrap ${TC_COMMON2_STACK}?" _bootstrapCommon2
@@ -1695,7 +1706,7 @@ _Orderer1() {
 
 	_bootstrapCommon3() {
 		commonPrintf "bootstrapping >>>${TC_COMMON3_STACK}<<<"
-		${TC_PATH_SCRIPTS}/tcBootstrap.sh -m up -s ${TC_COMMON3_STACK}
+		bash ${TC_PATH_SCRIPTS}/tcBootstrap.sh -m up -s ${TC_COMMON3_STACK}
 		commonVerify $? "failed!"
 	}
 	# commonYN "bootstrap ${TC_COMMON3_STACK}?" _bootstrapCommon3
@@ -2068,11 +2079,11 @@ ccVersion=1
 # [[ "$TC_EXEC_DRY" == false ]] && commonYN "install te-food-bundles chaincode on endoreser peers?" ${TC_PATH_SCRIPTS}/tcChaincodeInstall.sh "basic" $ccVersion
 # [[ "$TC_EXEC_DRY" == false ]] && commonYN "approve te-food-bundles chaincode on ${TC_CHANNEL1_NAME}?" ${TC_PATH_SCRIPTS}/tcChaincodeAprove.sh "basic" "$TC_CHANNEL1_NAME" $ccVersion
 
-[[ "$TC_EXEC_DRY" == false ]] && commonYN "install te-food-bundles chaincode on endoreser peers?" ${TC_PATH_SCRIPTS}/tcChaincodeInstall.sh "te-food-bundles" $ccVersion
-[[ "$TC_EXEC_DRY" == false ]] && commonYN "approve te-food-bundles chaincode on ${TC_CHANNEL1_NAME}?" ${TC_PATH_SCRIPTS}/tcChaincodeAprove.sh "te-food-bundles" "$TC_CHANNEL1_NAME" $ccVersion
-[[ "$TC_EXEC_DRY" == false ]] && commonYN "approve te-food-bundles chaincode on ${TC_CHANNEL2_NAME}?" ${TC_PATH_SCRIPTS}/tcChaincodeAprove.sh "te-food-bundles" "$TC_CHANNEL2_NAME" $ccVersion
+[[ "$TC_EXEC_DRY" == false ]] && commonYN "install te-food-bundles chaincode on endoreser peers?" bash ${TC_PATH_SCRIPTS}/tcChaincodeInstall.sh "te-food-bundles" $ccVersion
+[[ "$TC_EXEC_DRY" == false ]] && commonYN "approve te-food-bundles chaincode on ${TC_CHANNEL1_NAME}?" bash ${TC_PATH_SCRIPTS}/tcChaincodeAprove.sh "te-food-bundles" "$TC_CHANNEL1_NAME" $ccVersion
+[[ "$TC_EXEC_DRY" == false ]] && commonYN "approve te-food-bundles chaincode on ${TC_CHANNEL2_NAME}?" bash ${TC_PATH_SCRIPTS}/tcChaincodeAprove.sh "te-food-bundles" "$TC_CHANNEL2_NAME" $ccVersion
 
-[[ "$TC_EXEC_DRY" == false ]] && commonYN "approve te-food-bundles chaincode on ${TC_LEGACY1_NAME}?" ${TC_PATH_SCRIPTS}/tcChaincodeAprove.sh "te-food-bundles" "$TC_LEGACY1_NAME" $ccVersion
+[[ "$TC_EXEC_DRY" == false ]] && commonYN "approve te-food-bundles chaincode on ${TC_LEGACY1_NAME}?" bash ${TC_PATH_SCRIPTS}/tcChaincodeAprove.sh "te-food-bundles" "$TC_LEGACY1_NAME" $ccVersion
 unset ccVersion
 
 # endregion: deploy chaincode

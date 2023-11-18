@@ -4,6 +4,24 @@
 # Copyright TE-FOOD International GmbH., All Rights Reserved
 #
 
+# region: bash version
+
+# since this config file is sourced in everywhere (I hope...), this is where the bash version is checked
+
+bash_min_version=5
+bash_major_version=$(echo "$BASH_VERSION" | cut -d. -f1)
+
+if [ -z "$BASH_VERSION" ]; then
+  echo "Error: Bash is required but not found."
+  exit 1
+fi
+
+if [ "$bash_major_version" -lt "$bash_min_version" ]; then
+  echo "Error: Bash version $bash_min_version or higher is required."
+  exit 1
+fi
+
+# endregion: bash version
 # region: load .env if any
 
 [[ -f .env ]] && source .env
@@ -53,7 +71,7 @@ export TC_EXEC_VERBOSE=true
 export TC_DEPS_CA=1.5.6
 export TC_DEPS_FABRIC=2.5.4
 export TC_DEPS_COUCHDB=3.3.1
-export TC_DEPS_BINS=('awk' 'bash' 'curl' 'git' 'go' 'jq' 'configtxgen' 'yq')
+export TC_DEPS_BINS=('awk' 'bash' 'curl' 'git' 'go' 'jq' 'configtxgen' 'yq' 'gum')
 
 # endregion: versions and deps
 # region: environment
@@ -87,7 +105,7 @@ export TC_LEGACY1_NAME=trustchain-legacy
 # declare -A TC_SWARM_WORKER1=( [node]=tc2-test-worker1 [ip]=4.4.4.4 [mnt]="/x" )
 # declare -A TC_SWARM_WORKER2=( [node]=tc2-test-worker2 [ip]=5.5.5.5 [mnt]="/x" )
 # export TC_SWARM_WORKERS=("TC_SWARM_WORKER1" "TC_SWARM_WORKER2")
-
+export TC_SWARM_DOCKER=docker
 export TC_SWARM_PUBLIC=${TC_SWARM_MANAGER1[ip]}
 export TC_SWARM_INIT="--advertise-addr ${TC_SWARM_PUBLIC}:2377 --cert-expiry 1000000h0m0s"
 export TC_SWARM_MANAGER=${TC_SWARM_MANAGER1[node]}
@@ -118,6 +136,7 @@ export TC_SWARM_IMG_NODEENV=${TC_SWARM_MANAGER1[node]}:${TC_SWARM_IMG_PORT}/trus
 # endregion: swarm
 # region: gluster
 
+export TC_GLUSTER_ENABLED=$TC_GLUSTER_ENABLED
 export TC_GLUSTER_VOLUME=TrustChain
 export TC_GLUSTER_MANAGERS=("TC_SWARM_MANAGER1" "TC_SWARM_MANAGER2" "TC_SWARM_MANAGER3")
 export TC_GLUSTER_MOUNTS=()
@@ -1003,6 +1022,59 @@ export COMMON_SILENT=$TC_EXEC_SILENT
 export COMMON_VERBOSE=$TC_EXEC_VERBOSE
 
 # endregion: common funcs
+# region: gum
+
+# generic
+export WMS_GUM_BOLD="#F0EE54"
+export WMS_GUM_NORM="#00FA92"
+
+# choose
+export GUM_CHOOSE_TIMEOUT=0
+export GUM_CHOOSE_CURSOR_FOREGROUND=$WMS_GUM_BOLD
+export GUM_CHOOSE_HEADER_FOREGROUND=$WMS_GUM_BOLD
+export GUM_CHOOSE_ITEM_FOREGROUND=$WMS_GUM_NORM
+export GUM_CHOOSE_SELECTED_FOREGROUND=$WMS_GUM_BOLD
+export GUM_CHOOSE_CURSOR=$COMMON_PREFIX
+
+# confirm
+export GUM_CONFIRM_TIMEOUT=0
+export GUM_CONFIRM_PROMPT_FOREGROUND=$WMS_GUM_BOLD
+export GUM_CONFIRM_SELECTED_FOREGROUND=$WMS_GUM_NORM
+export GUM_CONFIRM_SELECTED_BACKGROUND=$WMS_GUM_BOLD
+export GUM_CONFIRM_UNSELECTED_FOREGROUND=$WMS_GUM_NORM
+
+# input
+export GUM_INPUT_CURSOR_FOREGROUND=$WMS_GUM_BOLD
+export GUM_INPUT_PROMPT_FOREGROUND=$WMS_GUM_BOLD
+export GUM_INPUT_PLACEHOLDER="your input goes here..."
+export GUM_INPUT_PROMPT=$COMMON_PREFIX
+export GUM_INPUT_WIDTH=80
+
+# spin
+export GUM_SPIN_SPINNER=points
+export GUM_SPIN_SHOW_OUTPUT=true
+export GUM_SPIN_ALIGN=left
+export GUM_SPIN_SPINNER_WIDTH=$((${#COMMON_PREFIX} -1 ))
+export GUM_SPIN_TIMEOUT=0
+export GUM_SPIN_SPINNER_FOREGROUND=$WMS_GUM_BOLD
+export GUM_SPIN_TITLE_FOREGROUND=$WMS_GUM_NORM
+export GUM_SPIN_SPINNER_MARGIN="0 0"
+export GUM_SPIN_SPINNER_PADDING="0 0"
+export GUM_SPIN_TITLE_MARGIN="0 0"
+export GUM_SPIN_TITLE_PADDING="0 0"
+
+# style
+export ALIGN=center
+export BOLD=true
+export BORDER=rounded
+export BORDER_FOREGROUND=$WMS_GUM_BOLD
+export FOREGROUND=$WMS_GUM_BOLD
+export MARGIN="1 2"
+export PADDING="2 4"
+export UNDERLINE=true
+export WIDTH=80
+
+# endregion: gum
 # region: load .env if any
 
 [[ -f .env ]] && source .env
