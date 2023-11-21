@@ -13,12 +13,12 @@ bash_major_version=$(echo "$BASH_VERSION" | cut -d. -f1)
 
 if [ -z "$BASH_VERSION" ]; then
   echo "Error: Bash is required but not found."
-  exit 1
+#   exit 1
 fi
 
 if [ "$bash_major_version" -lt "$bash_min_version" ]; then
   echo "Error: Bash version $bash_min_version or higher is required."
-  exit 1
+#   exit 1
 fi
 
 # endregion: bash version
@@ -49,13 +49,22 @@ export PATH=${TC_PATH_BIN}:${TC_PATH_SCRIPTS}:${GOBIN}:$PATH
 # dirs under workbench
 export TC_PATH_WORKBENCH=$TC_PATH_WORKBENCH
 export TC_PATH_WORKBENCH_COMMON=${TC_PATH_WORKBENCH}/common
-export TC_PATH_SWARM=${TC_PATH_WORKBENCH_COMMON}/swarm
+export TC_PATH_SWARM=${TC_PATH_WORKBENCH}/swarm
 export TC_PATH_ORGS=${TC_PATH_WORKBENCH}
-export TC_PATH_CHANNELS=${TC_PATH_WORKBENCH_COMMON}/artifacts/channels
-export TC_PATH_LEGACY=${TC_PATH_WORKBENCH_COMMON}/artifacts/legacy
-export TC_PATH_CHAINCODE=${TC_PATH_WORKBENCH_COMMON}/artifacts/chaincode
+export TC_PATH_CHANNELS=${TC_PATH_WORKBENCH}/artifacts/channels
+export TC_PATH_LEGACY=${TC_PATH_WORKBENCH}/artifacts/legacy
+export TC_PATH_CHAINCODE=${TC_PATH_WORKBENCH}/artifacts/chaincode
+export TC_PATH_DEVENV=${TC_PATH_WORKBENCH}/devenv
 
 # endregion: base paths
+# region: go
+
+export CGO_ENABLED=0 
+export GOPATH=${GOPATH}
+export GOBIN=${GOPATH}/bin
+export GOOS=linux
+
+# endregion: go
 # region: exec control
 
 export TC_EXEC_DRY=false
