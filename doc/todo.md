@@ -4,6 +4,8 @@
 
 ## next
 
+* fairgrind erc-20 chaincode
+* docker registry from wms?
 * backup
 * delete legacy
   * Contabo
