@@ -2084,7 +2084,13 @@ ccVersion=1
 [[ "$TC_EXEC_DRY" == false ]] && commonYN "approve te-food-bundles chaincode on ${TC_CHANNEL2_NAME}?" bash ${TC_PATH_SCRIPTS}/tcChaincodeAprove.sh "te-food-bundles" "$TC_CHANNEL2_NAME" $ccVersion
 
 [[ "$TC_EXEC_DRY" == false ]] && commonYN "approve te-food-bundles chaincode on ${TC_LEGACY1_NAME}?" bash ${TC_PATH_SCRIPTS}/tcChaincodeAprove.sh "te-food-bundles" "$TC_LEGACY1_NAME" $ccVersion
+
+[[ "$TC_EXEC_DRY" == false ]] && commonYN "install fairgrind-tasks chaincode on endoreser peers?" bash ${TC_PATH_SCRIPTS}/tcChaincodeInstall.sh "fairgrind-tasks" $ccVersion
+[[ "$TC_EXEC_DRY" == false ]] && commonYN "approve fairgrind-tasks chaincode on ${TC_CHANNEL1_NAME}?" bash ${TC_PATH_SCRIPTS}/tcChaincodeAprove.sh "fairgrind-tasks" "$TC_CHANNEL1_NAME" $ccVersion
+[[ "$TC_EXEC_DRY" == false ]] && commonYN "approve fairgrind-tasks chaincode on ${TC_CHANNEL2_NAME}?" bash ${TC_PATH_SCRIPTS}/tcChaincodeAprove.sh "fairgrind-tasks" "$TC_CHANNEL2_NAME" $ccVersion
+
 unset ccVersion
+
 
 # endregion: deploy chaincode
 # region: raw api
