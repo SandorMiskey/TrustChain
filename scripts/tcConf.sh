@@ -12,13 +12,13 @@ bash_min_version=5
 bash_major_version=$(echo "$BASH_VERSION" | cut -d. -f1)
 
 if [ -z "$BASH_VERSION" ]; then
-  echo "Error: Bash is required but not found."
+	echo "Error: Bash is required but not found."
 #   exit 1
 fi
 
 if [ "$bash_major_version" -lt "$bash_min_version" ]; then
-  echo "Error: Bash version $bash_min_version or higher is required."
-#   exit 1
+	echo "Error: Bash version $bash_min_version or higher is required."
+	exit 1
 fi
 
 # endregion: bash version
