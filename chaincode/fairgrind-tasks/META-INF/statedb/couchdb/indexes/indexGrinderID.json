@@ -1,0 +1,8 @@
+{
+	"index": {
+		"fields": ["doc_type", "grinder_id"]
+	},
+	"ddoc": "indexGrinderIDDoc",
+	"name": "indexGrinderID",
+	"type": "json"
+}

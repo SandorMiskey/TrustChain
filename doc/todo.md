@@ -4,6 +4,7 @@
 
 ## next
 
+* tcDevenv.sh
 * fairgrind erc-20 chaincode
 * docker registry from wms?
 * backup

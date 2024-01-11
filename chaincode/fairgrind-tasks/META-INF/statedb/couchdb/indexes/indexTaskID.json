@@ -1,0 +1,8 @@
+{
+	"index": {
+		"fields": ["doc_type", "task_id"]
+	},
+	"ddoc": "indexTaskIDDoc",
+	"name": "indexTaskID",
+	"type": "json"
+}

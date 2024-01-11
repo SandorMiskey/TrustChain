@@ -2,6 +2,7 @@ go 1.18
 
 use (
 	./chaincode/basic
+	./chaincode/fairgrind-tasks
 	./chaincode/te-food-bundles
 	./migration2
 	./rawapi

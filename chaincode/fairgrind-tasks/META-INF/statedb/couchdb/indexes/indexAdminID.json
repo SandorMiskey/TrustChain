@@ -1,0 +1,8 @@
+{
+	"index": {
+		"fields": ["doc_type", "admin_id"]
+	},
+	"ddoc": "indexAdminIDDoc",
+	"name": "indexAdminID",
+	"type": "json"
+}
