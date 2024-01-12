@@ -40,6 +40,7 @@ type Task struct {
 	ProjectID          string      `json:"project_id"`
 	RawID              string      `json:"raw_id"`
 	RelatedTxID        []string    `json:"related_tx_id"`
+	RelatedUpdateTxID  []string    `json:"related_update_tx_id"`
 	TaskID             string      `json:"task_id"`
 	TaskStatusID       string      `json:"task_status_id"`
 	TaskTypeID         string      `json:"task_type_id"`
