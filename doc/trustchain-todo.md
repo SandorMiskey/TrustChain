@@ -4,8 +4,9 @@
 
 ## next
 
-* tcDevenv.sh
 * fairgrind erc-20 chaincode
+  * 1 chaincode, multiple tokens
+* tcDevenv.sh
 * docker registry from wms?
 * backup
 * delete legacy
