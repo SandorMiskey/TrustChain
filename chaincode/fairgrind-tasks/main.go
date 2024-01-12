@@ -30,18 +30,19 @@ type Chaincode struct {
 }
 
 type Task struct {
+	AdminID            string      `json:"admin_id"`
+	Confidential       string      `json:"confidential"`
+	GrinderID          string      `json:"grinder_id"`
 	DocType            string      `json:"doc_type"` //docType is used to distinguish the various types of objects in state database
+	NumberOfOperations int16       `json:"number_of_operations"`
+	ProductBase64      string      `json:"product_base64"`
+	ProductHash        string      `json:"product_hash"`
+	ProjectID          string      `json:"project_id"`
+	RawID              string      `json:"raw_id"`
+	RelatedTxID        []string    `json:"related_tx_id"`
 	TaskID             string      `json:"task_id"`
 	TaskStatusID       string      `json:"task_status_id"`
 	TaskTypeID         string      `json:"task_type_id"`
-	ProjectID          string      `json:"project_id"`
-	GrinderID          string      `json:"grinder_id"`
-	AdminID            string      `json:"admin_id"`
-	ConfidentialFlag   string      `json:"confidential_flag"`
-	ProductBase64      string      `json:"product_base64"`
-	ProductHash        string      `json:"product_hash"`
-	NumberOfOperations int16       `json:"number_of_operations"`
-	RelatedTxID        []string    `json:"related_tx_id"`
 	TxID               string      `json:"tx_id"`
 	TxTimestamp        string      `json:"tx_timestamp"`
 	UpdateTxID         interface{} `json:"update_tx_id"`
@@ -142,23 +143,20 @@ func getQueryResultForQueryStringWithPagination(ctx contractapi.TransactionConte
 // endregion: helpers
 // region: queries
 
-/*
-
-func (t *Chaincode) Exists(ctx contractapi.TransactionContextInterface, bundleID string) (bool, error) {
+func (t *Chaincode) Exists(ctx contractapi.TransactionContextInterface, taskID string) (bool, error) {
 
 	// returns true when bundle with given ID exists in the ledger
-	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.BundleExists queried with -> %s", bundleID))
 
-	bundleBytes, err := ctx.GetStub().GetState(bundleID)
+	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.BundleExists queried with -> %s", taskID))
+
+	taskBytes, err := ctx.GetStub().GetState(taskID)
 	if err != nil {
-		msg := fmt.Errorf("failed to read bundle %s from world state. %v", bundleID, err)
+		msg := fmt.Errorf("failed to read task %s from world state. %v", taskID, err)
 		Logger.Out(log.LOG_ERR, msg)
 		return false, msg
 	}
-	return bundleBytes != nil, nil
+	return taskBytes != nil, nil
 }
-
-*/
 
 func (t *Chaincode) History(ctx contractapi.TransactionContextInterface, taskID string) ([]HistoryQueryResult, error) {
 
@@ -381,6 +379,7 @@ func (t *Chaincode) Validate(ctx contractapi.TransactionContextInterface, taskSt
 func (t *Chaincode) Register(ctx contractapi.TransactionContextInterface, taskStr string) (*Task, error) {
 
 	// initializes a new task in the ledger
+
 	Logger.Out(log.LOG_DEBUG, "t.Register invoked with", taskStr)
 
 	// region: validate
@@ -413,13 +412,13 @@ func (t *Chaincode) Register(ctx contractapi.TransactionContextInterface, taskSt
 	// endregion: parse json
 	// region: check if exists
 
-	exists, err := t.Get(ctx, taskIn.TaskID)
+	exists, err := t.Exists(ctx, taskIn.TaskID)
 	if err != nil {
 		msg := fmt.Errorf("failed to get task: %v", err)
 		Logger.Out(log.LOG_ERR, msg)
 		return nil, msg
 	}
-	if exists == nil {
+	if exists {
 		msg := fmt.Errorf("task already exists: %v", taskIn.TaskID)
 		Logger.Out(log.LOG_ERR, msg)
 		return nil, msg
@@ -440,7 +439,7 @@ func (t *Chaincode) Register(ctx contractapi.TransactionContextInterface, taskSt
 	taskOut.UpdateTxID = nil
 	taskOut.UpdateTimestamp = nil
 
-	if taskIn.ConfidentialFlag == "1" {
+	if taskIn.Confidential == "1" {
 		taskOut.ProductBase64 = ""
 	}
 
@@ -494,6 +493,7 @@ func (t *Chaincode) Delete(ctx contractapi.TransactionContextInterface, taskID s
 func (t *Chaincode) Update(ctx contractapi.TransactionContextInterface, taskStr string) (*Task, error) {
 
 	// reset task except tx_id and timestamps
+
 	Logger.Out(log.LOG_DEBUG, "t.UpdateBundleById invoked with", taskStr)
 
 	// region: validate
@@ -552,7 +552,7 @@ func (t *Chaincode) Update(ctx contractapi.TransactionContextInterface, taskStr 
 	// taskOut.UpdateTimestamp = now.Format(time.RFC3339)
 	taskOut.UpdateTimestamp = now.Format("2006-01-02T15:04:00Z")
 
-	if taskIn.ConfidentialFlag == "1" {
+	if taskIn.Confidential == "1" {
 		taskOut.ProductBase64 = ""
 	}
 

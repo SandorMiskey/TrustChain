@@ -4,9 +4,26 @@
 
 ## next
 
-* fairgrind erc-20 chaincode
+* fairgrind-tasks
+  * check api w/ postman
+    * Register
+    * Delete
+    * Update
+    * Get
+    * History
+    * GetRange
+  * validations
+  * hashed || !hashed
+* fairgrind erc-20 chaincode @ trustchain
   * 1 chaincode, multiple tokens
-* tcDevenv.sh
+  * update fairgrind-tasks w/ tx_id
+* fairgrind eth erc-20 token
+  * on-the-fly mint
+  * burn
+* trustchain -> mainnet bridge
+
+## soon
+
 * docker registry from wms?
 * backup
 * delete legacy
@@ -17,6 +34,7 @@
 
 ## backlog
 
+* tcDevenv.sh
 * Rawapi:
   * rewrite: use migration/fabric
   * Lator.Exe on-the-fly
