@@ -47,6 +47,7 @@
     "latorport",
     "latorproto",
     "Loglevel",
+    "LOGPREFIX",
     "logspout",
     "masternodes",
     "MAXTOKENSIZE",

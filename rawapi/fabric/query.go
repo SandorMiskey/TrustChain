@@ -67,6 +67,7 @@ func (setup *OrgSetup) Query(ctx *fasthttp.RequestCtx) {
 
 	resultByte, err := request.contract.EvaluateTransaction(request.form.Function, request.form.Args...)
 	if err != nil {
+		logger(log.LOG_DEBUG, ctx.ID(), resultByte)
 		request.error(err)
 		return
 	}
@@ -107,6 +108,14 @@ func (setup *OrgSetup) Query(ctx *fasthttp.RequestCtx) {
 	}
 
 	// endregion: protobuf
+	// region: empty result
+
+	if len(resultByte) == 0 {
+		logger(log.LOG_DEBUG, "empty resultByte")
+		resultByte = []byte("[]")
+	}
+
+	// endregion: empty result
 	// region: deconstruct result
 
 	var rawData json.RawMessage
@@ -114,7 +123,7 @@ func (setup *OrgSetup) Query(ctx *fasthttp.RequestCtx) {
 	err = json.Unmarshal([]byte(resultByte), &rawData)
 	if err != nil {
 		// logger(log.LOG_WARNING, ctx.ID(), fmt.Sprintf("error processing result into even json.RawMessage -> %s -> %s", resultByte, err))
-		logger(log.LOG_WARNING, response.CTX.ID(), fmt.Sprintf("error processing result into even json.RawMessage -> %s", err))
+		logger(log.LOG_WARNING, response.CTX.ID(), "error processing result into even json.RawMessage", err, resultByte, rawData)
 		request.error(err)
 		return
 	} else {

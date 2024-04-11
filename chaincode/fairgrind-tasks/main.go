@@ -73,33 +73,41 @@ type PaginatedQueryResult struct {
 func constructQueryResponseFromIterator(resultsIterator shim.StateQueryIteratorInterface) ([]*Task, error) {
 
 	// constructQueryResponseFromIterator constructs a slice of bundles from the resultsIterator
+
 	Logger.Out(log.LOG_DEBUG, "constructQueryResponseFromIterator helper in action")
 
-	var bundles []*Task
+	var tasks []*Task
 	for resultsIterator.HasNext() {
+		Logger.Out(log.LOG_DEBUG, "result iterator has next", resultsIterator.HasNext())
+
 		queryResult, err := resultsIterator.Next()
 		if err != nil {
 			msg := fmt.Errorf("error in constructQueryResponseFromIterator when resultsIterator.Next(): %s", err)
 			Logger.Out(log.LOG_ERR, msg)
 			return nil, msg
 		}
-		var task Task
+
+		var task = Task{
+			RelatedTxID:       []string{},
+			RelatedUpdateTxID: []string{},
+		}
 		err = json.Unmarshal(queryResult.Value, &task)
 		if err != nil {
-			msg := fmt.Errorf("error in constructQueryResponseFromIterator when json.Unmarshal(queryResult.Value, &bundle): %s", err)
+			msg := fmt.Errorf("error in constructQueryResponseFromIterator when json.Unmarshal(queryResult.Value, &task): %s", err)
 			Logger.Out(log.LOG_ERR, msg)
 			return nil, msg
 		}
-		bundles = append(bundles, &task)
+		tasks = append(tasks, &task)
 	}
 
-	return bundles, nil
+	return tasks, nil
 }
 
 func getQueryResultForQueryString(ctx contractapi.TransactionContextInterface, queryString string) ([]*Task, error) {
 
 	// getQueryResultForQueryString executes the passed in query string. The
 	// result set is built and returned as a byte array containing the JSON results.
+
 	Logger.Out(log.LOG_DEBUG, "getQueryResultForQueryString helper in action")
 
 	resultsIterator, err := ctx.GetStub().GetQueryResult(queryString)
@@ -186,7 +194,7 @@ func (t *Chaincode) History(ctx contractapi.TransactionContextInterface, taskID 
 			Logger.Out(log.LOG_ERR, msg)
 			return nil, msg
 		}
-		Logger.Out(log.LOG_DEBUG, "t.History new record read")
+		Logger.Out(log.LOG_DEBUG, "t.History new record read", response)
 
 		// validate record
 		var task Task
@@ -199,10 +207,12 @@ func (t *Chaincode) History(ctx contractapi.TransactionContextInterface, taskID 
 			}
 		} else {
 			task = Task{
-				TaskID: taskID,
+				TaskID:            taskID,
+				RelatedTxID:       []string{},
+				RelatedUpdateTxID: []string{},
 			}
 		}
-		Logger.Out(log.LOG_DEBUG, "t.History valid record")
+		Logger.Out(log.LOG_DEBUG, "t.History valid record", task)
 
 		// check timestamp
 		err = response.Timestamp.CheckValid()
@@ -221,7 +231,7 @@ func (t *Chaincode) History(ctx contractapi.TransactionContextInterface, taskID 
 			IsDelete:  response.IsDelete,
 		}
 		records = append(records, record)
-		Logger.Out(log.LOG_DEBUG, "t.History new record")
+		Logger.Out(log.LOG_DEBUG, "t.History new record", record)
 
 	}
 
@@ -296,12 +306,20 @@ func (t *Chaincode) GetRangeWithPagination(ctx contractapi.TransactionContextInt
 		Logger.Out(log.LOG_ERR, msg)
 		return nil, msg
 	}
-
-	return &PaginatedQueryResult{
-		Records:             tasks,
-		FetchedRecordsCount: responseMetadata.FetchedRecordsCount,
-		Bookmark:            responseMetadata.Bookmark,
-	}, nil
+	if len(tasks) == 0 {
+		Logger.Out(log.LOG_DEBUG, "no result set in GetRangeWithPagination")
+		return &PaginatedQueryResult{
+			Records:             []*Task{},
+			FetchedRecordsCount: responseMetadata.FetchedRecordsCount,
+			Bookmark:            responseMetadata.Bookmark,
+		}, nil
+	} else {
+		return &PaginatedQueryResult{
+			Records:             tasks,
+			FetchedRecordsCount: responseMetadata.FetchedRecordsCount,
+			Bookmark:            responseMetadata.Bookmark,
+		}, nil
+	}
 }
 
 func (t *Chaincode) Query(ctx contractapi.TransactionContextInterface, queryString string) ([]*Task, error) {
@@ -329,7 +347,60 @@ func (t *Chaincode) QueryWithPagination(ctx contractapi.TransactionContextInterf
 
 func (t *Chaincode) Validate(ctx contractapi.TransactionContextInterface, taskStr string) (bool, error) {
 
-	// BundleValidate validates bundle.DataHash against computed from bundle.DataBase64
+	// Validate validates task.ProductHash against computed from task.ProductBase64
+
+	Logger.Out(log.LOG_DEBUG, "t.BundleValidate invoked with", taskStr)
+
+	// region: parse json
+
+	var taskIn Task
+
+	err := json.Unmarshal([]byte(taskStr), &taskIn)
+	if err != nil {
+		msg := fmt.Errorf("t.Validate: error parsing bundle: %s (%s)", err, taskStr)
+		Logger.Out(log.LOG_ERR, msg)
+		return false, msg
+	}
+	Logger.Out(log.LOG_DEBUG, fmt.Sprintf("t.Validate: taskStr unmarshal -> %#v", taskIn))
+
+	// endregion: parse json
+	// region: decode the base64 encoded string
+
+	taskIn.ProductBase64 = strings.Replace(taskIn.ProductBase64, " ", "+", -1)
+
+	decodedBytes, err := base64.StdEncoding.DecodeString(taskIn.ProductBase64)
+	if err != nil {
+		msg := fmt.Errorf("t.Validate: unable to decode taskIn.ProductBase64: %s (%s)", err, taskIn.ProductBase64)
+		Logger.Out(log.LOG_ERR, msg)
+		return false, msg
+	}
+
+	// endregion: decode
+	// region: compute the SHA256 hash
+
+	// check if the hash matches the base64 encoded string
+	hashBytes := sha256.Sum256(decodedBytes)
+	hashString := hex.EncodeToString(hashBytes[:])
+	if taskIn.ProductHash != hashString {
+
+		// check if the hash matches the base64 encoded string
+		encodedHashBytes := sha256.Sum256([]byte(taskIn.ProductBase64))
+		encodedHashString := hex.EncodeToString(encodedHashBytes[:])
+		if taskIn.ProductHash != encodedHashString {
+			Logger.Out(log.LOG_WARNING, "t.Validate: taskIn.ProductHash != hashString && taskIn.ProductHash != encodedHashString", taskIn.ProductHash, hashString, encodedHashString)
+			return false, nil
+		}
+	}
+	Logger.Out(log.LOG_DEBUG, "t.Validate: taskIn.ProductHash == hashString", taskIn.ProductHash, hashString)
+	return true, nil
+	// endregion: compute
+}
+
+/*
+func (t *Chaincode) Validate(ctx contractapi.TransactionContextInterface, taskStr string) (bool, error) {
+
+	// Validate validates task.ProductHash against computed from task.ProductBase64
+
 	Logger.Out(log.LOG_DEBUG, "t.BundleValidate invoked with", taskStr)
 
 	// region: parse json
@@ -373,6 +444,7 @@ func (t *Chaincode) Validate(ctx contractapi.TransactionContextInterface, taskSt
 	// endregion: compute
 
 }
+*/
 
 // endregion: queries
 // region: invokes

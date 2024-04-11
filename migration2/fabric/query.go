@@ -22,5 +22,5 @@ func Query(r *Request) (*Response, *ResponseError) {
 }
 
 func (r *Request) Query() (*Response, *ResponseError) {
-	return Invoke(r)
+	return Query(r)
 }

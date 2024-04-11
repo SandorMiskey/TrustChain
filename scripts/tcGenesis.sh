@@ -2155,17 +2155,17 @@ _buildRaw() {
 	# region: redeploy
 
 	commonPrintf "redeploying ${TC_NETWORK_NAME}_${TC_ORG1_STACK}_${TC_ORG1_GW1_NAME}"
-	out=$( docker service update --replicas 1 ${TC_NETWORK_NAME}_${TC_ORG1_STACK}_${TC_ORG1_GW1_NAME} 2>&1 )
+	out=$( docker service update --replicas 0 ${TC_NETWORK_NAME}_${TC_ORG1_STACK}_${TC_ORG1_GW1_NAME} 2>&1 )
 	commonVerify $? "failed: $out"
 	commonPrintf "redeploying ${TC_NETWORK_NAME}_${TC_ORG1_STACK}_${TC_ORG1_GW2_NAME}"
-	out=$( docker service update --replicas 1 ${TC_NETWORK_NAME}_${TC_ORG1_STACK}_${TC_ORG1_GW2_NAME} 2>&1 )
+	out=$( docker service update --replicas 0 ${TC_NETWORK_NAME}_${TC_ORG1_STACK}_${TC_ORG1_GW2_NAME} 2>&1 )
 	commonVerify $? "failed: $out"
 	commonPrintf "redeploying ${TC_NETWORK_NAME}_${TC_ORG1_STACK}_${TC_ORG1_GW3_NAME}"
-	out=$( docker service update --replicas 1 ${TC_NETWORK_NAME}_${TC_ORG1_STACK}_${TC_ORG1_GW3_NAME} 2>&1 )
+	out=$( docker service update --replicas 0 ${TC_NETWORK_NAME}_${TC_ORG1_STACK}_${TC_ORG1_GW3_NAME} 2>&1 )
 	commonVerify $? "failed: $out"
 
 	commonPrintf "redeploying ${TC_NETWORK_NAME}_${TC_ORG2_STACK}_${TC_ORG2_GW1_NAME}"
-	out=$( docker service update --replicas 1 ${TC_NETWORK_NAME}_${TC_ORG2_STACK}_${TC_ORG2_GW1_NAME} 2>&1 )
+	out=$( docker service update --replicas 0 ${TC_NETWORK_NAME}_${TC_ORG2_STACK}_${TC_ORG2_GW1_NAME} 2>&1 )
 	commonVerify $? "failed: $out"
 
 	commonPrintf "redeploying ${TC_NETWORK_NAME}_${TC_ORG3_STACK}_${TC_ORG3_GW1_NAME}"

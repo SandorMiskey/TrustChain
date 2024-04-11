@@ -4,19 +4,12 @@
 
 ## next
 
-* fairgrind-tasks
-  * check api w/ postman
-    * Register
-    * Delete
-    * Update
-    * Get
-    * History
-    * GetRange
-  * validations
-  * hashed || !hashed
 * fairgrind erc-20 chaincode @ trustchain
   * 1 chaincode, multiple tokens
+  * minter: only endorsers' admin
   * update fairgrind-tasks w/ tx_id
+* grinder's org?
+  * create grinder identity w/ api/interface
 * fairgrind eth erc-20 token
   * on-the-fly mint
   * burn
@@ -24,6 +17,7 @@
 
 ## soon
 
+* fairgrind-task validations
 * docker registry from wms?
 * backup
 * delete legacy
